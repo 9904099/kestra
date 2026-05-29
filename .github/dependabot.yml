@@ -124,10 +124,6 @@ updates:
           ]
 
     ignore:
-      # Ignore all kestra-sdk updates — internal package, develop pre-releases must not be managed by Dependabot
-      - dependency-name: "@kestra-io/kestra-sdk"
-        versions: ["*"]
-
       # Ignore TypeScript major updates (v6 currently conflicts with @typescript-eslint/parser which requires <6.0.0)
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
