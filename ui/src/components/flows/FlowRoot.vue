@@ -35,7 +35,6 @@
     import FlowMetrics from "./FlowMetrics.vue"
     import MultiPanelFlowEditorView from "./MultiPanelFlowEditorView.vue"
     import FlowTriggers from "./FlowTriggers.vue"
-    import FlowRootTopBar from "./FlowRootTopBar.vue"
     import FlowConcurrency from "./FlowConcurrency.vue"
     import DemoAuditLogs from "../demo/AuditLogs.vue"
     import {useAuthStore} from "override/stores/auth"

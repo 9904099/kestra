@@ -12,14 +12,9 @@
     {"path": "./packages/design-system/tsconfig.app.json"}
   ],
   "include": [
-    "scripts/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/**/*.json",
-    "tests/fixtures/**/*.ts"
-  ],
-  "exclude": [
-    "src/translations/check.ts"
+    "src/**/*.json"
   ]
 }

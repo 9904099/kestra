@@ -10,6 +10,13 @@
             @search="filter = $event"
             @filter="syncFromAppliedFilters"
         />
+        <QuickFilters
+            :levels="logLevels"
+            :level="effectiveLevel?.value"
+            :showInterval="false"
+            :levelLabel="$t('filter.level_log_executions.label')"
+            @update:level="(value) => setLevelRouteValue({value, direction: 'min'})"
+        />
         <Collapse>
             <KsFormItem v-for="logLevel in currentLevelOrLower" :key="logLevel">
                 <LogLevelNavigator

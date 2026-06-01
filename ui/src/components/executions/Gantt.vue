@@ -14,6 +14,13 @@
             @search="search = $event"
             @filter="onFilterChange"
         />
+        <QuickFilters
+            :levels="VALUES.LEVELS"
+            :level="effectiveSelectedLogLevel?.value"
+            :showInterval="false"
+            :levelLabel="t('filter.level_log_executions.label')"
+            @update:level="(value: string) => setLevelRouteValue({value, direction: 'min'})"
+        />
         <div class="gantt-stage">
             <KsCard
                 id="gantt"
@@ -160,6 +167,8 @@
     import {useRouteFilterPolicy} from "@kestra-io/design-system"
     import type {LevelFilterValue} from "@kestra-io/design-system"
     import {useExecutionsStore, type Execution} from "../../stores/executions"
+    import {useValues} from "../filter/composables/useValues"
+    import QuickFilters from "../filter/QuickFilters.vue"
 
     interface TaskRun {
         id: string;
@@ -254,7 +263,10 @@
 
     // Log level filter policy
     const defaultLogLevel = computed(() => localStorage.getItem("defaultLogLevel") || "INFO")
-    const {effectiveValue: effectiveSelectedLogLevel} = useRouteFilterPolicy<LevelFilterValue>({
+    const {
+        effectiveValue: effectiveSelectedLogLevel,
+        setRouteValue: setLevelRouteValue,
+    } = useRouteFilterPolicy<LevelFilterValue>({
         defaultValue: () => ({value: defaultLogLevel.value, direction: "min"}),
         applyDefaultIfMissing: () => true,
         fallbackValue: () => ({value: "TRACE", direction: "min"}),
@@ -262,6 +274,7 @@
         writeToRoute: normalizeRouteLevelFilter,
         hasUnsupportedRouteValue: hasUnsupportedRouteLevelComparator,
     })
+    const {VALUES} = useValues("logs")
 
     // Computed properties
     const execution = computed<Execution | undefined>(() => executionsStore.execution)
@@ -473,7 +486,7 @@
                 left,
                 tooltip,
                 color: colors[task.state.current],
-                running: State.isRunning(task.state.current),
+                running: Boolean(State.isRunning(task.state.current)),
                 task,
                 flowId: task.flowId,
                 namespace: task.namespace,
