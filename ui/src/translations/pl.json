@@ -138,7 +138,17 @@
       "kbd_close": "zamknij",
       "tab_suggested": "Sugerowane",
       "tab_apps": "Wg aplikacji",
-      "tab_recent": "Ostatnie"
+      "tab_recent": "Ostatnie",
+      "inputs": "Inputs",
+      "inputs_sub": "dane dostępne tutaj",
+      "output": "Output",
+      "output_sub": "co produkuje ta task",
+      "upstream_outputs": "Outputs powyżej",
+      "flow_inputs": "Flow inputs",
+      "execution_context": "Kontekst wykonania",
+      "declared_outputs": "Zadeklarowane Outputs",
+      "filter_data": "Filtruj dostępne dane…",
+      "no_data_matches": "Nic nie pasuje do filtra"
     },
     "blueprints": {
       "all": "Wszystkie",

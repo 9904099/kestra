@@ -138,7 +138,17 @@
       "kbd_close": "बंद करें",
       "tab_suggested": "सुझाई गई",
       "tab_apps": "ऐप अनुसार",
-      "tab_recent": "हाल की"
+      "tab_recent": "हाल की",
+      "inputs": "Inputs",
+      "inputs_sub": "यहाँ उपयोग करने योग्य डेटा",
+      "output": "Output",
+      "output_sub": "यह task क्या उत्पन्न करती है",
+      "upstream_outputs": "अपस्ट्रीम Outputs",
+      "flow_inputs": "Flow inputs",
+      "execution_context": "निष्पादन संदर्भ",
+      "declared_outputs": "घोषित Outputs",
+      "filter_data": "उपलब्ध डेटा फ़िल्टर करें…",
+      "no_data_matches": "फ़िल्टर से कुछ मेल नहीं खाता"
     },
     "blueprints": {
       "all": "सभी",

@@ -74,15 +74,34 @@
         </div>
 
         <div class="task-edit-panel-body">
-            <TaskEditPanes
-                :modelValue="taskYaml"
-                :activeTab="activeTabs"
-                :section="section"
-                :readOnly="readOnly"
-                :pluginMarkdown="pluginMarkdown"
-                @update:activeTab="activeTabs = $event"
-                @input="onInput"
-                @save="saveTask"
+            <TaskEditData
+                class="task-edit-col-inputs"
+                kind="inputs"
+                :title="$t('block_editor.inputs')"
+                :subtitle="$t('block_editor.inputs_sub')"
+                :sections="inputSections"
+                :filterable="true"
+            />
+
+            <div class="task-edit-col-params">
+                <TaskEditPanes
+                    :modelValue="taskYaml"
+                    :activeTab="activeTabs"
+                    :section="section"
+                    :readOnly="readOnly"
+                    :pluginMarkdown="pluginMarkdown"
+                    @update:activeTab="activeTabs = $event"
+                    @input="onInput"
+                    @save="saveTask"
+                />
+            </div>
+
+            <TaskEditData
+                class="task-edit-col-output"
+                kind="output"
+                :title="$t('block_editor.output')"
+                :subtitle="$t('block_editor.output_sub')"
+                :sections="outputSections"
             />
         </div>
 
@@ -103,12 +122,14 @@
 
 <script setup lang="ts">
     import {ref, computed, watch} from "vue"
+    import {useI18n} from "vue-i18n"
     import {SECTIONS, KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
     import CodeTags from "vue-material-design-icons/CodeTags.vue"
     import ContentSave from "vue-material-design-icons/ContentSave.vue"
     import Close from "vue-material-design-icons/Close.vue"
     import TaskEditPanes from "./TaskEditPanes.vue"
+    import TaskEditData from "./TaskEditData.vue"
     import {canSaveFlowTemplate} from "../../utils/flowTemplate"
     import ValidationError from "./ValidationError.vue"
     import {usePluginsStore} from "../../stores/plugins"
@@ -154,6 +175,7 @@
     }>()
 
     const pluginsStore = usePluginsStore()
+    const {t} = useI18n()
 
     const taskYaml = ref("")
     const taskBaseline = ref("")
@@ -181,6 +203,74 @@
             return pluginsStore?.plugin.markdown
         }
         return null
+    })
+
+    function flattenTaskIds(tasks: any, acc: string[]) {
+        if (!Array.isArray(tasks)) return
+        for (const task of tasks) {
+            if (task?.id) acc.push(String(task.id))
+            for (const key of ["tasks", "then", "else", "errors", "finally", "defaults"]) flattenTaskIds(task?.[key], acc)
+            if (task?.cases && typeof task.cases === "object") {
+                for (const branch of Object.values(task.cases)) flattenTaskIds(branch, acc)
+            }
+        }
+    }
+
+    const currentTaskId = computed(() => String(props.taskId ?? props.task?.id ?? ""))
+
+    const inputSections = computed(() => {
+        const flow = flowStore.flowParsed ?? {}
+        const sections: {key: string; label: string; chips: {label: string; expr: string}[]}[] = []
+
+        const ids: string[] = []
+        flattenTaskIds(flow.tasks, ids)
+        flattenTaskIds(flow.errors, ids)
+        flattenTaskIds(flow.finally, ids)
+        const upstream = [...new Set(ids)].filter(id => id && id !== currentTaskId.value)
+        if (upstream.length) {
+            sections.push({key: "outputs", label: t("block_editor.upstream_outputs"), chips: upstream.map(id => ({label: id, expr: `{{ outputs.${id} }}`}))})
+        }
+
+        const inputs = Array.isArray(flow.inputs) ? flow.inputs : []
+        if (inputs.length) {
+            sections.push({key: "inputs", label: t("block_editor.flow_inputs"), chips: inputs.map((i: any) => {
+                const id = String(i.id ?? i.name ?? "")
+                return {label: id, expr: `{{ inputs.${id} }}`}
+            })})
+        }
+
+        const ctx = [
+            {label: "flow.id", expr: "{{ flow.id }}"},
+            {label: "flow.namespace", expr: "{{ flow.namespace }}"},
+            {label: "execution.id", expr: "{{ execution.id }}"},
+            {label: "execution.startDate", expr: "{{ execution.startDate }}"},
+            {label: "taskrun.id", expr: "{{ taskrun.id }}"},
+            {label: "trigger.date", expr: "{{ trigger.date }}"},
+            {label: "now()", expr: "{{ now() }}"},
+            {label: "labels", expr: "{{ labels }}"},
+        ]
+        if (flow.variables && typeof flow.variables === "object") {
+            for (const key of Object.keys(flow.variables)) ctx.push({label: `vars.${key}`, expr: `{{ vars.${key} }}`})
+        }
+        sections.push({key: "context", label: t("block_editor.execution_context"), chips: ctx})
+
+        return sections
+    })
+
+    const outputSections = computed(() => {
+        const id = currentTaskId.value || "task_id"
+        const candidates = [
+            (pluginsStore.plugin as any)?.schema?.outputs?.properties,
+            (pluginsStore.plugin as any)?.outputs?.properties,
+            (pluginsStore.editorPlugin as any)?.schema?.outputs?.properties,
+            (pluginsStore.editorPlugin as any)?.outputs?.properties,
+        ]
+        const properties = candidates.find(c => c && typeof c === "object")
+        const names = properties ? Object.keys(properties) : []
+        const chips = names.length
+            ? names.map(name => ({label: name, expr: `{{ outputs.${id}.${name} }}`}))
+            : [{label: "outputs", expr: `{{ outputs.${id} }}`}]
+        return [{key: "out", label: t("block_editor.declared_outputs"), chips}]
     })
 
     const authStore = useAuthStore()
@@ -333,8 +423,24 @@
     .task-edit-panel-body {
         flex: 1;
         min-height: 0;
+        display: flex;
+    }
+
+    .task-edit-col-inputs {
+        flex: 0 0 240px;
+        border-right: 1px solid var(--ks-border-subtle);
+    }
+
+    .task-edit-col-params {
+        flex: 1;
+        min-width: 0;
         overflow-y: auto;
         padding: var(--ks-spacing-4);
+    }
+
+    .task-edit-col-output {
+        flex: 0 0 260px;
+        border-left: 1px solid var(--ks-border-subtle);
     }
 
     .task-edit-panel-footer {

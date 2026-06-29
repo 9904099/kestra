@@ -138,7 +138,17 @@
       "kbd_close": "закрыть",
       "tab_suggested": "Рекомендуемые",
       "tab_apps": "По приложению",
-      "tab_recent": "Недавние"
+      "tab_recent": "Недавние",
+      "inputs": "Inputs",
+      "inputs_sub": "данные, доступные здесь",
+      "output": "Output",
+      "output_sub": "что производит эта task",
+      "upstream_outputs": "Outputs выше по потоку",
+      "flow_inputs": "Flow inputs",
+      "execution_context": "Контекст выполнения",
+      "declared_outputs": "Объявленные Outputs",
+      "filter_data": "Фильтр доступных данных…",
+      "no_data_matches": "Ничего не соответствует фильтру"
     },
     "blueprints": {
       "all": "Все",

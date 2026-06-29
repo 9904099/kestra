@@ -138,7 +138,17 @@
       "kbd_close": "关闭",
       "tab_suggested": "推荐",
       "tab_apps": "按应用",
-      "tab_recent": "最近"
+      "tab_recent": "最近",
+      "inputs": "Inputs",
+      "inputs_sub": "可在此使用的数据",
+      "output": "Output",
+      "output_sub": "此 task 产生的内容",
+      "upstream_outputs": "上游 Outputs",
+      "flow_inputs": "Flow inputs",
+      "execution_context": "执行上下文",
+      "declared_outputs": "已声明的 Outputs",
+      "filter_data": "筛选可用数据…",
+      "no_data_matches": "没有匹配筛选的内容"
     },
     "blueprints": {
       "all": "全部",
