@@ -567,7 +567,9 @@
         align-items: center;
         justify-content: flex-end;
         gap: var(--ks-spacing-3);
+        flex-shrink: 0;
         padding: var(--ks-spacing-3) var(--ks-spacing-4);
         border-top: 1px solid var(--ks-border-subtle);
+        background: var(--ks-bg-surface);
     }
 </style>

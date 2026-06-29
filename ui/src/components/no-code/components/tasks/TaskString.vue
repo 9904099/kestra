@@ -17,27 +17,11 @@
             :placeholder="`Choose a${/^[aeiou]/i.test(root || '') ? 'n' : ''} ${root || 'date'}`"
             @update:model-value="(v: Date | string | null) => onInput(v instanceof Date ? v.toISOString() : '')"
         />
-        <KsInputNumber
-            v-if="!pebble && showDurationDays"
-            :modelValue="daysDurationValue"
-            align="right"
-            style="width:200px"
-            :min="0"
-            :controls="false"
-            @update:model-value="onInputDaysDuration"
-        >
-            <template #suffix>
-                <span class="duration-unit">{{ $t("days") }}</span>
-            </template>
-        </KsInputNumber>
-        <KsTimePicker
+        <KsDurationPicker
             v-if="!pebble && schema?.format === 'duration'"
-            :modelValue="timeDurationValue"
-            type="time"
-            :defaultValue="defaultDuration"
-            :placeholder="`Choose a${/^[aeiou]/i.test(root || '') ? 'n' : ''} ${root || 'duration'}`"
-            @update:model-value="onInputDuration"
-            @clear="onInputDaysDuration(undefined)"
+            :modelValue="modelValue"
+            class="duration-field"
+            @update:model-value="onInput"
         />
         <InputText
             v-if="disabled"
@@ -53,6 +37,7 @@
             :options="{fullHeight: false, largeSuggestions: false}"
             schemaType="flow"
             :lang="`${editorLanguage}-pebble`"
+            :placeholder="placeholder"
             inline
             @update:model-value="onInput"
             style="z-index: 1;"
@@ -113,79 +98,13 @@
         }
     })
 
-    // FIXME: hardcoded condition only show days input for timeWindow durations
-    const showDurationDays = computed(() => {
-        return props.schema?.format === "duration" && props.root?.startsWith("timeWindow")
-    })
-
-    const daysDurationValue = computed<number | undefined>(() => {
-        if (typeof values.value === "string") {
-            const duration = $moment.duration(values.value)
-            return Math.floor(duration.asDays())
-        }
-        return undefined
-    })
-
-    const timeDurationValue = computed<Date | undefined>(() => {
-        if (typeof values.value === "string") {
-            const duration = $moment.duration(values.value)
-            return new Date(
-                1981,
-                1,
-                1,
-                duration.hours(),
-                duration.minutes(),
-                duration.seconds(),
-            )
-        }
-        return undefined
-    })
-
-    const defaultDuration = computed(() => {
-        return $moment().seconds(0).minutes(0).hours(0).toDate()
-    })
-
-    function onInputDuration(value: string | Date | null | undefined) {
-        const emitted =
-            !(value instanceof Date)
-                ? undefined
-                : $moment
-                    .duration({
-                        days: daysDurationValue.value || 0,
-                        seconds: value.getSeconds(),
-                        minutes: value.getMinutes(),
-                        hours: value.getHours(),
-                    })
-                    .toString()
-        emit("update:modelValue", emitted)
-    }
-
-    function onInputDaysDuration(value: number | undefined) {
-        const currentTimeDuration = timeDurationValue.value
-        const emitted = (value === undefined)
-            ? undefined
-            : currentTimeDuration === undefined
-                ? $moment
-                    .duration({
-                        days: value,
-                    })
-                    .toString()
-                : $moment
-                    .duration({
-                        days: value,
-                        hours: currentTimeDuration.getHours(),
-                        minutes: currentTimeDuration.getMinutes(),
-                        seconds: currentTimeDuration.getSeconds(),
-                    })
-                    .toString()
-        emit("update:modelValue", emitted)
-    }
-
-    function onInput(value: string) {
-        emit("update:modelValue", value)
+    function onInput(value: string | null | undefined) {
+        emit("update:modelValue", value ?? undefined)
     }
 
     const editorValue = computed(() => props.modelValue)
+
+    const placeholder = computed(() => props.root?.split(".").pop() ?? "")
 
 </script>
 
