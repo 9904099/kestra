@@ -1636,6 +1636,7 @@
         "email_label": "Электронная почта",
         "email_sub": "Отправить уведомление по электронной почте",
         "email_to_placeholder": "recipient@your-domain.com",
+        "plugin_unavailable": "Плагин не установлен",
         "slack_channel_placeholder": "#alerts",
         "slack_sub": "Опубликовать сообщение в канале Slack",
         "teams_sub": "Отправить карточку в канал Teams",

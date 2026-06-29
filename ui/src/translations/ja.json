@@ -1636,6 +1636,7 @@
         "email_label": "メール",
         "email_sub": "メール通知を送信",
         "email_to_placeholder": "recipient@your-domain.com",
+        "plugin_unavailable": "プラグインがインストールされていません",
         "slack_channel_placeholder": "#alerts",
         "slack_sub": "Slackチャンネルにメッセージを投稿",
         "teams_sub": "Teamsチャンネルにカードを送信",

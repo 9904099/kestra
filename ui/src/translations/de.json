@@ -1636,6 +1636,7 @@
         "email_label": "E-Mail",
         "email_sub": "E-Mail-Benachrichtigung senden",
         "email_to_placeholder": "empfaenger@ihre-domain.com",
+        "plugin_unavailable": "Plugin nicht installiert",
         "slack_channel_placeholder": "#alerts",
         "slack_sub": "Nachricht an einen Slack-Kanal senden",
         "teams_sub": "Karte an einen Teams-Kanal senden",

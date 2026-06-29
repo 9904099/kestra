@@ -1636,6 +1636,7 @@
         "email_label": "Correo electrónico",
         "email_sub": "Enviar una notificación por correo electrónico",
         "email_to_placeholder": "destinatario@tu-dominio.com",
+        "plugin_unavailable": "Plugin no instalado",
         "slack_channel_placeholder": "#alerts",
         "slack_sub": "Publicar un mensaje en un canal de Slack",
         "teams_sub": "Enviar una tarjeta a un canal de Teams",

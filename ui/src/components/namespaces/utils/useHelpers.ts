@@ -84,7 +84,7 @@ export function useHelpers() {
         ],
     }))
 
-    const tabs: Tab[] = [
+    const tabs = computed<Tab[]>(() => [
         ...(namespace.value === systemNamespace.value ? [
             {
                 name: "blueprints",
@@ -136,7 +136,7 @@ export function useHelpers() {
             props: {namespace: namespace.value},
             maximized: true,
         },
-    ]
+    ])
 
     return {details, tabs}
 }

@@ -1636,6 +1636,7 @@
         "email_label": "电子邮件",
         "email_sub": "发送电子邮件通知",
         "email_to_placeholder": "recipient@your-domain.com",
+        "plugin_unavailable": "插件未安装",
         "slack_channel_placeholder": "#alerts",
         "slack_sub": "向Slack频道发布消息",
         "teams_sub": "向Teams频道发送卡片",

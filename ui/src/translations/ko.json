@@ -1636,6 +1636,7 @@
         "email_label": "이메일",
         "email_sub": "이메일 알림 전송",
         "email_to_placeholder": "recipient@your-domain.com",
+        "plugin_unavailable": "플러그인이 설치되지 않음",
         "slack_channel_placeholder": "#alerts",
         "slack_sub": "Slack 채널에 메시지 게시",
         "teams_sub": "Teams 채널에 카드 전송",

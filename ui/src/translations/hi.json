@@ -1636,6 +1636,7 @@
         "email_label": "ईमेल",
         "email_sub": "ईमेल नोटिफिकेशन भेजें",
         "email_to_placeholder": "recipient@your-domain.com",
+        "plugin_unavailable": "प्लगइन इंस्टॉल नहीं है",
         "slack_channel_placeholder": "#alerts",
         "slack_sub": "Slack चैनल पर संदेश पोस्ट करें",
         "teams_sub": "Teams चैनल पर कार्ड भेजें",
