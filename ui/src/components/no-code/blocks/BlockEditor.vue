@@ -928,7 +928,7 @@
     }
 
     .block-editor-ndv {
-        flex: 0 0 clamp(380px, 46%, 760px);
+        flex: 0 0 80%;
         min-width: 0;
         margin: var(--ks-spacing-4) var(--ks-spacing-4) var(--ks-spacing-4) 0;
     }
