@@ -1,9 +1,11 @@
 <template>
-    <TaskObject
-        :properties="computedProperties"
-        :schema
-        merge
-    />
+    <div class="task-nested">
+        <TaskObject
+            :properties="computedProperties"
+            :schema
+            merge
+        />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -42,3 +44,10 @@
         }, {})
     })
 </script>
+
+<style scoped lang="scss">
+.task-nested {
+    border-left: 2px solid var(--ks-border-subtle);
+    padding-left: var(--ks-spacing-4);
+}
+</style>
