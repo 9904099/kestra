@@ -151,7 +151,9 @@
       "no_data_matches": "Rien ne correspond à votre filtre",
       "open_details": "Détails ouverts",
       "close_all": "Fermer tous les onglets",
-      "no_documentation": "Aucune documentation pour cette task"
+      "no_documentation": "Aucune documentation pour cette task",
+      "split_view": "Vue scindée",
+      "split_into": "Diviser en {count}"
     },
     "blueprints": {
       "all": "Tous",

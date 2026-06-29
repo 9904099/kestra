@@ -151,7 +151,9 @@
       "no_data_matches": "没有匹配筛选的内容",
       "open_details": "已打开的详情",
       "close_all": "关闭所有标签页",
-      "no_documentation": "此 task 没有文档"
+      "no_documentation": "此 task 没有文档",
+      "split_view": "分屏视图",
+      "split_into": "分成 {count} 个"
     },
     "blueprints": {
       "all": "全部",

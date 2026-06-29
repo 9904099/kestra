@@ -151,7 +151,9 @@
       "no_data_matches": "Nic nie pasuje do filtra",
       "open_details": "Otwarte szczegóły",
       "close_all": "Zamknij wszystkie karty",
-      "no_documentation": "Brak dokumentacji dla tej task"
+      "no_documentation": "Brak dokumentacji dla tej task",
+      "split_view": "Widok podzielony",
+      "split_into": "Podziel na {count}"
     },
     "blueprints": {
       "all": "Wszystkie",

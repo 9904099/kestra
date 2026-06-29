@@ -213,7 +213,10 @@
                             role="tab"
                             tabindex="0"
                             class="block-editor-dock-tab"
-                            :class="{'block-editor-dock-tab--active': selectedId === tab.id}"
+                            :class="{
+                                'block-editor-dock-tab--active': selectedId === tab.id,
+                                'block-editor-dock-tab--tiled': tiledIds.has(tab.id) && selectedId !== tab.id,
+                            }"
                             :aria-selected="selectedId === tab.id"
                             :data-test="`block-editor-dock-tab-${tab.id}`"
                             @click="activateTab(tab.id)"
@@ -231,6 +234,27 @@
                             </KsIconButton>
                         </div>
                         <span class="block-editor-dock-tabbar-spacer" />
+                        <div
+                            v-if="dockTabs.length > 1"
+                            class="block-editor-dock-split"
+                            role="group"
+                            :aria-label="t('block_editor.split_view')"
+                        >
+                            <button
+                                v-for="n in 3"
+                                :key="n"
+                                type="button"
+                                class="block-editor-dock-split-btn"
+                                :class="{'block-editor-dock-split-btn--active': splitCount === n}"
+                                :disabled="dockTabs.length < n"
+                                :aria-pressed="splitCount === n"
+                                :aria-label="t('block_editor.split_into', {count: n})"
+                                :data-test="`block-editor-split-${n}`"
+                                @click="splitCount = n"
+                            >
+                                {{ n }}
+                            </button>
+                        </div>
                         <KsIconButton
                             v-if="dockTabs.length > 1"
                             class="block-editor-dock-closeall"
@@ -245,9 +269,10 @@
                     <div class="block-editor-dock-body">
                         <TaskEdit
                             v-for="tab in dockTabs"
-                            v-show="selectedId === tab.id"
+                            v-show="tiledIds.has(tab.id)"
                             :key="tab.id"
                             class="block-editor-dock-pane"
+                            :class="{'block-editor-dock-pane--active': selectedId === tab.id && tiledIds.size > 1}"
                             :task="tab.data"
                             :section="tab.section"
                             :flowId="flowId"
@@ -513,6 +538,18 @@
     const dockTabs = ref<EditingBlock[]>([])
     const activeTab = computed(() => dockTabs.value.find(tab => tab.id === selectedId.value))
 
+    const splitCount = ref(1)
+    const activationOrder = ref<string[]>([])
+
+    function touchActivation(id: string) {
+        activationOrder.value = [id, ...activationOrder.value.filter(other => other !== id)]
+    }
+
+    const tiledIds = computed<Set<string>>(() => {
+        const max = Math.min(splitCount.value, dockTabs.value.length)
+        return new Set(activationOrder.value.slice(0, max))
+    })
+
     provide(BLOCK_SCHEMA_PATH_INJECTION_KEY, computed(() => {
         const root = pluginsStore.flowSchema?.$ref
         if (!root) return ""
@@ -530,10 +567,12 @@
             dockTabs.value = [...dockTabs.value, tab]
         }
         selectedId.value = tab.id
+        touchActivation(tab.id)
     }
 
     function activateTab(id: string) {
         selectedId.value = id
+        touchActivation(id)
     }
 
     watch(() => activeTab.value?.data?.type, (type) => {
@@ -541,18 +580,17 @@
     })
 
     function closeTab(id: string) {
-        const idx = dockTabs.value.findIndex(tab => tab.id === id)
-        if (idx < 0) return
-        const wasActive = selectedId.value === id
-        const next = dockTabs.value.filter(tab => tab.id !== id)
-        dockTabs.value = next
-        if (wasActive) {
-            selectedId.value = (next[idx] ?? next[idx - 1])?.id
+        if (!dockTabs.value.some(tab => tab.id === id)) return
+        dockTabs.value = dockTabs.value.filter(tab => tab.id !== id)
+        activationOrder.value = activationOrder.value.filter(other => other !== id)
+        if (selectedId.value === id) {
+            selectedId.value = activationOrder.value[0]
         }
     }
 
     function closeAllTabs() {
         dockTabs.value = []
+        activationOrder.value = []
         selectedId.value = undefined
     }
 
@@ -1030,6 +1068,50 @@
         box-shadow: inset 0 2px 0 var(--ks-text-link);
     }
 
+    .block-editor-dock-tab--tiled {
+        background: var(--ks-bg-surface);
+        color: var(--ks-text-primary);
+    }
+
+    .block-editor-dock-split {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--ks-spacing-1);
+        flex-shrink: 0;
+        padding: var(--ks-spacing-1);
+        background: var(--ks-bg-tag);
+        border-radius: var(--ks-radius-base);
+    }
+
+    .block-editor-dock-split-btn {
+        min-width: var(--ks-spacing-5);
+        padding: 0 var(--ks-spacing-2);
+        border: none;
+        background: transparent;
+        color: var(--ks-text-secondary);
+        font-size: var(--ks-font-size-xs);
+        font-family: var(--ks-font-family-mono);
+        line-height: var(--ks-font-size-2xl);
+        border-radius: var(--ks-radius-sm);
+        cursor: pointer;
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .block-editor-dock-split-btn:hover:not(:disabled) {
+        color: var(--ks-text-primary);
+    }
+
+    .block-editor-dock-split-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .block-editor-dock-split-btn--active {
+        background: var(--ks-bg-surface);
+        color: var(--ks-text-link);
+        font-weight: 600;
+    }
+
     .block-editor-dock-tab-ico {
         flex-shrink: 0;
         width: var(--ks-icon-size-sm);
@@ -1066,6 +1148,11 @@
         flex: 1;
         min-width: 0;
         min-height: 0;
+    }
+
+    .block-editor-dock-pane--active {
+        box-shadow: 0 0 0 1px var(--ks-text-link);
+        border-radius: var(--ks-radius-lg);
     }
 
     .block-editor-canvas {

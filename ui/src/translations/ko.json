@@ -151,7 +151,9 @@
       "no_data_matches": "필터와 일치하는 항목 없음",
       "open_details": "열린 세부정보",
       "close_all": "모든 탭 닫기",
-      "no_documentation": "이 task에 대한 문서가 없습니다"
+      "no_documentation": "이 task에 대한 문서가 없습니다",
+      "split_view": "분할 보기",
+      "split_into": "{count}개로 분할"
     },
     "blueprints": {
       "all": "모두",

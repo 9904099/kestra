@@ -151,7 +151,9 @@
       "no_data_matches": "Nada corresponde ao filtro",
       "open_details": "Detalhes abertos",
       "close_all": "Fechar todos os separadores",
-      "no_documentation": "Sem documentação para esta task"
+      "no_documentation": "Sem documentação para esta task",
+      "split_view": "Vista dividida",
+      "split_into": "Dividir em {count}"
     },
     "blueprints": {
       "all": "Todos",

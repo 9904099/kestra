@@ -151,7 +151,9 @@
       "no_data_matches": "フィルターに一致するものがありません",
       "open_details": "開いている詳細",
       "close_all": "すべてのタブを閉じる",
-      "no_documentation": "このtaskのドキュメントはありません"
+      "no_documentation": "このtaskのドキュメントはありません",
+      "split_view": "分割表示",
+      "split_into": "{count} 分割"
     },
     "blueprints": {
       "all": "すべて",

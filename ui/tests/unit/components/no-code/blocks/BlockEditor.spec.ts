@@ -469,6 +469,27 @@ describe("BlockEditor", () => {
             expect(wrapper.findAll("[role='tab']").length).toBe(2)
             expect(wrapper.findAllComponents({name: "TaskEdit"}).length).toBe(2)
         })
+
+        it("shows two panes side by side when split view is set to 2", async () => {
+            // Given — two tabs open (only the active one is visible at split 1)
+            const wrapper = mount(BlockEditor, makeConfig())
+            const cards = wrapper.findAll("[data-test='block-card']")
+            await cards[0].trigger("click")
+            await wrapper.vm.$nextTick()
+            await cards[1].trigger("click")
+            await wrapper.vm.$nextTick()
+            const shownCount = () => wrapper.findAllComponents({name: "TaskEdit"})
+                .filter(p => (p.element as HTMLElement).style.display !== "none").length
+            expect(shownCount()).toBe(1)
+
+            // When — split into 2
+            const vm = wrapper.vm as unknown as {splitCount: number}
+            vm.splitCount = 2
+            await wrapper.vm.$nextTick()
+
+            // Then — both panes are shown side by side
+            expect(shownCount()).toBe(2)
+        })
     })
 
     describe("edit operation", () => {

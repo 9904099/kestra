@@ -151,7 +151,9 @@
       "no_data_matches": "Nessun risultato per il filtro",
       "open_details": "Dettagli aperti",
       "close_all": "Chiudi tutte le schede",
-      "no_documentation": "Nessuna documentazione per questa task"
+      "no_documentation": "Nessuna documentazione per questa task",
+      "split_view": "Vista divisa",
+      "split_into": "Dividi in {count}"
     },
     "blueprints": {
       "all": "Tutti",
