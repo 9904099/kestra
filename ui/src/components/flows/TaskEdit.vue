@@ -290,7 +290,6 @@
     .task-edit-panel {
         display: flex;
         flex-direction: column;
-        height: 100%;
         min-height: 0;
         background: var(--ks-bg-surface);
         border: 1px solid var(--ks-border-default);

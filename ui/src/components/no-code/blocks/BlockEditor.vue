@@ -6,203 +6,206 @@
         tabindex="-1"
         @keydown="onEditorKeydown"
     >
-        <div v-show="!editingBlock" class="block-editor-canvas">
-            <BlockSectionCard
-                name="triggers"
-                :title="t('no_code.sections.triggers')"
-                :icon="TriggerIcon"
-                :count="parsedTriggers.length"
-                :addLabel="t('block_editor.add_trigger')"
-                @add="(e) => openTaskPicker('triggers', e)"
-            >
-                <div class="block-section-list" data-test="block-editor-trigger-list">
-                    <BlockCard
-                        v-for="(trigger, index) in parsedTriggers"
-                        :key="String(trigger.id ?? index)"
-                        :block="trigger"
-                        :selected="selectedId === String(trigger.id)"
-                        :draggable="true"
-                        :dragOver="triggerDragOverIndex === index"
-                        :icons="pluginsStore.icons"
-                        :data-block-id="String(trigger.id ?? index)"
-                        @select="selectBlock('triggers', trigger)"
-                        @delete="onDelete('triggers', trigger.id)"
-                        @duplicate="onDuplicate('triggers', trigger.id)"
-                        @drag-start="handleTriggerDragStart($event, index)"
-                        @drag-over="handleTriggerDragOver($event, index)"
-                        @drop="handleTriggerDrop($event, index)"
-                        @drag-end="handleTriggerDragEnd"
-                    />
-                    <BlockEmptyDrop
-                        v-if="parsedTriggers.length === 0"
-                        variant="empty"
-                        :label="t('block_editor.trigger_noun')"
-                        @add="(e) => openTaskPicker('triggers', e)"
-                    />
-                </div>
-            </BlockSectionCard>
-
-            <BlockSectionCard
-                name="tasks"
-                :title="t('no_code.sections.tasks')"
-                :icon="TasksIcon"
-                :count="parsedTasks.length"
-                :addLabel="t('block_editor.add_task')"
-                addTest="block-editor-add-task"
-                @add="(e) => openTaskPicker('tasks', e)"
-            >
-                <div
-                    class="block-section-list"
-                    data-test="block-editor-task-list"
-                    @dragend="handleTaskDragEnd"
+        <div class="block-editor-main">
+            <div class="block-editor-canvas">
+                <BlockSectionCard
+                    name="triggers"
+                    :title="t('no_code.sections.triggers')"
+                    :icon="TriggerIcon"
+                    :count="parsedTriggers.length"
+                    :addLabel="t('block_editor.add_trigger')"
+                    @add="(e) => openTaskPicker('triggers', e)"
                 >
-                    <template v-for="(task, index) in parsedTasks" :key="String(task.id ?? index)">
-                        <FlowableClusterCard
-                            v-if="isFlowable(task)"
-                            :block="task"
-                            :path="`tasks[${index}]`"
-                            :icons="pluginsStore.icons"
-                            :selectedId="selectedId"
-                            :depth="0"
-                            :data-block-id="String(task.id ?? index)"
-                            data-test="block-card"
-                            @select="openNestedEdit"
-                            @delete="onDeleteAtPath"
-                            @duplicate="onDuplicateAtPath"
-                            @add-at-path="openTaskPickerAtPath"
-                            @dragover.prevent="handleTaskDragOver($event, index)"
-                            @drop.prevent="handleTaskDrop($event, index)"
-                        />
+                    <div class="block-section-list" data-test="block-editor-trigger-list">
                         <BlockCard
-                            v-else
-                            :block="task"
-                            :selected="selectedId === String(task.id)"
+                            v-for="(trigger, index) in parsedTriggers"
+                            :key="String(trigger.id ?? index)"
+                            :block="trigger"
+                            :selected="selectedId === String(trigger.id)"
                             :draggable="true"
-                            :dragOver="taskDragOverIndex === index"
+                            :dragOver="triggerDragOverIndex === index"
                             :icons="pluginsStore.icons"
-                            :data-block-id="String(task.id ?? index)"
-                            @select="selectBlock('tasks', task)"
-                            @delete="onDelete('tasks', task.id)"
-                            @duplicate="onDuplicate('tasks', task.id)"
-                            @drag-start="handleTaskDragStart($event, index)"
-                            @drag-over="handleTaskDragOver($event, index)"
-                            @drop="handleTaskDrop($event, index)"
-                            @drag-end="handleTaskDragEnd"
+                            :data-block-id="String(trigger.id ?? index)"
+                            @select="selectBlock('triggers', trigger)"
+                            @delete="onDelete('triggers', trigger.id)"
+                            @duplicate="onDuplicate('triggers', trigger.id)"
+                            @drag-start="handleTriggerDragStart($event, index)"
+                            @drag-over="handleTriggerDragOver($event, index)"
+                            @drop="handleTriggerDrop($event, index)"
+                            @drag-end="handleTriggerDragEnd"
                         />
-                    </template>
-
-                    <BlockEmptyDrop
-                        v-if="parsedTasks.length === 0"
-                        variant="empty"
-                        :label="t('block_editor.task_noun')"
-                        :hint="t('block_editor.empty_add_hint')"
-                        @add="(e) => openTaskPicker('tasks', e)"
-                    />
-                    <BlockEmptyDrop
-                        v-else
-                        variant="inline"
-                        :label="t('block_editor.task_noun')"
-                        :hint="t('block_editor.empty_add_hint')"
-                        @add="(e) => openTaskPicker('tasks', e)"
-                    />
-                </div>
-            </BlockSectionCard>
-
-            <BlockSectionCard
-                name="errors"
-                :title="t('block_editor.lane_errors')"
-                :icon="ErrorIcon"
-                :count="flowLevelErrors.length"
-                :addLabel="t('block_editor.add_error_task')"
-                tone="error"
-                @add="(e) => openTaskPicker('errors', e)"
-            >
-                <div class="block-section-list">
-                    <template v-for="(task, index) in flowLevelErrors" :key="String(task.id ?? index)">
-                        <FlowableClusterCard
-                            v-if="isFlowable(task)"
-                            :block="task"
-                            :path="`errors[${index}]`"
-                            :icons="pluginsStore.icons"
-                            :selectedId="selectedId"
-                            :depth="0"
-                            :data-block-id="String(task.id ?? index)"
-                            data-test="block-card"
-                            @select="openNestedEdit"
-                            @delete="onDeleteAtPath"
-                            @duplicate="onDuplicateAtPath"
-                            @add-at-path="openTaskPickerAtPath"
+                        <BlockEmptyDrop
+                            v-if="parsedTriggers.length === 0"
+                            variant="empty"
+                            :label="t('block_editor.trigger_noun')"
+                            @add="(e) => openTaskPicker('triggers', e)"
                         />
-                        <BlockCard
+                    </div>
+                </BlockSectionCard>
+
+                <BlockSectionCard
+                    name="tasks"
+                    :title="t('no_code.sections.tasks')"
+                    :icon="TasksIcon"
+                    :count="parsedTasks.length"
+                    :addLabel="t('block_editor.add_task')"
+                    addTest="block-editor-add-task"
+                    @add="(e) => openTaskPicker('tasks', e)"
+                >
+                    <div
+                        class="block-section-list"
+                        data-test="block-editor-task-list"
+                        @dragend="handleTaskDragEnd"
+                    >
+                        <template v-for="(task, index) in parsedTasks" :key="String(task.id ?? index)">
+                            <FlowableClusterCard
+                                v-if="isFlowable(task)"
+                                :block="task"
+                                :path="`tasks[${index}]`"
+                                :icons="pluginsStore.icons"
+                                :selectedId="selectedId"
+                                :depth="0"
+                                :data-block-id="String(task.id ?? index)"
+                                data-test="block-card"
+                                @select="openNestedEdit"
+                                @delete="onDeleteAtPath"
+                                @duplicate="onDuplicateAtPath"
+                                @add-at-path="openTaskPickerAtPath"
+                                @dragover.prevent="handleTaskDragOver($event, index)"
+                                @drop.prevent="handleTaskDrop($event, index)"
+                            />
+                            <BlockCard
+                                v-else
+                                :block="task"
+                                :selected="selectedId === String(task.id)"
+                                :draggable="true"
+                                :dragOver="taskDragOverIndex === index"
+                                :icons="pluginsStore.icons"
+                                :data-block-id="String(task.id ?? index)"
+                                @select="selectBlock('tasks', task)"
+                                @delete="onDelete('tasks', task.id)"
+                                @duplicate="onDuplicate('tasks', task.id)"
+                                @drag-start="handleTaskDragStart($event, index)"
+                                @drag-over="handleTaskDragOver($event, index)"
+                                @drop="handleTaskDrop($event, index)"
+                                @drag-end="handleTaskDragEnd"
+                            />
+                        </template>
+
+                        <BlockEmptyDrop
+                            v-if="parsedTasks.length === 0"
+                            variant="empty"
+                            :label="t('block_editor.task_noun')"
+                            :hint="t('block_editor.empty_add_hint')"
+                            @add="(e) => openTaskPicker('tasks', e)"
+                        />
+                        <BlockEmptyDrop
                             v-else
-                            :block="task"
-                            :selected="selectedId === String(task.id)"
-                            :icons="pluginsStore.icons"
-                            :data-block-id="String(task.id ?? index)"
-                            @select="selectBlock('errors', task)"
-                            @delete="onDelete('errors', task.id)"
-                            @duplicate="onDuplicate('errors', task.id)"
+                            variant="inline"
+                            :label="t('block_editor.task_noun')"
+                            :hint="t('block_editor.empty_add_hint')"
+                            @add="(e) => openTaskPicker('tasks', e)"
                         />
-                    </template>
-                    <BlockEmptyDrop
-                        v-if="flowLevelErrors.length === 0"
-                        variant="empty"
-                        :label="t('block_editor.error_task_noun')"
-                        @add="(e) => openTaskPicker('errors', e)"
-                    />
-                </div>
-            </BlockSectionCard>
+                    </div>
+                </BlockSectionCard>
 
-            <BlockSectionCard
-                name="finally"
-                :title="t('block_editor.lane_finally')"
-                :icon="FinallyIcon"
-                :count="flowLevelFinally.length"
-                :addLabel="t('block_editor.add_task')"
-                tone="warning"
-                @add="(e) => openTaskPicker('finally', e)"
-            >
-                <div class="block-section-list">
-                    <template v-for="(task, index) in flowLevelFinally" :key="String(task.id ?? index)">
-                        <FlowableClusterCard
-                            v-if="isFlowable(task)"
-                            :block="task"
-                            :path="`finally[${index}]`"
-                            :icons="pluginsStore.icons"
-                            :selectedId="selectedId"
-                            :depth="0"
-                            :data-block-id="String(task.id ?? index)"
-                            data-test="block-card"
-                            @select="openNestedEdit"
-                            @delete="onDeleteAtPath"
-                            @duplicate="onDuplicateAtPath"
-                            @add-at-path="openTaskPickerAtPath"
+                <BlockSectionCard
+                    name="errors"
+                    :title="t('block_editor.lane_errors')"
+                    :icon="ErrorIcon"
+                    :count="flowLevelErrors.length"
+                    :addLabel="t('block_editor.add_error_task')"
+                    tone="error"
+                    @add="(e) => openTaskPicker('errors', e)"
+                >
+                    <div class="block-section-list">
+                        <template v-for="(task, index) in flowLevelErrors" :key="String(task.id ?? index)">
+                            <FlowableClusterCard
+                                v-if="isFlowable(task)"
+                                :block="task"
+                                :path="`errors[${index}]`"
+                                :icons="pluginsStore.icons"
+                                :selectedId="selectedId"
+                                :depth="0"
+                                :data-block-id="String(task.id ?? index)"
+                                data-test="block-card"
+                                @select="openNestedEdit"
+                                @delete="onDeleteAtPath"
+                                @duplicate="onDuplicateAtPath"
+                                @add-at-path="openTaskPickerAtPath"
+                            />
+                            <BlockCard
+                                v-else
+                                :block="task"
+                                :selected="selectedId === String(task.id)"
+                                :icons="pluginsStore.icons"
+                                :data-block-id="String(task.id ?? index)"
+                                @select="selectBlock('errors', task)"
+                                @delete="onDelete('errors', task.id)"
+                                @duplicate="onDuplicate('errors', task.id)"
+                            />
+                        </template>
+                        <BlockEmptyDrop
+                            v-if="flowLevelErrors.length === 0"
+                            variant="empty"
+                            :label="t('block_editor.error_task_noun')"
+                            @add="(e) => openTaskPicker('errors', e)"
                         />
-                        <BlockCard
-                            v-else
-                            :block="task"
-                            :selected="selectedId === String(task.id)"
-                            :icons="pluginsStore.icons"
-                            :data-block-id="String(task.id ?? index)"
-                            @select="selectBlock('finally', task)"
-                            @delete="onDelete('finally', task.id)"
-                            @duplicate="onDuplicate('finally', task.id)"
+                    </div>
+                </BlockSectionCard>
+
+                <BlockSectionCard
+                    name="finally"
+                    :title="t('block_editor.lane_finally')"
+                    :icon="FinallyIcon"
+                    :count="flowLevelFinally.length"
+                    :addLabel="t('block_editor.add_task')"
+                    tone="warning"
+                    @add="(e) => openTaskPicker('finally', e)"
+                >
+                    <div class="block-section-list">
+                        <template v-for="(task, index) in flowLevelFinally" :key="String(task.id ?? index)">
+                            <FlowableClusterCard
+                                v-if="isFlowable(task)"
+                                :block="task"
+                                :path="`finally[${index}]`"
+                                :icons="pluginsStore.icons"
+                                :selectedId="selectedId"
+                                :depth="0"
+                                :data-block-id="String(task.id ?? index)"
+                                data-test="block-card"
+                                @select="openNestedEdit"
+                                @delete="onDeleteAtPath"
+                                @duplicate="onDuplicateAtPath"
+                                @add-at-path="openTaskPickerAtPath"
+                            />
+                            <BlockCard
+                                v-else
+                                :block="task"
+                                :selected="selectedId === String(task.id)"
+                                :icons="pluginsStore.icons"
+                                :data-block-id="String(task.id ?? index)"
+                                @select="selectBlock('finally', task)"
+                                @delete="onDelete('finally', task.id)"
+                                @duplicate="onDuplicate('finally', task.id)"
+                            />
+                        </template>
+                        <BlockEmptyDrop
+                            v-if="flowLevelFinally.length === 0"
+                            variant="empty"
+                            :label="t('block_editor.task_noun')"
+                            @add="(e) => openTaskPicker('finally', e)"
                         />
-                    </template>
-                    <BlockEmptyDrop
-                        v-if="flowLevelFinally.length === 0"
-                        variant="empty"
-                        :label="t('block_editor.task_noun')"
-                        @add="(e) => openTaskPicker('finally', e)"
-                    />
-                </div>
-            </BlockSectionCard>
+                    </div>
+                </BlockSectionCard>
+            </div>
         </div>
 
         <TaskEdit
             v-if="editingBlock"
             :key="editingBlock.id"
             ref="taskEditRef"
+            class="block-editor-ndv"
             :task="editingBlock.data"
             :section="editingBlock.section"
             :flowId="flowId"
@@ -912,9 +915,22 @@
 <style scoped lang="scss">
     .block-editor {
         height: 100%;
+        display: flex;
+        overflow: hidden;
+        background: var(--ks-bg-base);
+    }
+
+    .block-editor-main {
+        flex: 1;
+        min-width: 0;
         overflow-y: auto;
         padding: var(--ks-spacing-6) var(--ks-spacing-4);
-        background: var(--ks-bg-base);
+    }
+
+    .block-editor-ndv {
+        flex: 0 0 clamp(380px, 46%, 760px);
+        min-width: 0;
+        margin: var(--ks-spacing-4) var(--ks-spacing-4) var(--ks-spacing-4) 0;
     }
 
     .block-editor-canvas {
