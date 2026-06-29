@@ -9,31 +9,56 @@
                 </Wrapper>
             </template>
 
-            <KsCollapse v-model="activeNames" v-if="mainProperties.length && hasGroupedProperties" class="collapse">
-                <KsCollapseItem
+            <div v-if="mainProperties.length && hasGroupedProperties" class="form-groups">
+                <div
                     v-for="section in groupSections"
                     :key="section.key"
-                    :name="section.key"
-                    :title="groupTitle(section.key)"
+                    class="group"
+                    :class="{'is-open': activeNames.includes(section.key)}"
                 >
-                    <template v-for="[fieldKey, fieldSchema] in section.properties" :key="fieldKey">
-                        <Wrapper>
+                    <button
+                        type="button"
+                        class="group-head"
+                        :aria-expanded="activeNames.includes(section.key)"
+                        @click="toggleGroup(section.key)"
+                    >
+                        <ChevronDown class="gh-caret" />
+                        <span class="gh-title">{{ groupTitle(section.key) }}</span>
+                        <span class="gh-count">{{ section.properties.length }}</span>
+                    </button>
+                    <div v-show="activeNames.includes(section.key)" class="group-body">
+                        <Wrapper v-for="[fieldKey, fieldSchema] in section.properties" :key="fieldKey">
                             <template #tasks>
                                 <TaskObjectField v-bind="fieldProps(fieldKey, fieldSchema)" />
                             </template>
                         </Wrapper>
-                    </template>
-                </KsCollapseItem>
-                <KsCollapseItem name="deprecated" v-if="deprecatedProperties?.length" :title="groupTitle('deprecated')">
-                    <template v-for="[fieldKey, fieldSchema] in deprecatedProperties" :key="fieldKey">
-                        <Wrapper>
+                    </div>
+                </div>
+
+                <div
+                    v-if="deprecatedProperties?.length"
+                    class="group group-deprecated"
+                    :class="{'is-open': activeNames.includes('deprecated')}"
+                >
+                    <button
+                        type="button"
+                        class="group-head"
+                        :aria-expanded="activeNames.includes('deprecated')"
+                        @click="toggleGroup('deprecated')"
+                    >
+                        <ChevronDown class="gh-caret" />
+                        <span class="gh-title">{{ groupTitle('deprecated') }}</span>
+                        <span class="gh-count">{{ deprecatedProperties.length }}</span>
+                    </button>
+                    <div v-show="activeNames.includes('deprecated')" class="group-body">
+                        <Wrapper v-for="[fieldKey, fieldSchema] in deprecatedProperties" :key="fieldKey">
                             <template #tasks>
                                 <TaskObjectField v-bind="fieldProps(fieldKey, fieldSchema)" />
                             </template>
                         </Wrapper>
-                    </template>
-                </KsCollapseItem>
-            </KsCollapse>
+                    </div>
+                </div>
+            </div>
         </template>
 
         <template v-else-if="typeof modelValue === 'object' && modelValue !== null && !Array.isArray(modelValue)">
@@ -53,6 +78,7 @@
 <script setup lang="ts">
     import {computed, inject, ref} from "vue"
     import {useI18n} from "vue-i18n"
+    import ChevronDown from "vue-material-design-icons/ChevronDown.vue"
     import TaskDict from "./TaskDict.vue"
     import Wrapper from "./Wrapper.vue"
     import TaskObjectField from "./TaskObjectField.vue"
@@ -96,6 +122,15 @@
     const GROUPS_EXPANDED_BY_DEFAULT = new Set(["connection", "source", "destination"])
 
     const activeNames = ref<string[]>([...GROUPS_EXPANDED_BY_DEFAULT, "optional", "advanced"])
+
+    function toggleGroup(key: string) {
+        const index = activeNames.value.indexOf(key)
+        if (index >= 0) {
+            activeNames.value.splice(index, 1)
+        } else {
+            activeNames.value.push(key)
+        }
+    }
 
     const FIRST_FIELDS = ["id", "forced", "on", "field", "type"]
 
@@ -353,5 +388,64 @@
         color: var(--ks-text-secondary);
         cursor: pointer;
     }
+}
+
+.group {
+    border-top: 1px solid var(--ks-border-default);
+}
+
+.group:first-of-type {
+    border-top: none;
+}
+
+.group-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--ks-spacing-2);
+    cursor: pointer;
+    appearance: none;
+    background: none;
+    border: none;
+    font-family: inherit;
+    padding: var(--ks-spacing-3) 0;
+    text-align: left;
+}
+
+.gh-caret {
+    display: inline-flex;
+    color: var(--ks-icon-muted);
+    transition: transform 0.15s;
+    transform: rotate(-90deg);
+}
+
+.group.is-open .gh-caret {
+    transform: rotate(0deg);
+}
+
+.gh-title {
+    flex: 1;
+    font-size: var(--ks-font-size-sm);
+    font-weight: 600;
+    color: var(--ks-text-primary);
+}
+
+.gh-count {
+    min-width: 18px;
+    padding: 0 var(--ks-spacing-2);
+    font-size: var(--ks-font-size-2xs);
+    font-weight: 600;
+    text-align: center;
+    color: var(--ks-text-muted);
+    background: var(--ks-bg-tag-inactive);
+    border-radius: var(--ks-radius-xl);
+}
+
+.group-body {
+    padding: 0 0 var(--ks-spacing-4) var(--ks-spacing-5);
+}
+
+.group-deprecated .gh-title {
+    color: var(--ks-text-muted);
 }
 </style>
