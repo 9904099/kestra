@@ -14,14 +14,18 @@
 <style scoped lang="scss">
 .schema-wrapper {
     width: 100%;
-    padding-bottom: 1rem;
-    border-radius: 8px;
+    padding-bottom: var(--ks-spacing-4);
+    border-radius: var(--ks-radius-base);
 }
 .bordered {
     background: var(--ks-bg-surface);
     border: 1px solid var(--ks-border-subtle);
-    box-shadow: 0 0 0 1px var(--ks-border-default) inset;
-    margin: 1rem 0;
-    padding: 1rem;
+    border-radius: var(--ks-radius-lg);
+    margin: var(--ks-spacing-3) 0;
+    padding: var(--ks-spacing-4) var(--ks-spacing-5);
+    transition: border-color 0.12s;
+}
+.bordered:focus-within {
+    border-color: var(--ks-border-default);
 }
 </style>

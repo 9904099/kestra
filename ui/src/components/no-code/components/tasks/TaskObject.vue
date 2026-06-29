@@ -344,9 +344,8 @@
         color: var(--ks-text-primary);
         font-size: var(--ks-font-size-xs);
         line-height: var(--ks-font-size-lg);
-        padding: 0 8px;
-        padding-bottom: 2px;
-        border-radius: 8px;
+        padding: 0 var(--ks-spacing-2);
+        border-radius: var(--ks-radius-base);
         text-transform: capitalize;
     }
 
