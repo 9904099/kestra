@@ -53,14 +53,8 @@
                 </template>
             </template>
 
-            <KsEmpty
-                v-else-if="laneName !== 'then'"
-                class="branch-lane-empty"
-                :description="t('block_editor.lane_empty', {lane: laneLabel})"
-            />
-
             <KsAlert
-                v-else
+                v-else-if="laneName === 'then'"
                 type="warning"
                 :title="t('block_editor.then_required_warning')"
                 class="branch-lane-warning"
@@ -91,7 +85,7 @@
     import CodeBranchesIcon from "vue-material-design-icons/SourceBranch.vue"
     import TagOutline from "vue-material-design-icons/TagOutline.vue"
 
-    import {KsTag, KsEmpty, KsAlert} from "@kestra-io/design-system"
+    import {KsTag, KsAlert} from "@kestra-io/design-system"
 
     import {isFlowableType} from "../../../utils/flowableBlockOps"
     import {useDragAndDrop} from "../../../composables/useDragAndDrop"
@@ -234,10 +228,6 @@
         display: flex;
         flex-direction: column;
         gap: var(--ks-spacing-2);
-    }
-
-    .branch-lane-empty {
-        padding: var(--ks-spacing-2) 0;
     }
 
     .branch-lane-warning {

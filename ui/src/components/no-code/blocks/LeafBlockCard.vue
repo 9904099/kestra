@@ -101,6 +101,7 @@
 
 <style scoped lang="scss">
     .leaf-block-card {
+        position: relative;
         display: flex;
         align-items: center;
         gap: var(--ks-spacing-3);
@@ -153,6 +154,8 @@
 
     .leaf-block-card-icon {
         flex-shrink: 0;
+        width: var(--ks-icon-size-base);
+        height: var(--ks-icon-size-base);
     }
 
     .leaf-block-card-id {
@@ -160,6 +163,7 @@
         font-weight: 500;
         color: var(--ks-text-primary);
         flex: 1;
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -173,16 +177,24 @@
     }
 
     .leaf-block-card-actions {
+        position: absolute;
+        right: var(--ks-spacing-2);
+        top: 50%;
+        transform: translateY(-50%);
         display: flex;
         align-items: center;
         gap: var(--ks-spacing-1);
-        flex-shrink: 0;
+        padding-left: var(--ks-spacing-3);
+        background: var(--ks-bg-hover);
+        border-radius: var(--ks-radius-base);
         opacity: 0;
+        pointer-events: none;
         transition: opacity 0.15s;
 
         .leaf-block-card:hover &,
         .leaf-block-card:focus-within & {
             opacity: 1;
+            pointer-events: auto;
         }
     }
 

@@ -159,6 +159,8 @@
 
     .block-nav-rail-icon {
         flex-shrink: 0;
+        width: var(--ks-icon-size-sm);
+        height: var(--ks-icon-size-sm);
     }
 
     .block-nav-rail-label {

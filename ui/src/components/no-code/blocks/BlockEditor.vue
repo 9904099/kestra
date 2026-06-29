@@ -188,6 +188,7 @@
                         @mouseenter="pickerFocusedIndex = idx"
                     >
                         <KsTaskIcon
+                            class="block-editor-picker-icon"
                             :cls="type.fqcn"
                             :icons="pluginsStore.icons"
                             :onlyIcon="true"
@@ -734,6 +735,12 @@
         &--focused {
             background: var(--ks-bg-hover);
         }
+    }
+
+    .block-editor-picker-icon {
+        flex-shrink: 0;
+        width: var(--ks-icon-size-base);
+        height: var(--ks-icon-size-base);
     }
 
     .block-editor-picker-label {

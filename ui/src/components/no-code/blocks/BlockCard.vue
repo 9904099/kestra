@@ -100,6 +100,7 @@
 
 <style scoped lang="scss">
     .block-card {
+        position: relative;
         display: flex;
         align-items: center;
         gap: var(--ks-spacing-3);
@@ -152,6 +153,8 @@
 
     .block-card-icon {
         flex-shrink: 0;
+        width: var(--ks-icon-size-base);
+        height: var(--ks-icon-size-base);
     }
 
     .block-card-id {
@@ -159,6 +162,7 @@
         font-weight: 500;
         color: var(--ks-text-primary);
         flex: 1;
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -172,16 +176,24 @@
     }
 
     .block-card-actions {
+        position: absolute;
+        right: var(--ks-spacing-3);
+        top: 50%;
+        transform: translateY(-50%);
         display: flex;
         align-items: center;
         gap: var(--ks-spacing-1);
-        flex-shrink: 0;
+        padding-left: var(--ks-spacing-3);
+        background: var(--ks-bg-hover);
+        border-radius: var(--ks-radius-base);
         opacity: 0;
+        pointer-events: none;
         transition: opacity 0.15s;
 
         .block-card:hover &,
         .block-card:focus-within & {
             opacity: 1;
+            pointer-events: auto;
         }
     }
 
