@@ -1,5 +1,5 @@
 <template>
-    <KsFormItem :class="{'radio-wrapper':!isSelectingPlugins}">
+    <KsFormItem :class="{'anyof-switch': !isSelectingPlugins}">
         <KsSelect
             v-if="isSelectingPlugins"
             v-model="selectedSchema"
@@ -12,15 +12,13 @@
                 :value="item.value"
             />
         </KsSelect>
-        <KsRadioGroup v-else v-model="selectedSchema" @change="onSelectType">
-            <KsRadio
-                v-for="radioSchema in schemaOptions"
-                :key="radioSchema.value"
-                :value="radioSchema.value"
-            >
-                {{ radioSchema.label }}
-            </KsRadio>
-        </KsRadioGroup>
+        <KsSegmented
+            v-else
+            v-model="selectedSchema"
+            :options="schemaOptions"
+            size="small"
+            @change="(value) => onSelectType(String(value))"
+        />
     </KsFormItem>
     <KsForm labelPosition="top" v-if="selectedSchema">
         <component
@@ -347,49 +345,7 @@
     width: 100%;
 }
 
-.radio-wrapper {
-    :deep(.kel-radio-group) {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: .5rem;
-    }
-
-    :deep(.kel-radio) {
-        margin-right: 0;
-        height: 40px;
-
-        .kel-radio__inner {
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--ks-text-link);
-            background: transparent;
-
-            &::after {
-                width: 12px;
-                height: 12px;
-                background-color: var(--ks-text-link);
-            }
-        }
-
-        &.is-checked {
-            .kel-radio__label {
-                color: var(--ks-text-link);
-            }
-            .kel-radio__inner {
-                border-color: var(--ks-text-link);
-                background: transparent;
-            }
-        }
-
-        &:hover {
-            .kel-radio__label {
-                color: var(--ks-text-link);
-            }
-            .kel-radio__inner {
-                border-color: var(--ks-text-link);
-            }
-        }
-    }
+.anyof-switch {
+    margin-bottom: var(--ks-spacing-2);
 }
 </style>
