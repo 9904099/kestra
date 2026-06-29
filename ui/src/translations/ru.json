@@ -1666,7 +1666,7 @@
         "any_namespace": "любой namespace",
         "empty": "Настройте trigger и хотя бы один канал уведомлений для предварительного просмотра вашего flow.",
         "exact_match": "точное соответствие",
-        "execution": "Когда flow в namespace {ns} ({scope}) достигает состояния {states}, уведомить через {channels}.",
+        "execution": "Когда flow в {ns} ({scope}) достигает состояния {states}, уведомить через {channels}.",
         "including_sub": "и дочерние namespaces",
         "invalid_hint": "Добавьте хотя бы один канал уведомлений и завершите настройку trigger.",
         "no_channel": "нет настроенного канала",

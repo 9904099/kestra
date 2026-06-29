@@ -1666,7 +1666,7 @@
         "any_namespace": "कोई भी namespace",
         "empty": "अपने flow का पूर्वावलोकन करने के लिए trigger और कम से कम एक नोटिफिकेशन चैनल कॉन्फ़िगर करें।",
         "exact_match": "सटीक मिलान",
-        "execution": "जब namespace {ns} ({scope}) में एक flow स्थिति {states} पर पहुंचे, {channels} के माध्यम से सूचित करें।",
+        "execution": "जब {ns} ({scope}) में एक flow स्थिति {states} पर पहुंचे, {channels} के माध्यम से सूचित करें।",
         "including_sub": "और उप-namespaces",
         "invalid_hint": "कम से कम एक नोटिफिकेशन चैनल जोड़ें और trigger कॉन्फ़िगरेशन पूरी करें।",
         "no_channel": "कोई चैनल कॉन्फ़िगर नहीं",

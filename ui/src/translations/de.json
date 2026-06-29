@@ -1666,7 +1666,7 @@
         "any_namespace": "beliebiger namespace",
         "empty": "Konfigurieren Sie den trigger und mindestens einen Benachrichtigungskanal, um eine Vorschau Ihres Flows anzuzeigen.",
         "exact_match": "genaue Übereinstimmung",
-        "execution": "Wenn ein Flow in namespace {ns} ({scope}) den Zustand {states} erreicht, benachrichtige via {channels}.",
+        "execution": "Wenn ein Flow in {ns} ({scope}) den Zustand {states} erreicht, benachrichtige via {channels}.",
         "including_sub": "und Unter-namespaces",
         "invalid_hint": "Fügen Sie mindestens einen Benachrichtigungskanal hinzu und vervollständigen Sie die trigger-Konfiguration.",
         "no_channel": "kein Kanal konfiguriert",

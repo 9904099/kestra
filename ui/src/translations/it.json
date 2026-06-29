@@ -1666,7 +1666,7 @@
         "any_namespace": "qualsiasi namespace",
         "empty": "Configura il trigger e almeno un canale di notifica per visualizzare l'anteprima del tuo flow.",
         "exact_match": "corrispondenza esatta",
-        "execution": "Quando un flow nel namespace {ns} ({scope}) raggiunge lo stato {states}, notifica tramite {channels}.",
+        "execution": "Quando un flow in {ns} ({scope}) raggiunge lo stato {states}, notifica tramite {channels}.",
         "including_sub": "e sotto-namespaces",
         "invalid_hint": "Aggiungi almeno un canale di notifica e completa la configurazione del trigger.",
         "no_channel": "nessun canale configurato",

@@ -1666,7 +1666,7 @@
         "any_namespace": "dowolny namespace",
         "empty": "Skonfiguruj trigger i co najmniej jeden kanał powiadomień, aby wyświetlić podgląd flow.",
         "exact_match": "dokładne dopasowanie",
-        "execution": "Gdy flow w namespace {ns} ({scope}) osiągnie stan {states}, powiadom przez {channels}.",
+        "execution": "Gdy flow w {ns} ({scope}) osiągnie stan {states}, powiadom przez {channels}.",
         "including_sub": "i pod-namespaces",
         "invalid_hint": "Dodaj co najmniej jeden kanał powiadomień i uzupełnij konfigurację trigger.",
         "no_channel": "brak skonfigurowanego kanału",

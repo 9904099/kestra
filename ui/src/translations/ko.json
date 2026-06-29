@@ -1666,7 +1666,7 @@
         "any_namespace": "모든 namespace",
         "empty": "flow 미리보기를 위해 trigger와 최소 하나의 알림 채널을 설정하세요.",
         "exact_match": "정확한 일치",
-        "execution": "namespace {ns} ({scope})의 flow가 {states} 상태에 도달하면 {channels}를 통해 알림을 보냅니다.",
+        "execution": "{ns} ({scope})의 flow가 {states} 상태에 도달하면 {channels}를 통해 알림을 보냅니다.",
         "including_sub": "및 하위 namespace",
         "invalid_hint": "최소 하나의 알림 채널을 추가하고 trigger 설정을 완료하세요.",
         "no_channel": "설정된 채널 없음",

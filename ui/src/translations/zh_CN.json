@@ -1666,7 +1666,7 @@
         "any_namespace": "任意namespace",
         "empty": "配置trigger和至少一个通知渠道以预览您的flow。",
         "exact_match": "精确匹配",
-        "execution": "当namespace {ns} ({scope})中的flow达到状态{states}时，通过{channels}通知。",
+        "execution": "当{ns} ({scope})中的flow达到状态{states}时，通过{channels}通知。",
         "including_sub": "及子namespace",
         "invalid_hint": "至少添加一个通知渠道并完成trigger配置。",
         "no_channel": "未配置渠道",
