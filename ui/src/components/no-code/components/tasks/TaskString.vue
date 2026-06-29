@@ -17,7 +17,7 @@
             :placeholder="`Choose a${/^[aeiou]/i.test(root || '') ? 'n' : ''} ${root || 'date'}`"
             @update:model-value="(v: Date | string | null) => onInput(v instanceof Date ? v.toISOString() : '')"
         />
-        <KsDurationPicker
+        <TaskDuration
             v-if="!pebble && schema?.format === 'duration'"
             :modelValue="modelValue"
             class="duration-field"
@@ -51,6 +51,7 @@
     import {KsEditor} from "@kestra-io/design-system"
     import {useEditorBindings} from "../../../../composables/useEditorBindings"
     import InputText from "../inputs/InputText.vue"
+    import TaskDuration from "./TaskDuration.vue"
     import {Schema} from "./getTaskComponent"
 
     defineOptions({inheritAttrs: false})
