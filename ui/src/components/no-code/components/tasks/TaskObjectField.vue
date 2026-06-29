@@ -33,14 +33,7 @@
                         @click="modelValue = undefined; taskComponent?.resetSelectType?.();"
                     />
                 </div>
-                <KsTag
-                    v-if="!isAnyOf"
-                    disableTransitions
-                    size="small"
-                    class="type-tag"
-                >
-                    {{ simpleType }}
-                </KsTag>
+                <span v-if="!isAnyOf" class="type-pill">{{ simpleType }}</span>
                 <KsTooltip
                     v-if="!isAnyOf && hasTooltip"
                     placement="left-start"
@@ -194,40 +187,37 @@
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--ks-spacing-2);
     min-width: 0;
 
     .inline-start {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: var(--ks-spacing-2);
         min-width: 0;
-        flex: 1 1 auto;
+        flex: 0 1 auto;
     }
 
     .label {
-        font-family: var(--kel-font-family-monospace);
         color: var(--ks-text-primary);
         min-width: 0;
-        flex: 1;
+        flex: 0 1 auto;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         font-size: var(--ks-font-size-sm);
+        font-weight: 600;
     }
 
-    .label-anyof{
-        background-color: red;
-    }
-
-    .type-tag {
-        background-color: var(--ks-bg-tag-active);
-        color: var(--ks-text-primary);
+    .type-pill {
+        flex-shrink: 0;
         font-size: var(--ks-font-size-xs);
-        line-height: var(--ks-font-size-lg);
-        padding: 0 8px;
-        padding-bottom: 2px;
-        border-radius: 8px;
+        line-height: 1.5;
+        padding: 0 var(--ks-spacing-2);
+        border-radius: var(--ks-radius-base);
+        background: var(--ks-bg-tag-inactive);
+        border: 1px solid var(--ks-border-subtle);
+        color: var(--ks-text-secondary);
         text-transform: capitalize;
     }
 
