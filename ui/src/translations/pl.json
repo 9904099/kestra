@@ -1202,6 +1202,7 @@
         "id_label": "id flow",
         "id_placeholder": "moj-flow",
         "namespace_placeholder": "Wybierz namespace",
+        "namespaces_error": "Nie można załadować namespace. Wpisz namespace ręcznie.",
         "open_editor": "Otwórz edytor",
         "subtitle": "Zacznij od przykładu hello-world i buduj od podstaw.",
         "title": "Pusty flow"
@@ -1212,6 +1213,11 @@
       },
       "import": {
         "back": "Wróć",
+        "error": {
+          "empty": "Zawartość YAML jest pusta.",
+          "invalid_mapping": "Nieprawidłowy YAML flow: oczekiwano mapowania klucz-wartość, nie listy ani skalaru.",
+          "parse_error": "Nie można przetworzyć YAML."
+        },
         "paste_label": "Wklej YAML",
         "read_error": "Nie można odczytać pliku.",
         "submit": "Importuj flow",

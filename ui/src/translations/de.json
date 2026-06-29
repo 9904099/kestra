@@ -1202,6 +1202,7 @@
         "id_label": "Flow-id",
         "id_placeholder": "mein-flow",
         "namespace_placeholder": "namespace auswählen",
+        "namespaces_error": "namespace konnte nicht geladen werden. Geben Sie einen namespace manuell ein.",
         "open_editor": "Editor öffnen",
         "subtitle": "Beginne mit einem Hello-World-Starter und baue von Grund auf.",
         "title": "Leerer flow"
@@ -1212,6 +1213,11 @@
       },
       "import": {
         "back": "Zurück",
+        "error": {
+          "empty": "YAML-Inhalt ist leer.",
+          "invalid_mapping": "Ungültiges flow-YAML: erwartet eine Schlüssel-Wert-Zuordnung, keine Liste oder skalaren Wert.",
+          "parse_error": "YAML konnte nicht verarbeitet werden."
+        },
         "paste_label": "YAML einfügen",
         "read_error": "Die Datei konnte nicht gelesen werden.",
         "submit": "flow importieren",

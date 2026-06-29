@@ -1202,6 +1202,7 @@
         "id_label": "flow id",
         "id_placeholder": "my-flow",
         "namespace_placeholder": "namespaceを選択",
+        "namespaces_error": "namespaceを読み込めませんでした。namespaceを手動で入力してください。",
         "open_editor": "エディターを開く",
         "subtitle": "hello-worldスターターから始めて、最初から構築します。",
         "title": "空のflow"
@@ -1212,6 +1213,11 @@
       },
       "import": {
         "back": "戻る",
+        "error": {
+          "empty": "YAMLコンテンツが空です。",
+          "invalid_mapping": "flow YAMLが無効です: リストやスカラーではなく、キーと値のマッピングが必要です。",
+          "parse_error": "YAMLを解析できませんでした。"
+        },
         "paste_label": "YAMLを貼り付け",
         "read_error": "ファイルを読み込めませんでした。",
         "submit": "flowをインポート",

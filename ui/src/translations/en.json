@@ -1202,6 +1202,7 @@
         "id_label": "Flow id",
         "id_placeholder": "my-flow",
         "namespace_placeholder": "Select a namespace",
+        "namespaces_error": "Could not load namespaces. Type a namespace manually.",
         "open_editor": "Open editor",
         "subtitle": "Start with a hello-world starter and build from scratch.",
         "title": "Blank flow"
@@ -1212,6 +1213,11 @@
       },
       "import": {
         "back": "Back",
+        "error": {
+          "empty": "YAML content is empty.",
+          "invalid_mapping": "Invalid flow YAML: expected a key-value mapping, not a list or scalar.",
+          "parse_error": "Could not parse YAML."
+        },
         "paste_label": "Paste YAML",
         "read_error": "Could not read the file.",
         "submit": "Import flow",

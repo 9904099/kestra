@@ -1202,6 +1202,7 @@
         "id_label": "flow id",
         "id_placeholder": "mera-flow",
         "namespace_placeholder": "namespace चुनें",
+        "namespaces_error": "namespace लोड नहीं हो सके। namespace मैन्युअल रूप से टाइप करें।",
         "open_editor": "संपादक खोलें",
         "subtitle": "hello-world स्टार्टर से शुरू करें और शुरू से बनाएं।",
         "title": "रिक्त flow"
@@ -1212,6 +1213,11 @@
       },
       "import": {
         "back": "वापस",
+        "error": {
+          "empty": "YAML सामग्री खाली है।",
+          "invalid_mapping": "अमान्य flow YAML: key-value mapping अपेक्षित था, list या scalar नहीं।",
+          "parse_error": "YAML को parse नहीं किया जा सका।"
+        },
         "paste_label": "YAML पेस्ट करें",
         "read_error": "फ़ाइल नहीं पढ़ी जा सकी।",
         "submit": "flow आयात करें",

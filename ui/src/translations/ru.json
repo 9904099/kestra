@@ -1202,6 +1202,7 @@
         "id_label": "id flow",
         "id_placeholder": "moy-flow",
         "namespace_placeholder": "Выберите namespace",
+        "namespaces_error": "Не удалось загрузить namespace. Введите namespace вручную.",
         "open_editor": "Открыть редактор",
         "subtitle": "Начните с примера hello-world и стройте с нуля.",
         "title": "Пустой flow"
@@ -1212,6 +1213,11 @@
       },
       "import": {
         "back": "Назад",
+        "error": {
+          "empty": "Содержимое YAML пустое.",
+          "invalid_mapping": "Недействительный YAML flow: ожидалось отображение ключ-значение, а не список или скаляр.",
+          "parse_error": "Не удалось разобрать YAML."
+        },
         "paste_label": "Вставить YAML",
         "read_error": "Не удалось прочитать файл.",
         "submit": "Импортировать flow",
