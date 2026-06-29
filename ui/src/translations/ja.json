@@ -1197,6 +1197,38 @@
     "neutral trend": "安定",
     "new": "新規",
     "new version": "新しいバージョン{version}が利用可能です！",
+    "new_flow_landing": {
+      "blank": {
+        "id_label": "flow id",
+        "id_placeholder": "my-flow",
+        "namespace_placeholder": "namespaceを選択",
+        "open_editor": "エディターを開く",
+        "subtitle": "hello-worldスターターから始めて、最初から構築します。",
+        "title": "空のflow"
+      },
+      "blueprints": {
+        "subtitle": "コミュニティカタログから既製のflowを選択します。",
+        "title": "blueprintsを参照"
+      },
+      "import": {
+        "back": "戻る",
+        "paste_label": "YAMLを貼り付け",
+        "read_error": "ファイルを読み込めませんでした。",
+        "submit": "flowをインポート",
+        "subtitle": "既存のflow定義を貼り付けるかアップロードしてください。",
+        "title": "YAMLをインポート",
+        "upload_button": ".yml / .yaml をアップロード",
+        "upload_label": "またはファイルをアップロード",
+        "upload_tip": ".ymlおよび.yamlファイルを受け付けます。"
+      },
+      "subtitle": "空白のキャンバスから始めるか、blueprintsを探索するか、既存のYAMLをインポートしてください。",
+      "system": {
+        "badge": "SYSTEM",
+        "subtitle": "プラットフォーム用のアラートまたは自動化flowを構築します。",
+        "title": "システムflowを作成"
+      },
+      "title": "新しいflowを作成"
+    },
     "next": "次へ",
     "next evaluation date": "次の評価日",
     "next evaluation date tooltip": "トリガーが次に評価されるタイミングは、その間隔に基づきます。条件が満たされない場合、次の実行日と常に同じとは限りません。",

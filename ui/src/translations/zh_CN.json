@@ -1197,6 +1197,38 @@
     "neutral trend": "稳定",
     "new": "新建",
     "new version": "新版本 {version} 可用！",
+    "new_flow_landing": {
+      "blank": {
+        "id_label": "flow id",
+        "id_placeholder": "我的-flow",
+        "namespace_placeholder": "选择 namespace",
+        "open_editor": "打开编辑器",
+        "subtitle": "从 hello-world 示例开始，从头构建。",
+        "title": "空白 flow"
+      },
+      "blueprints": {
+        "subtitle": "从社区目录中选择现成的 flow。",
+        "title": "浏览 blueprints"
+      },
+      "import": {
+        "back": "返回",
+        "paste_label": "粘贴 YAML",
+        "read_error": "无法读取文件。",
+        "submit": "导入 flow",
+        "subtitle": "粘贴或上传现有的 flow 定义。",
+        "title": "导入 YAML",
+        "upload_button": "上传 .yml / .yaml",
+        "upload_label": "或上传文件",
+        "upload_tip": "接受 .yml 和 .yaml 文件。"
+      },
+      "subtitle": "从空白画布开始，浏览 blueprints，或导入现有 YAML。",
+      "system": {
+        "badge": "SYSTEM",
+        "subtitle": "为您的平台构建警报或自动化 flow。",
+        "title": "创建系统 flow"
+      },
+      "title": "创建新 flow"
+    },
     "next": "下一步",
     "next evaluation date": "下次评估日期",
     "next evaluation date tooltip": "根据其间隔，下一次评估trigger的时间。如果条件不满足，可能与下一次执行日期不同。",

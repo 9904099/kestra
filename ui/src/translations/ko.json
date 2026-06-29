@@ -1197,6 +1197,38 @@
     "neutral trend": "안정적",
     "new": "새로 만들기",
     "new version": "새 버전 {version} 사용 가능!",
+    "new_flow_landing": {
+      "blank": {
+        "id_label": "flow id",
+        "id_placeholder": "내-flow",
+        "namespace_placeholder": "namespace 선택",
+        "open_editor": "편집기 열기",
+        "subtitle": "hello-world 스타터로 시작하여 처음부터 빌드합니다.",
+        "title": "빈 flow"
+      },
+      "blueprints": {
+        "subtitle": "커뮤니티 카탈로그에서 즉시 사용 가능한 flow를 선택하세요.",
+        "title": "blueprints 탐색"
+      },
+      "import": {
+        "back": "뒤로",
+        "paste_label": "YAML 붙여넣기",
+        "read_error": "파일을 읽을 수 없습니다.",
+        "submit": "flow 가져오기",
+        "subtitle": "기존 flow 정의를 붙여넣거나 업로드하세요.",
+        "title": "YAML 가져오기",
+        "upload_button": ".yml / .yaml 업로드",
+        "upload_label": "또는 파일 업로드",
+        "upload_tip": ".yml 및 .yaml 파일을 허용합니다."
+      },
+      "subtitle": "빈 캔버스에서 시작하거나 blueprints를 탐색하거나 기존 YAML을 가져오세요.",
+      "system": {
+        "badge": "SYSTEM",
+        "subtitle": "플랫폼에 대한 알림 또는 자동화 flow를 구축합니다.",
+        "title": "시스템 flow 만들기"
+      },
+      "title": "새 flow 만들기"
+    },
     "next": "다음",
     "next evaluation date": "다음 평가 날짜",
     "next evaluation date tooltip": "트리거가 다음으로 평가될 시점은 간격을 기준으로 합니다. 조건이 충족되지 않으면 다음 실행 날짜와 항상 같지 않을 수 있습니다.",

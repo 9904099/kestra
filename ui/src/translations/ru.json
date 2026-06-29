@@ -1197,6 +1197,38 @@
     "neutral trend": "Стабильно",
     "new": "Новый",
     "new version": "Доступна новая версия {version}!",
+    "new_flow_landing": {
+      "blank": {
+        "id_label": "id flow",
+        "id_placeholder": "moy-flow",
+        "namespace_placeholder": "Выберите namespace",
+        "open_editor": "Открыть редактор",
+        "subtitle": "Начните с примера hello-world и стройте с нуля.",
+        "title": "Пустой flow"
+      },
+      "blueprints": {
+        "subtitle": "Выберите готовый flow из каталога сообщества.",
+        "title": "Просмотр blueprints"
+      },
+      "import": {
+        "back": "Назад",
+        "paste_label": "Вставить YAML",
+        "read_error": "Не удалось прочитать файл.",
+        "submit": "Импортировать flow",
+        "subtitle": "Вставьте или загрузите существующее определение flow.",
+        "title": "Импортировать YAML",
+        "upload_button": "Загрузить .yml / .yaml",
+        "upload_label": "Или загрузить файл",
+        "upload_tip": "Принимает файлы .yml и .yaml."
+      },
+      "subtitle": "Начните с пустого холста, просмотрите blueprints или импортируйте существующий YAML.",
+      "system": {
+        "badge": "SYSTEM",
+        "subtitle": "Создайте flow оповещений или автоматизации для вашей платформы.",
+        "title": "Создать системный flow"
+      },
+      "title": "Создать новый flow"
+    },
     "next": "Далее",
     "next evaluation date": "Следующая дата оценки",
     "next evaluation date tooltip": "Когда trigger будет оцениваться в следующий раз, на основе его интервала. Не всегда совпадает с датой следующей Ausführung, если условия не выполнены.",

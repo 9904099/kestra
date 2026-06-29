@@ -1197,6 +1197,38 @@
     "neutral trend": "Stabile",
     "new": "Nuovo",
     "new version": "Nuova versione {version} disponibile!",
+    "new_flow_landing": {
+      "blank": {
+        "id_label": "id del flow",
+        "id_placeholder": "mio-flow",
+        "namespace_placeholder": "Seleziona un namespace",
+        "open_editor": "Apri editor",
+        "subtitle": "Inizia con un esempio hello-world e costruisci da zero.",
+        "title": "flow vuoto"
+      },
+      "blueprints": {
+        "subtitle": "Scegli un flow pronto dal catalogo della community.",
+        "title": "Sfoglia i blueprints"
+      },
+      "import": {
+        "back": "Indietro",
+        "paste_label": "Incolla YAML",
+        "read_error": "Impossibile leggere il file.",
+        "submit": "Importa flow",
+        "subtitle": "Incolla o carica una definizione di flow esistente.",
+        "title": "Importa YAML",
+        "upload_button": "Carica .yml / .yaml",
+        "upload_label": "O carica un file",
+        "upload_tip": "Accetta file .yml e .yaml."
+      },
+      "subtitle": "Inizia da una tela vuota, esplora i blueprints o importa un YAML esistente.",
+      "system": {
+        "badge": "SYSTEM",
+        "subtitle": "Costruisci un flow di allerta o automazione per la tua piattaforma.",
+        "title": "Crea flow di sistema"
+      },
+      "title": "Crea un nuovo flow"
+    },
     "next": "Avanti",
     "next evaluation date": "Prossima data di valutazione",
     "next evaluation date tooltip": "Quando il trigger verrà valutato nuovamente, in base al suo intervallo. Non sempre coincide con la prossima data di esecuzione se le condizioni non sono soddisfatte.",

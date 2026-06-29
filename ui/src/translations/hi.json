@@ -1197,6 +1197,38 @@
     "neutral trend": "स्थिर",
     "new": "नया",
     "new version": "नया संस्करण {version} उपलब्ध है!",
+    "new_flow_landing": {
+      "blank": {
+        "id_label": "flow id",
+        "id_placeholder": "mera-flow",
+        "namespace_placeholder": "namespace चुनें",
+        "open_editor": "संपादक खोलें",
+        "subtitle": "hello-world स्टार्टर से शुरू करें और शुरू से बनाएं।",
+        "title": "रिक्त flow"
+      },
+      "blueprints": {
+        "subtitle": "सामुदायिक कैटलॉग से तैयार flow चुनें।",
+        "title": "blueprints देखें"
+      },
+      "import": {
+        "back": "वापस",
+        "paste_label": "YAML पेस्ट करें",
+        "read_error": "फ़ाइल नहीं पढ़ी जा सकी।",
+        "submit": "flow आयात करें",
+        "subtitle": "मौजूदा flow परिभाषा पेस्ट करें या अपलोड करें।",
+        "title": "YAML आयात करें",
+        "upload_button": ".yml / .yaml अपलोड करें",
+        "upload_label": "या फ़ाइल अपलोड करें",
+        "upload_tip": ".yml और .yaml फ़ाइलें स्वीकार करता है।"
+      },
+      "subtitle": "रिक्त कैनवास से शुरू करें, blueprints देखें, या मौजूदा YAML आयात करें।",
+      "system": {
+        "badge": "SYSTEM",
+        "subtitle": "अपने प्लेटफ़ॉर्म के लिए अलर्ट या स्वचालन flow बनाएं।",
+        "title": "सिस्टम flow बनाएं"
+      },
+      "title": "नया flow बनाएं"
+    },
     "next": "अगला",
     "next evaluation date": "अगली मूल्यांकन तिथि",
     "next evaluation date tooltip": "ट्रिगर का अगला मूल्यांकन कब होगा, यह उसके अंतराल पर आधारित है। यदि शर्तें पूरी नहीं होती हैं, तो यह हमेशा अगले निष्पादन तिथि के समान नहीं होता।",
