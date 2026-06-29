@@ -1,5 +1,6 @@
 <template>
     <component
+        v-if="presentation !== 'panel'"
         :is="component"
         :icon="CodeTags"
         @click="onShow"
@@ -39,58 +40,75 @@
                 </div>
             </template>
 
-            <KsTabs v-model="activeTabs">
-                <KsTabPane v-if="!readOnly" name="form">
-                    <template #label>
-                        <span>{{ $t("form") }}</span>
-                    </template>
-                    <TaskEditor
-                        ref="editor"
-                        v-model="taskYaml"
-                        :section="section"
-                        @update:model-value="onInput"
-                    />
-                </KsTabPane>
-                <KsTabPane name="source">
-                    <template #label>
-                        <span>{{ $t("source") }}</span>
-                    </template>
-                    <KsEditor
-                        v-bind="editorBindings"
-                        :readOnly="readOnly"
-                        ref="editor"
-                        @save="saveTask"
-                        v-model="taskYaml"
-                        :schemaType="section.toLowerCase()"
-                        :options="{fullHeight: false}"
-                        :navbar="false"
-                        lang="yaml"
-                        @update:model-value="onInput"
-                    />
-                </KsTabPane>
-                <KsTabPane v-if="pluginMarkdown" name="documentation">
-                    <template #label>
-                        <span>
-                            {{ $t("documentation.documentation") }}
-                        </span>
-                    </template>
-                    <div class="documentation">
-                        <KsMarkdown :content="pluginMarkdown" />
-                    </div>
-                </KsTabPane>
-            </KsTabs>
+            <TaskEditPanes
+                :modelValue="taskYaml"
+                :activeTab="activeTabs"
+                :section="section"
+                :readOnly="readOnly"
+                :pluginMarkdown="pluginMarkdown"
+                @update:activeTab="activeTabs = $event"
+                @input="onInput"
+                @save="saveTask"
+            />
         </KsDrawer>
     </component>
+
+    <div
+        v-else-if="isModalOpen"
+        class="task-edit-panel"
+        data-test="task-edit-panel"
+    >
+        <div class="task-edit-tabstrip">
+            <div class="task-edit-tab">
+                <KsTaskIcon class="task-edit-tab-ico" :cls="taskType" :icons="pluginsStore.icons" :onlyIcon="true" />
+                <span class="task-edit-tab-id">{{ taskId || task?.id || $t("add task") }}</span>
+                <KsIconButton
+                    class="task-edit-tab-close"
+                    :aria-label="$t('close')"
+                    :tooltip="$t('close')"
+                    @click="isModalOpen = false"
+                >
+                    <Close />
+                </KsIconButton>
+            </div>
+        </div>
+
+        <div class="task-edit-panel-body">
+            <TaskEditPanes
+                :modelValue="taskYaml"
+                :activeTab="activeTabs"
+                :section="section"
+                :readOnly="readOnly"
+                :pluginMarkdown="pluginMarkdown"
+                @update:activeTab="activeTabs = $event"
+                @input="onInput"
+                @save="saveTask"
+            />
+        </div>
+
+        <div v-ks-loading="isLoading" class="task-edit-panel-footer">
+            <ValidationError link :errors="errors" />
+            <KsButton
+                v-if="canSave && !readOnly"
+                :icon="ContentSave"
+                :disabled="errors && !!errors.length"
+                type="primary"
+                @click="saveTask"
+            >
+                {{ $t("save task") }}
+            </KsButton>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
     import {ref, computed, watch} from "vue"
-    import {SECTIONS, KsMarkdown, KsEditor} from "@kestra-io/design-system"
+    import {SECTIONS, KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
-    import {useEditorBindings} from "../../composables/useEditorBindings"
     import CodeTags from "vue-material-design-icons/CodeTags.vue"
     import ContentSave from "vue-material-design-icons/ContentSave.vue"
-    import TaskEditor from "../no-code/components/TaskEditor.vue"
+    import Close from "vue-material-design-icons/Close.vue"
+    import TaskEditPanes from "./TaskEditPanes.vue"
     import {canSaveFlowTemplate} from "../../utils/flowTemplate"
     import ValidationError from "./ValidationError.vue"
     import {usePluginsStore} from "../../stores/plugins"
@@ -112,6 +130,7 @@
         readOnly?: boolean;
         flowSource?: string;
         size?: string;
+        presentation?: "drawer" | "panel";
     }
 
     const props = withDefaults(defineProps<Props>(), {
@@ -126,6 +145,7 @@
         readOnly: false,
         flowSource: undefined,
         size: undefined,
+        presentation: "drawer",
     })
 
     const emit = defineEmits<{
@@ -134,8 +154,6 @@
     }>()
 
     const pluginsStore = usePluginsStore()
-
-    const editorBindings = useEditorBindings()
 
     const taskYaml = ref("")
     const taskBaseline = ref("")
@@ -147,6 +165,14 @@
     const revisions = ref<any[]>()
     const timer = ref<ReturnType<typeof setTimeout>>()
     const lastValidatedValue = ref<string | null>(null)
+
+    const taskType = computed(() => {
+        try {
+            return YAML_UTILS.parse(taskYaml.value)?.type ?? props.task?.type ?? ""
+        } catch {
+            return props.task?.type ?? ""
+        }
+    })
 
     const flowStore = useFlowStore()
     const errors = computed(() => flowStore.taskError?.split(/, ?/))
@@ -261,8 +287,63 @@
 </script>
 
 <style scoped lang="scss">
-    // Required, otherwise the doc titles and properties names are not visible
-    .documentation {
-        padding: 1rem;
+    .task-edit-panel {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+        background: var(--ks-bg-surface);
+        border: 1px solid var(--ks-border-default);
+        border-radius: var(--ks-radius-lg);
+        overflow: hidden;
+    }
+
+    .task-edit-tabstrip {
+        display: flex;
+        align-items: flex-end;
+        gap: var(--ks-spacing-1);
+        padding: var(--ks-spacing-2) var(--ks-spacing-2) 0;
+        background: var(--ks-bg-base);
+        border-bottom: 1px solid var(--ks-border-subtle);
+    }
+
+    .task-edit-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--ks-spacing-2);
+        padding: var(--ks-spacing-2) var(--ks-spacing-3);
+        background: var(--ks-bg-surface);
+        border: 1px solid var(--ks-border-subtle);
+        border-bottom: none;
+        border-radius: var(--ks-radius-base) var(--ks-radius-base) 0 0;
+    }
+
+    .task-edit-tab-ico {
+        flex-shrink: 0;
+        width: var(--ks-icon-size-base);
+        height: var(--ks-icon-size-base);
+    }
+
+    .task-edit-tab-id {
+        font-size: var(--ks-font-size-sm);
+        font-weight: 600;
+        font-family: var(--ks-font-family-mono);
+        color: var(--ks-text-primary);
+    }
+
+    .task-edit-panel-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: var(--ks-spacing-4);
+    }
+
+    .task-edit-panel-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--ks-spacing-3);
+        padding: var(--ks-spacing-3) var(--ks-spacing-4);
+        border-top: 1px solid var(--ks-border-subtle);
     }
 </style>

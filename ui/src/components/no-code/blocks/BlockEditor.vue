@@ -6,7 +6,7 @@
         tabindex="-1"
         @keydown="onEditorKeydown"
     >
-        <div class="block-editor-canvas">
+        <div v-show="!editingBlock" class="block-editor-canvas">
             <BlockSectionCard
                 name="triggers"
                 :title="t('no_code.sections.triggers')"
@@ -208,7 +208,7 @@
             :flowId="flowId"
             :namespace="namespace"
             :isHidden="true"
-            size="65%"
+            presentation="panel"
             data-test="block-editor-task-edit"
             @update:task="onTaskEdited"
             @close="onEditorClose"
