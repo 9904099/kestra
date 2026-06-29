@@ -10,6 +10,7 @@
             v-if="isModalOpen"
             v-model="isModalOpen"
             :beforeClose="beforeClose"
+            :size="size"
         >
             <template #header>
                 <code>{{ taskId || task?.id || $t("add task") }}</code>
@@ -110,6 +111,7 @@
         isHidden?: boolean;
         readOnly?: boolean;
         flowSource?: string;
+        size?: string;
     }
 
     const props = withDefaults(defineProps<Props>(), {
@@ -123,6 +125,7 @@
         isHidden: false,
         readOnly: false,
         flowSource: undefined,
+        size: undefined,
     })
 
     const emit = defineEmits<{

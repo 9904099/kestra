@@ -30,6 +30,7 @@
     import Dependencies from "../dependencies/Dependencies.vue"
     import FlowMetrics from "./FlowMetrics.vue"
     import MultiPanelFlowEditorView from "./MultiPanelFlowEditorView.vue"
+    import BlockEditorPage from "./BlockEditorPage.vue"
     import FlowTriggers from "./FlowTriggers.vue"
     import FlowConcurrency from "./FlowConcurrency.vue"
     import DemoAuditLogs from "../demo/AuditLogs.vue"
@@ -114,6 +115,15 @@
                     name: "edit",
                     component: MultiPanelFlowEditorView,
                     title: t("edit"),
+                    maximized: true,
+                })
+            }
+
+            if (user.value && flowStore.flow && user.value.isAllowed(resource.FLOW, action.VIEW, flowStore.flow.namespace)) {
+                tabs.push({
+                    name: "blocks",
+                    component: BlockEditorPage,
+                    title: t("blocks"),
                     maximized: true,
                 })
             }

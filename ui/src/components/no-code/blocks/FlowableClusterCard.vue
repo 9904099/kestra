@@ -278,13 +278,14 @@
 
     .flowable-cluster-icon {
         flex-shrink: 0;
-        width: var(--ks-icon-size-base);
-        height: var(--ks-icon-size-base);
+        width: var(--ks-icon-size-lg);
+        height: var(--ks-icon-size-lg);
     }
 
     .flowable-cluster-id {
         font-size: var(--ks-font-size-sm);
-        font-weight: 500;
+        font-weight: 600;
+        font-family: var(--ks-font-family-mono);
         color: var(--ks-text-primary);
         flex: 1;
         min-width: 0;

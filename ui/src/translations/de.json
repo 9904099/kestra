@@ -119,7 +119,16 @@
       "pick_task_type": "Aufgabentyp auswählen",
       "search_task_placeholder": "Aufgabentypen suchen...",
       "switch_case_key_placeholder": "Neuer Fallschlüssel",
-      "then_required_warning": "Der Dann-Zweig ist erforderlich"
+      "then_required_warning": "Der Dann-Zweig ist erforderlich",
+      "add_error_task": "Fehler-task hinzufügen",
+      "add_trigger": "Trigger hinzufügen",
+      "trigger_noun": "trigger",
+      "task_noun": "task",
+      "error_task_noun": "Fehler-task",
+      "empty_add_hint": "oder / drücken, um tasks zu suchen",
+      "empty_add_lead": "Klicken, um {label} hinzuzufügen",
+      "inline_add": "{label} hinzufügen",
+      "picker_more_results": "{count} weitere, verfeinern Sie Ihre Suche"
     },
     "blueprints": {
       "all": "Alle",
@@ -2475,6 +2484,7 @@
     "workerId": "Worker Id",
     "workers": "Workers",
     "wrong labels": "Leerer Key oder Value ist in Labels nicht erlaubt",
-    "yes": "Ja"
+    "yes": "Ja",
+    "blocks": "Blöcke"
   }
 }

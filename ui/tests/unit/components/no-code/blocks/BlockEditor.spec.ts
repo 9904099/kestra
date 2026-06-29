@@ -314,7 +314,7 @@ describe("BlockEditor", () => {
             expect(ids).toContain("webhook")
         })
 
-        it("shows empty state when flow has no tasks or triggers", () => {
+        it("renders all four section cards even when the flow is empty", () => {
             // Given
             mockFlowYaml.value = EMPTY_YAML
 
@@ -322,7 +322,9 @@ describe("BlockEditor", () => {
             const wrapper = mount(BlockEditor, makeConfig())
 
             // Then
-            expect(wrapper.find("[data-test='ks-empty']").exists()).toBe(true)
+            expect(wrapper.findAll("[data-test^='block-section-']").length).toBe(4)
+            expect(wrapper.findAll("[data-test='block-card']").length).toBe(0)
+            expect(wrapper.find("[data-test='block-editor-add-task']").exists()).toBe(true)
         })
 
         it("renders a FlowableClusterCard for flowable tasks instead of a plain BlockCard", () => {

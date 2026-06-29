@@ -119,7 +119,16 @@
       "pick_task_type": "taskタイプを選択",
       "search_task_placeholder": "taskタイプを検索...",
       "switch_case_key_placeholder": "新しいケースキー",
-      "then_required_warning": "Thenブランチは必須です"
+      "then_required_warning": "Thenブランチは必須です",
+      "add_error_task": "エラーtaskを追加",
+      "add_trigger": "triggerを追加",
+      "trigger_noun": "trigger",
+      "task_noun": "task",
+      "error_task_noun": "エラーtask",
+      "empty_add_hint": "または / を押してtaskを検索",
+      "empty_add_lead": "{label}を追加するにはクリック",
+      "inline_add": "{label}を追加",
+      "picker_more_results": "他{count}件、検索を絞り込んでください"
     },
     "blueprints": {
       "all": "すべて",
@@ -2475,6 +2484,7 @@
     "workerId": "Worker Id",
     "workers": "Workers",
     "wrong labels": "ラベルには空のkeyまたはvalueを設定できません",
-    "yes": "はい"
+    "yes": "はい",
+    "blocks": "ブロック"
   }
 }

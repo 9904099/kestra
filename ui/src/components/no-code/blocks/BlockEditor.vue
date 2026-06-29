@@ -6,16 +6,53 @@
         tabindex="-1"
         @keydown="onEditorKeydown"
     >
-        <KsEmpty v-if="!hasContent" :description="t('block_editor.empty')" />
+        <div class="block-editor-canvas">
+            <BlockSectionCard
+                name="triggers"
+                :title="t('no_code.sections.triggers')"
+                :icon="TriggerIcon"
+                :count="parsedTriggers.length"
+                :addLabel="t('block_editor.add_trigger')"
+                @add="(e) => openTaskPicker('triggers', e)"
+            >
+                <div class="block-section-list" data-test="block-editor-trigger-list">
+                    <BlockCard
+                        v-for="(trigger, index) in parsedTriggers"
+                        :key="String(trigger.id ?? index)"
+                        :block="trigger"
+                        :selected="selectedId === String(trigger.id)"
+                        :draggable="true"
+                        :dragOver="triggerDragOverIndex === index"
+                        :icons="pluginsStore.icons"
+                        :data-block-id="String(trigger.id ?? index)"
+                        @select="selectBlock('triggers', trigger)"
+                        @delete="onDelete('triggers', trigger.id)"
+                        @duplicate="onDuplicate('triggers', trigger.id)"
+                        @drag-start="handleTriggerDragStart($event, index)"
+                        @drag-over="handleTriggerDragOver($event, index)"
+                        @drop="handleTriggerDrop($event, index)"
+                        @drag-end="handleTriggerDragEnd"
+                    />
+                    <BlockEmptyDrop
+                        v-if="parsedTriggers.length === 0"
+                        variant="empty"
+                        :label="t('block_editor.trigger_noun')"
+                        @add="(e) => openTaskPicker('triggers', e)"
+                    />
+                </div>
+            </BlockSectionCard>
 
-        <template v-else>
-            <section v-if="parsedTasks.length > 0" class="block-editor-section">
-                <p class="block-editor-section-label">
-                    {{ t("no_code.sections.tasks") }}
-                </p>
-
+            <BlockSectionCard
+                name="tasks"
+                :title="t('no_code.sections.tasks')"
+                :icon="TasksIcon"
+                :count="parsedTasks.length"
+                :addLabel="t('block_editor.add_task')"
+                addTest="block-editor-add-task"
+                @add="(e) => openTaskPicker('tasks', e)"
+            >
                 <div
-                    class="block-editor-list"
+                    class="block-section-list"
                     data-test="block-editor-task-list"
                     @dragend="handleTaskDragEnd"
                 >
@@ -53,87 +90,113 @@
                             @drag-end="handleTaskDragEnd"
                         />
                     </template>
-                </div>
 
-                <button
-                    class="block-editor-add-btn"
-                    type="button"
-                    data-test="block-editor-add-task"
-                    @click="openTaskPicker('tasks')"
-                >
-                    <PlusCircleOutline class="block-editor-add-icon" />
-                    {{ t("block_editor.add_task") }}
-                </button>
-            </section>
-
-            <section v-if="flowLevelErrors.length > 0 || flowLevelFinally.length > 0" class="block-editor-section">
-                <BranchLane
-                    v-if="flowLevelErrors.length > 0"
-                    laneName="errors"
-                    :tasks="flowLevelErrors"
-                    parentPath="errors"
-                    :icons="pluginsStore.icons"
-                    :selectedId="selectedId"
-                    :depth="0"
-                    @select="openNestedEdit"
-                    @delete="onDeleteAtPath"
-                    @duplicate="onDuplicateAtPath"
-                    @add-at-path="openTaskPickerAtPath"
-                    @reorder="onReorderAtPath"
-                />
-                <BranchLane
-                    v-if="flowLevelFinally.length > 0"
-                    laneName="finally"
-                    :tasks="flowLevelFinally"
-                    parentPath="finally"
-                    :icons="pluginsStore.icons"
-                    :selectedId="selectedId"
-                    :depth="0"
-                    @select="openNestedEdit"
-                    @delete="onDeleteAtPath"
-                    @duplicate="onDuplicateAtPath"
-                    @add-at-path="openTaskPickerAtPath"
-                    @reorder="onReorderAtPath"
-                />
-            </section>
-
-            <section v-if="parsedTriggers.length > 0" class="block-editor-section">
-                <p class="block-editor-section-label">
-                    {{ t("no_code.sections.triggers") }}
-                </p>
-
-                <div class="block-editor-list" data-test="block-editor-trigger-list">
-                    <BlockCard
-                        v-for="(trigger, index) in parsedTriggers"
-                        :key="String(trigger.id ?? index)"
-                        :block="trigger"
-                        :selected="selectedId === String(trigger.id)"
-                        :draggable="true"
-                        :dragOver="triggerDragOverIndex === index"
-                        :icons="pluginsStore.icons"
-                        :data-block-id="String(trigger.id ?? index)"
-                        @select="selectBlock('triggers', trigger)"
-                        @delete="onDelete('triggers', trigger.id)"
-                        @duplicate="onDuplicate('triggers', trigger.id)"
-                        @drag-start="handleTriggerDragStart($event, index)"
-                        @drag-over="handleTriggerDragOver($event, index)"
-                        @drop="handleTriggerDrop($event, index)"
-                        @drag-end="handleTriggerDragEnd"
+                    <BlockEmptyDrop
+                        v-if="parsedTasks.length === 0"
+                        variant="empty"
+                        :label="t('block_editor.task_noun')"
+                        :hint="t('block_editor.empty_add_hint')"
+                        @add="(e) => openTaskPicker('tasks', e)"
+                    />
+                    <BlockEmptyDrop
+                        v-else
+                        variant="inline"
+                        :label="t('block_editor.task_noun')"
+                        :hint="t('block_editor.empty_add_hint')"
+                        @add="(e) => openTaskPicker('tasks', e)"
                     />
                 </div>
-            </section>
-        </template>
+            </BlockSectionCard>
 
-        <div v-if="!hasContent || parsedTasks.length === 0" class="block-editor-add-section">
-            <button
-                class="block-editor-add-btn"
-                type="button"
-                data-test="block-editor-add-task-fallback"
-                @click="openTaskPicker('tasks')"
+            <BlockSectionCard
+                name="errors"
+                :title="t('block_editor.lane_errors')"
+                :icon="ErrorIcon"
+                :count="flowLevelErrors.length"
+                :addLabel="t('block_editor.add_error_task')"
+                tone="error"
+                @add="(e) => openTaskPicker('errors', e)"
             >
-                <PlusCircleOutline class="block-editor-add-icon" />
-                {{ t("block_editor.add_task") }}
-            </button>
+                <div class="block-section-list">
+                    <template v-for="(task, index) in flowLevelErrors" :key="String(task.id ?? index)">
+                        <FlowableClusterCard
+                            v-if="isFlowable(task)"
+                            :block="task"
+                            :path="`errors[${index}]`"
+                            :icons="pluginsStore.icons"
+                            :selectedId="selectedId"
+                            :depth="0"
+                            :data-block-id="String(task.id ?? index)"
+                            data-test="block-card"
+                            @select="openNestedEdit"
+                            @delete="onDeleteAtPath"
+                            @duplicate="onDuplicateAtPath"
+                            @add-at-path="openTaskPickerAtPath"
+                        />
+                        <BlockCard
+                            v-else
+                            :block="task"
+                            :selected="selectedId === String(task.id)"
+                            :icons="pluginsStore.icons"
+                            :data-block-id="String(task.id ?? index)"
+                            @select="selectBlock('errors', task)"
+                            @delete="onDelete('errors', task.id)"
+                            @duplicate="onDuplicate('errors', task.id)"
+                        />
+                    </template>
+                    <BlockEmptyDrop
+                        v-if="flowLevelErrors.length === 0"
+                        variant="empty"
+                        :label="t('block_editor.error_task_noun')"
+                        @add="(e) => openTaskPicker('errors', e)"
+                    />
+                </div>
+            </BlockSectionCard>
+
+            <BlockSectionCard
+                name="finally"
+                :title="t('block_editor.lane_finally')"
+                :icon="FinallyIcon"
+                :count="flowLevelFinally.length"
+                :addLabel="t('block_editor.add_task')"
+                tone="warning"
+                @add="(e) => openTaskPicker('finally', e)"
+            >
+                <div class="block-section-list">
+                    <template v-for="(task, index) in flowLevelFinally" :key="String(task.id ?? index)">
+                        <FlowableClusterCard
+                            v-if="isFlowable(task)"
+                            :block="task"
+                            :path="`finally[${index}]`"
+                            :icons="pluginsStore.icons"
+                            :selectedId="selectedId"
+                            :depth="0"
+                            :data-block-id="String(task.id ?? index)"
+                            data-test="block-card"
+                            @select="openNestedEdit"
+                            @delete="onDeleteAtPath"
+                            @duplicate="onDuplicateAtPath"
+                            @add-at-path="openTaskPickerAtPath"
+                        />
+                        <BlockCard
+                            v-else
+                            :block="task"
+                            :selected="selectedId === String(task.id)"
+                            :icons="pluginsStore.icons"
+                            :data-block-id="String(task.id ?? index)"
+                            @select="selectBlock('finally', task)"
+                            @delete="onDelete('finally', task.id)"
+                            @duplicate="onDuplicate('finally', task.id)"
+                        />
+                    </template>
+                    <BlockEmptyDrop
+                        v-if="flowLevelFinally.length === 0"
+                        variant="empty"
+                        :label="t('block_editor.task_noun')"
+                        @add="(e) => openTaskPicker('finally', e)"
+                    />
+                </div>
+            </BlockSectionCard>
         </div>
 
         <TaskEdit
@@ -145,71 +208,90 @@
             :flowId="flowId"
             :namespace="namespace"
             :isHidden="true"
+            size="65%"
             data-test="block-editor-task-edit"
             @update:task="onTaskEdited"
             @close="onEditorClose"
         />
 
-        <KsDialog
-            v-model="taskPickerVisible"
-            :title="t('block_editor.pick_task_type')"
-        >
-            <div class="block-editor-picker" @keydown="onPickerKeydown">
-                <KsInput
-                    v-model="taskPickerSearch"
-                    :placeholder="t('block_editor.search_task_placeholder')"
-                    :aria-label="t('block_editor.search_task_placeholder')"
-                    aria-controls="block-editor-picker-listbox"
-                    :aria-activedescendant="pickerFocusedIndex >= 0 ? `block-editor-picker-option-${pickerFocusedIndex}` : undefined"
-                    clearable
-                    autofocus
-                    data-test="block-editor-picker-search"
-                />
-
+        <Teleport to="body">
+            <div
+                v-if="taskPickerVisible"
+                class="block-editor-picker-overlay"
+                @click="taskPickerVisible = false"
+            >
                 <div
-                    id="block-editor-picker-listbox"
-                    v-ks-loading="pluginsLoading"
-                    class="block-editor-picker-list"
-                    :class="{'block-editor-picker-list--loading': pluginsLoading}"
-                    :aria-label="t('block_editor.pick_task_type')"
-                    data-test="block-editor-picker-list"
-                    role="listbox"
+                    class="block-editor-picker"
+                    :style="pickerStyle"
+                    data-test="block-editor-picker"
+                    @click.stop
+                    @keydown="onPickerKeydown"
+                    @keydown.escape="taskPickerVisible = false"
                 >
-                    <button
-                        v-for="(type, idx) in filteredCommonTypes"
-                        :id="`block-editor-picker-option-${idx}`"
-                        :key="type.fqcn"
-                        class="block-editor-picker-row"
-                        :class="{'block-editor-picker-row--focused': pickerFocusedIndex === idx}"
-                        type="button"
-                        role="option"
-                        :aria-selected="pickerFocusedIndex === idx"
-                        @click="insertTask(type.fqcn)"
-                        @mouseenter="pickerFocusedIndex = idx"
-                    >
-                        <KsTaskIcon
-                            class="block-editor-picker-icon"
-                            :cls="type.fqcn"
-                            :icons="pluginsStore.icons"
-                            :onlyIcon="true"
-                        />
-                        <span class="block-editor-picker-label">{{ type.label }}</span>
-                        <span class="block-editor-picker-fqcn">{{ type.fqcn }}</span>
-                    </button>
+                    <p class="block-editor-picker-title">{{ t('block_editor.pick_task_type') }}</p>
+                    <KsInput
+                        v-model="taskPickerSearch"
+                        :placeholder="t('block_editor.search_task_placeholder')"
+                        :aria-label="t('block_editor.search_task_placeholder')"
+                        aria-controls="block-editor-picker-listbox"
+                        :aria-activedescendant="pickerFocusedIndex >= 0 ? `block-editor-picker-option-${pickerFocusedIndex}` : undefined"
+                        clearable
+                        autofocus
+                        data-test="block-editor-picker-search"
+                    />
 
-                    <p v-if="!pluginsLoading && filteredCommonTypes.length === 0" class="block-editor-picker-empty">
-                        {{ t("block_editor.no_task_results") }}
-                    </p>
+                    <div
+                        id="block-editor-picker-listbox"
+                        v-ks-loading="pluginsLoading"
+                        class="block-editor-picker-list"
+                        :class="{'block-editor-picker-list--loading': pluginsLoading}"
+                        :aria-label="t('block_editor.pick_task_type')"
+                        data-test="block-editor-picker-list"
+                        role="listbox"
+                    >
+                        <button
+                            v-for="(type, idx) in filteredCommonTypes"
+                            :id="`block-editor-picker-option-${idx}`"
+                            :key="type.fqcn"
+                            class="block-editor-picker-row"
+                            :class="{'block-editor-picker-row--focused': pickerFocusedIndex === idx}"
+                            type="button"
+                            role="option"
+                            :aria-selected="pickerFocusedIndex === idx"
+                            @click="insertTask(type.fqcn)"
+                            @mouseenter="pickerFocusedIndex = idx"
+                        >
+                            <KsTaskIcon
+                                class="block-editor-picker-icon"
+                                :cls="type.fqcn"
+                                :icons="pluginsStore.icons"
+                                :onlyIcon="true"
+                            />
+                            <span class="block-editor-picker-label">{{ type.label }}</span>
+                            <span class="block-editor-picker-fqcn">{{ type.fqcn }}</span>
+                        </button>
+
+                        <p v-if="!pluginsLoading && filteredCommonTypes.length === 0" class="block-editor-picker-empty">
+                            {{ t("block_editor.no_task_results") }}
+                        </p>
+
+                        <p v-else-if="pickerHiddenCount > 0" class="block-editor-picker-more">
+                            {{ t("block_editor.picker_more_results", {count: pickerHiddenCount}) }}
+                        </p>
+                    </div>
                 </div>
             </div>
-        </KsDialog>
+        </Teleport>
     </div>
 </template>
 
 <script setup lang="ts">
-    import {computed, nextTick, ref, watch} from "vue"
+    import {computed, nextTick, provide, ref, watch} from "vue"
     import {useI18n} from "vue-i18n"
-    import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
+    import TriggerIcon from "vue-material-design-icons/LightningBoltOutline.vue"
+    import TasksIcon from "vue-material-design-icons/FormatListBulleted.vue"
+    import ErrorIcon from "vue-material-design-icons/AlertCircleOutline.vue"
+    import FinallyIcon from "vue-material-design-icons/FlagOutline.vue"
 
     import {KsTaskIcon, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
@@ -235,9 +317,11 @@
     } from "../../../utils/flowableBlockOps"
     import {useDragAndDrop} from "../../../composables/useDragAndDrop"
     import BlockCard from "./BlockCard.vue"
-    import BranchLane from "./BranchLane.vue"
+    import BlockSectionCard from "./BlockSectionCard.vue"
+    import BlockEmptyDrop from "./BlockEmptyDrop.vue"
     import FlowableClusterCard from "./FlowableClusterCard.vue"
     import TaskEdit from "../../flows/TaskEdit.vue"
+    import {BLOCK_SCHEMA_PATH_INJECTION_KEY} from "../injectionKeys"
 
     const {t} = useI18n()
     const flowStore = useFlowStore()
@@ -287,12 +371,12 @@
         return Array.isArray(fin) ? fin : []
     })
 
-    const hasContent = computed(() =>
-        parsedTasks.value.length > 0 ||
-        parsedTriggers.value.length > 0 ||
-        flowLevelErrors.value.length > 0 ||
-        flowLevelFinally.value.length > 0,
-    )
+    function sectionList(section: BlockSection): Record<string, unknown>[] {
+        if (section === "triggers") return parsedTriggers.value
+        if (section === "errors") return flowLevelErrors.value
+        if (section === "finally") return flowLevelFinally.value
+        return parsedTasks.value
+    }
 
     const editorEl = ref<HTMLElement>()
     const internalSelectedId = ref<string | undefined>(props.selectedId)
@@ -322,6 +406,13 @@
 
     const editingBlock = ref<EditingBlock | undefined>(undefined)
     const taskEditRef = ref<InstanceType<typeof TaskEdit>>()
+
+    provide(BLOCK_SCHEMA_PATH_INJECTION_KEY, computed(() => {
+        const root = pluginsStore.flowSchema?.$ref
+        if (!root) return ""
+        const section = editingBlock.value?.section ?? "tasks"
+        return `${root}/properties/${section}/items`
+    }))
 
     async function selectBlock(section: BlockSection, block: Record<string, unknown>) {
         const strId = block.id != null ? String(block.id) : undefined
@@ -420,6 +511,7 @@
     }
 
     const taskPickerVisible = ref(false)
+    const pickerAnchor = ref<HTMLElement>()
     const taskPickerSearch = ref("")
     const taskPickerSection = ref<BlockSection>("tasks")
     const taskPickerParentPath = ref<string | undefined>(undefined)
@@ -427,7 +519,12 @@
     const pluginsLoading = ref(false)
     const pickerFocusedIndex = ref(-1)
 
-    function openTaskPicker(section: BlockSection) {
+    function anchorFrom(evt?: Event) {
+        pickerAnchor.value = (evt?.currentTarget as HTMLElement) ?? editorEl.value ?? undefined
+    }
+
+    function openTaskPicker(section: BlockSection, evt?: Event) {
+        anchorFrom(evt)
         taskPickerSection.value = section
         taskPickerParentPath.value = undefined
         taskPickerAfterIndex.value = undefined
@@ -437,7 +534,8 @@
         ensurePluginData()
     }
 
-    function openTaskPickerAtPath(parentPath: string, afterIndex: number) {
+    function openTaskPickerAtPath(parentPath: string, afterIndex: number, evt?: Event) {
+        anchorFrom(evt)
         taskPickerParentPath.value = parentPath
         taskPickerAfterIndex.value = afterIndex >= 0 ? afterIndex : undefined
         taskPickerSearch.value = ""
@@ -445,6 +543,19 @@
         taskPickerVisible.value = true
         ensurePluginData()
     }
+
+    const pickerStyle = computed(() => {
+        const anchor = pickerAnchor.value
+        if (!anchor) return {}
+        const rect = anchor.getBoundingClientRect()
+        const width = 380
+        const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8))
+        return {
+            top: `${rect.bottom + 4}px`,
+            left: `${left}px`,
+            width: `${width}px`,
+        }
+    })
 
     function ensurePluginData() {
         if (pluginsStore.plugins) return
@@ -480,7 +591,9 @@
         return entries
     })
 
-    const filteredCommonTypes = computed<PickerEntry[]>(() => {
+    const PICKER_MAX_RESULTS = 50
+
+    const filteredMatches = computed<PickerEntry[]>(() => {
         const search = taskPickerSearch.value.trim().toLowerCase()
         const source = allPickerEntries.value
         if (!search) return source
@@ -491,6 +604,14 @@
                 entry.group.toLowerCase().includes(search),
         )
     })
+
+    const filteredCommonTypes = computed<PickerEntry[]>(() =>
+        filteredMatches.value.slice(0, PICKER_MAX_RESULTS),
+    )
+
+    const pickerHiddenCount = computed(() =>
+        Math.max(0, filteredMatches.value.length - PICKER_MAX_RESULTS),
+    )
 
     watch(filteredCommonTypes, () => {
         pickerFocusedIndex.value = -1
@@ -519,8 +640,9 @@
             applyYaml(addBlockAtPath(flowYaml.value, taskPickerParentPath.value, block, taskPickerAfterIndex.value))
         } else {
             const section = taskPickerSection.value
-            const lastId = parsedTasks.value.length > 0
-                ? String(parsedTasks.value[parsedTasks.value.length - 1].id ?? "")
+            const list = sectionList(section)
+            const lastId = list.length > 0
+                ? String(list[list.length - 1].id ?? "")
                 : undefined
             applyYaml(addBlock(flowYaml.value, section, block, lastId))
         }
@@ -570,27 +692,17 @@
         })
     }
 
-    function onReorderAtPath(parentPath: string, fromIndex: number, toIndex: number) {
-        const path = editingBlock.value?.path
-        if (path && path.startsWith(parentPath + "[")) {
-            const match = path.slice(parentPath.length).match(/^\[(\d+)\]/)
-            if (match) {
-                const movedIndex = parseInt(match[1], 10)
-                const lo = Math.min(fromIndex, toIndex)
-                const hi = Math.max(fromIndex, toIndex)
-                if (movedIndex >= lo && movedIndex <= hi) {
-                    selectedId.value = undefined
-                    editingBlock.value = undefined
-                }
-            }
-        }
-        applyYaml(reorderAtPath(flowYaml.value, parentPath, fromIndex, toIndex))
-    }
-
     function onEditorKeydown(event: KeyboardEvent) {
-        if (!selectedId.value) return
         const target = event.target as HTMLElement
         if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return
+
+        if (event.key === "/" && !taskPickerVisible.value) {
+            event.preventDefault()
+            openTaskPicker("tasks")
+            return
+        }
+
+        if (!selectedId.value) return
 
         if (event.key === "Delete" || event.key === "Backspace") {
             event.preventDefault()
@@ -645,65 +757,51 @@
     .block-editor {
         height: 100%;
         overflow-y: auto;
-        padding: var(--ks-spacing-4);
+        padding: var(--ks-spacing-6) var(--ks-spacing-4);
+        background: var(--ks-bg-base);
+    }
+
+    .block-editor-canvas {
         display: flex;
         flex-direction: column;
         gap: var(--ks-spacing-4);
+        max-width: 880px;
+        margin: 0 auto;
     }
 
-    .block-editor-section {
+    .block-section-list {
         display: flex;
         flex-direction: column;
         gap: var(--ks-spacing-2);
     }
 
-    .block-editor-section-label {
+    .block-editor-picker-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 3000;
+    }
+
+    .block-editor-picker {
+        position: fixed;
+        z-index: 3001;
+        display: flex;
+        flex-direction: column;
+        gap: var(--ks-spacing-2);
+        max-height: 420px;
+        padding: var(--ks-spacing-3);
+        background: var(--ks-bg-elevated);
+        border: 1px solid var(--ks-border-default);
+        border-radius: var(--ks-radius-base);
+        box-shadow: var(--ks-shadow-lg);
+    }
+
+    .block-editor-picker-title {
         font-size: var(--ks-font-size-xs);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: var(--ks-text-muted);
         margin: 0;
-    }
-
-    .block-editor-list {
-        display: flex;
-        flex-direction: column;
-        gap: var(--ks-spacing-2);
-    }
-
-    .block-editor-add-section {
-        display: flex;
-    }
-
-    .block-editor-add-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--ks-spacing-2);
-        background: transparent;
-        border: 1px dashed var(--ks-border-default);
-        border-radius: var(--ks-radius-base);
-        color: var(--ks-text-secondary);
-        font-size: var(--ks-font-size-sm);
-        padding: var(--ks-spacing-2) var(--ks-spacing-3);
-        cursor: pointer;
-        transition: color 0.15s, border-color 0.15s;
-
-        &:hover {
-            color: var(--ks-text-link);
-            border-color: var(--ks-text-link);
-        }
-    }
-
-    .block-editor-add-icon {
-        font-size: 1rem;
-        display: flex;
-    }
-
-    .block-editor-picker {
-        display: flex;
-        flex-direction: column;
-        gap: var(--ks-spacing-3);
     }
 
     .block-editor-picker-list {
@@ -764,6 +862,14 @@
         font-size: var(--ks-font-size-sm);
         text-align: center;
         padding: var(--ks-spacing-4);
+        margin: 0;
+    }
+
+    .block-editor-picker-more {
+        color: var(--ks-text-muted);
+        font-size: var(--ks-font-size-xs);
+        text-align: center;
+        padding: var(--ks-spacing-2);
         margin: 0;
     }
 </style>

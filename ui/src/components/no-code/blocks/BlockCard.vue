@@ -24,15 +24,16 @@
         />
 
         <KsTaskIcon
-            class="block-card-icon"
+            class="block-card-ico"
             :cls="String(block.type ?? '')"
             :icons="icons"
             :onlyIcon="true"
         />
 
-        <span class="block-card-id" data-test="block-card-id">{{ block.id }}</span>
-
-        <span class="block-card-type" data-test="block-card-type">{{ shortType }}</span>
+        <div class="block-card-main">
+            <span class="block-card-id" data-test="block-card-id">{{ block.id }}</span>
+            <span class="block-card-type" data-test="block-card-type">{{ shortType }}</span>
+        </div>
 
         <div class="block-card-actions">
             <KsIconButton
@@ -104,17 +105,18 @@
         display: flex;
         align-items: center;
         gap: var(--ks-spacing-3);
-        padding: var(--ks-spacing-3);
+        padding: var(--ks-spacing-2) var(--ks-spacing-3);
         border: 1px solid var(--ks-border-default);
         border-radius: var(--ks-radius-base);
-        background: var(--ks-bg-surface);
+        background: var(--ks-bg-base);
         cursor: pointer;
-        transition: border-color 0.15s, background-color 0.15s;
+        transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
         outline: none;
 
         &:hover {
-            background: var(--ks-bg-hover);
+            background: var(--ks-bg-surface);
             border-color: var(--ks-border-strong);
+            box-shadow: var(--ks-shadow-sm);
         }
 
         &:focus-visible {
@@ -151,18 +153,25 @@
         }
     }
 
-    .block-card-icon {
+    .block-card-ico {
         flex-shrink: 0;
-        width: var(--ks-icon-size-base);
-        height: var(--ks-icon-size-base);
+        width: var(--ks-icon-size-lg);
+        height: var(--ks-icon-size-lg);
+    }
+
+    .block-card-main {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+        gap: 1px;
     }
 
     .block-card-id {
         font-size: var(--ks-font-size-sm);
-        font-weight: 500;
+        font-weight: 600;
+        font-family: var(--ks-font-family-mono);
         color: var(--ks-text-primary);
-        flex: 1;
-        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -170,9 +179,11 @@
 
     .block-card-type {
         font-size: var(--ks-font-size-xs);
-        color: var(--ks-text-secondary);
+        color: var(--ks-text-muted);
         font-family: var(--ks-font-family-mono);
-        flex-shrink: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .block-card-actions {

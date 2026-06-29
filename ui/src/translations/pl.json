@@ -119,7 +119,16 @@
       "pick_task_type": "Wybierz typ task",
       "search_task_placeholder": "Szukaj typów task...",
       "switch_case_key_placeholder": "Nowy klucz przypadku",
-      "then_required_warning": "Gałąź Then jest wymagana"
+      "then_required_warning": "Gałąź Then jest wymagana",
+      "add_error_task": "Dodaj task błędu",
+      "add_trigger": "Dodaj trigger",
+      "trigger_noun": "trigger",
+      "task_noun": "task",
+      "error_task_noun": "task błędu",
+      "empty_add_hint": "lub naciśnij /, aby wyszukać taski",
+      "empty_add_lead": "Kliknij, aby dodać {label}",
+      "inline_add": "Dodaj {label}",
+      "picker_more_results": "{count} więcej, zawęź wyszukiwanie"
     },
     "blueprints": {
       "all": "Wszystkie",
@@ -2475,6 +2484,7 @@
     "workerId": "Worker Id",
     "workers": "Workers",
     "wrong labels": "Pusta wartość lub key nie jest dozwolona w etykietach",
-    "yes": "Tak"
+    "yes": "Tak",
+    "blocks": "Bloki"
   }
 }
