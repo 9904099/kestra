@@ -148,7 +148,9 @@
       "execution_context": "実行コンテキスト",
       "declared_outputs": "宣言されたOutputs",
       "filter_data": "利用可能なデータを絞り込み…",
-      "no_data_matches": "フィルターに一致するものがありません"
+      "no_data_matches": "フィルターに一致するものがありません",
+      "open_details": "開いている詳細",
+      "close_all": "すべてのタブを閉じる"
     },
     "blueprints": {
       "all": "すべて",

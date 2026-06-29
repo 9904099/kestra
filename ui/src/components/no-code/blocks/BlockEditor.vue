@@ -201,21 +201,62 @@
             </div>
         </div>
 
-        <TaskEdit
-            v-if="editingBlock"
-            :key="editingBlock.id"
-            ref="taskEditRef"
-            class="block-editor-ndv"
-            :task="editingBlock.data"
-            :section="editingBlock.section"
-            :flowId="flowId"
-            :namespace="namespace"
-            :isHidden="true"
-            presentation="panel"
-            data-test="block-editor-task-edit"
-            @update:task="onTaskEdited"
-            @close="onEditorClose"
-        />
+        <div v-if="dockTabs.length" class="block-editor-dock">
+            <div class="block-editor-dock-tabbar" role="tablist" :aria-label="t('block_editor.open_details')">
+                <div
+                    v-for="tab in dockTabs"
+                    :key="tab.id"
+                    role="tab"
+                    tabindex="0"
+                    class="block-editor-dock-tab"
+                    :class="{'block-editor-dock-tab--active': selectedId === tab.id}"
+                    :aria-selected="selectedId === tab.id"
+                    :data-test="`block-editor-dock-tab-${tab.id}`"
+                    @click="activateTab(tab.id)"
+                    @keydown.enter="activateTab(tab.id)"
+                >
+                    <KsTaskIcon class="block-editor-dock-tab-ico" :cls="String(tab.data.type ?? '')" :icons="pluginsStore.icons" :onlyIcon="true" />
+                    <span class="block-editor-dock-tab-id">{{ tab.id }}</span>
+                    <KsIconButton
+                        class="block-editor-dock-tab-close"
+                        :aria-label="t('close')"
+                        :data-test="`block-editor-dock-tab-close-${tab.id}`"
+                        @click.stop="closeTab(tab.id)"
+                    >
+                        <Close />
+                    </KsIconButton>
+                </div>
+                <span class="block-editor-dock-tabbar-spacer" />
+                <KsIconButton
+                    v-if="dockTabs.length > 1"
+                    class="block-editor-dock-closeall"
+                    :aria-label="t('block_editor.close_all')"
+                    :tooltip="t('block_editor.close_all')"
+                    @click="closeAllTabs"
+                >
+                    <Close />
+                </KsIconButton>
+            </div>
+
+            <div class="block-editor-dock-body">
+                <TaskEdit
+                    v-for="tab in dockTabs"
+                    v-show="selectedId === tab.id"
+                    :key="tab.id"
+                    class="block-editor-dock-pane"
+                    :task="tab.data"
+                    :section="tab.section"
+                    :flowId="flowId"
+                    :namespace="namespace"
+                    :isHidden="true"
+                    presentation="panel"
+                    :hideTabstrip="true"
+                    data-test="block-editor-task-edit"
+                    @update:task="(content) => onTaskEdited(tab, content)"
+                    @close="closeTab(tab.id)"
+                />
+            </div>
+        </div>
 
         <Teleport to="body">
             <div
@@ -350,8 +391,9 @@
     import AppsIcon from "vue-material-design-icons/ViewGridOutline.vue"
     import RecentIcon from "vue-material-design-icons/History.vue"
     import ChevronLeft from "vue-material-design-icons/ChevronLeft.vue"
+    import Close from "vue-material-design-icons/Close.vue"
 
-    import {KsTaskIcon, vKsLoading} from "@kestra-io/design-system"
+    import {KsTaskIcon, KsIconButton, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
 
     import {useFlowStore} from "../../../stores/flow"
@@ -462,56 +504,67 @@
         path?: string
     }
 
-    const editingBlock = ref<EditingBlock | undefined>(undefined)
-    const taskEditRef = ref<InstanceType<typeof TaskEdit>>()
+    const dockTabs = ref<EditingBlock[]>([])
+    const activeTab = computed(() => dockTabs.value.find(tab => tab.id === selectedId.value))
 
     provide(BLOCK_SCHEMA_PATH_INJECTION_KEY, computed(() => {
         const root = pluginsStore.flowSchema?.$ref
         if (!root) return ""
-        const section = editingBlock.value?.section ?? "tasks"
+        const section = activeTab.value?.section ?? "tasks"
         return `${root}/properties/${section}/items`
     }))
 
-    async function selectBlock(section: BlockSection, block: Record<string, unknown>) {
-        const strId = block.id != null ? String(block.id) : undefined
-        if (!strId) return
-
-        if (selectedId.value === strId) {
-            selectedId.value = undefined
-            editingBlock.value = undefined
-            return
+    function openTab(tab: EditingBlock) {
+        const existing = dockTabs.value.find(t => t.id === tab.id)
+        if (existing) {
+            existing.section = tab.section
+            existing.data = tab.data
+            existing.path = tab.path
+        } else {
+            dockTabs.value = [...dockTabs.value, tab]
         }
-
-        selectedId.value = strId
-        editingBlock.value = {id: strId, section, data: block}
-        await nextTick()
-        taskEditRef.value?.open()
+        selectedId.value = tab.id
     }
 
-    async function openNestedEdit(path: string) {
+    function activateTab(id: string) {
+        selectedId.value = id
+    }
+
+    watch(() => activeTab.value?.data?.type, (type) => {
+        if (type) pluginsStore.load?.({cls: String(type)})
+    })
+
+    function closeTab(id: string) {
+        const idx = dockTabs.value.findIndex(tab => tab.id === id)
+        if (idx < 0) return
+        const wasActive = selectedId.value === id
+        const next = dockTabs.value.filter(tab => tab.id !== id)
+        dockTabs.value = next
+        if (wasActive) {
+            selectedId.value = (next[idx] ?? next[idx - 1])?.id
+        }
+    }
+
+    function closeAllTabs() {
+        dockTabs.value = []
+        selectedId.value = undefined
+    }
+
+    function selectBlock(section: BlockSection, block: Record<string, unknown>) {
+        const strId = block.id != null ? String(block.id) : undefined
+        if (!strId) return
+        openTab({id: strId, section, data: block})
+    }
+
+    function openNestedEdit(path: string) {
         const blockYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path})
         if (!blockYaml) return
 
         const parsed = flowYamlUtils.parse<Record<string, unknown>>(blockYaml)
         if (!parsed || !parsed.id) return
 
-        const strId = String(parsed.id)
-        if (selectedId.value === strId) {
-            selectedId.value = undefined
-            editingBlock.value = undefined
-            return
-        }
-
-        selectedId.value = strId
         const section: BlockSection = path.startsWith("errors") ? "errors" : path.startsWith("finally") ? "finally" : "tasks"
-        editingBlock.value = {id: strId, section, data: parsed, path}
-        await nextTick()
-        taskEditRef.value?.open()
-    }
-
-    function onEditorClose() {
-        selectedId.value = undefined
-        editingBlock.value = undefined
+        openTab({id: String(parsed.id), section, data: parsed, path})
     }
 
     const onEditTimeout = ref<ReturnType<typeof setTimeout>>()
@@ -524,25 +577,19 @@
         }, 1000)
     }
 
-    function onTaskEdited(newContent: string) {
-        if (!editingBlock.value) return
-        const {section, id, path} = editingBlock.value
+    function onTaskEdited(tab: EditingBlock, newContent: string) {
+        const {section, id, path} = tab
         if (path) {
             applyYaml(updateBlockAtPath(flowYaml.value, path, newContent))
         } else {
             applyYaml(updateBlock(flowYaml.value, section, id, newContent))
         }
-        editingBlock.value = undefined
-        selectedId.value = undefined
     }
 
     function onDelete(section: BlockSection, id: unknown) {
         if (typeof id !== "string") return
         const newYaml = deleteBlock(flowYaml.value, section, id)
-        if (selectedId.value === id) {
-            selectedId.value = undefined
-            editingBlock.value = undefined
-        }
+        closeTab(id)
         applyYaml(newYaml)
     }
 
@@ -551,10 +598,7 @@
         const blockYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path})
         if (blockYaml) {
             const parsed = flowYamlUtils.parse<Record<string, unknown>>(blockYaml)
-            if (parsed?.id && selectedId.value === String(parsed.id)) {
-                selectedId.value = undefined
-                editingBlock.value = undefined
-            }
+            if (parsed?.id) closeTab(String(parsed.id))
         }
         applyYaml(newYaml)
     }
@@ -817,17 +861,14 @@
     } = useDragAndDrop()
 
     function clearSelectionIfPathStale(_parentSection: string, from: number, to: number) {
-        const path = editingBlock.value?.path
-        if (!path) return
-        const match = path.match(/^tasks\[(\d+)\]/)
+        const tab = activeTab.value
+        if (!tab?.path) return
+        const match = tab.path.match(/^tasks\[(\d+)\]/)
         if (!match) return
         const movedIndex = parseInt(match[1], 10)
         const lo = Math.min(from, to)
         const hi = Math.max(from, to)
-        if (movedIndex >= lo && movedIndex <= hi) {
-            selectedId.value = undefined
-            editingBlock.value = undefined
-        }
+        if (movedIndex >= lo && movedIndex <= hi) closeTab(tab.id)
     }
 
     function handleTaskDrop(event: DragEvent, targetIndex: number) {
@@ -876,21 +917,21 @@
     }
 
     function deleteSelected() {
-        if (!selectedId.value) return
-        const id = selectedId.value
-        if (editingBlock.value?.path) {
-            onDeleteAtPath(editingBlock.value.path)
+        const tab = activeTab.value
+        if (!selectedId.value || !tab) return
+        if (tab.path) {
+            onDeleteAtPath(tab.path)
         } else {
-            const section = editingBlock.value?.section ?? "tasks"
-            onDelete(section, id)
+            onDelete(tab.section, tab.id)
         }
     }
 
     function moveSelected(direction: "up" | "down") {
-        if (!selectedId.value || !editingBlock.value) return
-        const path = editingBlock.value.path
+        const tab = activeTab.value
+        if (!selectedId.value || !tab) return
+        const path = tab.path
         if (!path) {
-            const section = editingBlock.value.section
+            const section = tab.section
             const list = section === "tasks" ? parsedTasks.value
                 : section === "errors" ? flowLevelErrors.value
                     : section === "finally" ? flowLevelFinally.value
@@ -905,7 +946,7 @@
             const match = path.match(/^(.*)\[(\d+)\]$/)
             if (match) {
                 const newIndex = direction === "up" ? parseInt(match[2], 10) - 1 : parseInt(match[2], 10) + 1
-                editingBlock.value = {...editingBlock.value, path: `${match[1]}[${newIndex}]`}
+                tab.path = `${match[1]}[${newIndex}]`
             }
             applyYaml(newYaml)
         }
@@ -927,10 +968,85 @@
         padding: var(--ks-spacing-6) var(--ks-spacing-4);
     }
 
-    .block-editor-ndv {
+    .block-editor-dock {
         flex: 0 0 80%;
         min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
         margin: var(--ks-spacing-4) var(--ks-spacing-4) var(--ks-spacing-4) 0;
+    }
+
+    .block-editor-dock-tabbar {
+        display: flex;
+        align-items: stretch;
+        gap: var(--ks-spacing-1);
+        flex-shrink: 0;
+        overflow-x: auto;
+    }
+
+    .block-editor-dock-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--ks-spacing-2);
+        max-width: 200px;
+        padding: var(--ks-spacing-2) var(--ks-spacing-1) var(--ks-spacing-2) var(--ks-spacing-3);
+        background: var(--ks-bg-base);
+        border: 1px solid var(--ks-border-subtle);
+        border-bottom: none;
+        border-radius: var(--ks-radius-base) var(--ks-radius-base) 0 0;
+        cursor: pointer;
+        color: var(--ks-text-secondary);
+        transition: background-color 0.12s, color 0.12s;
+    }
+
+    .block-editor-dock-tab:hover {
+        background: var(--ks-bg-surface);
+        color: var(--ks-text-primary);
+    }
+
+    .block-editor-dock-tab--active {
+        background: var(--ks-bg-surface);
+        color: var(--ks-text-primary);
+        box-shadow: inset 0 2px 0 var(--ks-text-link);
+    }
+
+    .block-editor-dock-tab-ico {
+        flex-shrink: 0;
+        width: var(--ks-icon-size-sm);
+        height: var(--ks-icon-size-sm);
+    }
+
+    .block-editor-dock-tab-id {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: var(--ks-font-size-sm);
+        font-family: var(--ks-font-family-mono);
+    }
+
+    .block-editor-dock-tab-close {
+        flex-shrink: 0;
+    }
+
+    .block-editor-dock-tabbar-spacer {
+        flex: 1;
+        min-width: var(--ks-spacing-2);
+    }
+
+    .block-editor-dock-body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        gap: var(--ks-spacing-3);
+    }
+
+    .block-editor-dock-pane {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
     }
 
     .block-editor-canvas {

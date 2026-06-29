@@ -148,7 +148,9 @@
       "execution_context": "Contexte d'exécution",
       "declared_outputs": "Outputs déclarés",
       "filter_data": "Filtrer les données disponibles…",
-      "no_data_matches": "Rien ne correspond à votre filtre"
+      "no_data_matches": "Rien ne correspond à votre filtre",
+      "open_details": "Détails ouverts",
+      "close_all": "Fermer tous les onglets"
     },
     "blueprints": {
       "all": "Tous",

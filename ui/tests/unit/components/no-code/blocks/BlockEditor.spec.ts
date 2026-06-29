@@ -396,19 +396,34 @@ describe("BlockEditor", () => {
             expect(firstCard.classes()).toContain("block-card--selected")
         })
 
-        it("deselects a block when clicked again", async () => {
+        it("keeps a block selected when its card is clicked again", async () => {
             // Given
             const wrapper = mount(BlockEditor, makeConfig())
             const firstCard = wrapper.find("[data-test='block-card']")
             await firstCard.trigger("click")
             await wrapper.vm.$nextTick()
 
+            // When — clicking the same card again does not toggle it off
+            await wrapper.find("[data-test='block-card']").trigger("click")
+            await wrapper.vm.$nextTick()
+
+            // Then — the block stays open and selected (closing is done from the dock tab)
+            expect(wrapper.find("[data-test='block-card']").classes()).toContain("block-card--selected")
+        })
+
+        it("deselects a block when its dock tab is closed", async () => {
+            // Given
+            const wrapper = mount(BlockEditor, makeConfig())
+            await wrapper.find("[data-test='block-card']").trigger("click")
+            await wrapper.vm.$nextTick()
+
             // When
-            await firstCard.trigger("click")
+            await wrapper.find("[data-test='block-editor-dock-tab-close-log_task']").trigger("click")
             await wrapper.vm.$nextTick()
 
             // Then
             expect(wrapper.find("[data-test='block-card']").classes()).not.toContain("block-card--selected")
+            expect(wrapper.find("[data-test='block-editor-task-edit']").exists()).toBe(false)
         })
 
         it("mounts TaskEdit when a leaf block is clicked", async () => {
@@ -433,11 +448,26 @@ describe("BlockEditor", () => {
             await wrapper.vm.$nextTick()
 
             // Then
-            const taskEdit = wrapper.find("[data-test='block-editor-task-edit']")
+            const taskEdit = wrapper.findComponent({name: "TaskEdit"})
             expect(taskEdit.exists()).toBe(true)
-            const vm = wrapper.vm as unknown as {editingBlock: {section: string; data: Record<string, unknown>}}
-            expect(vm.editingBlock.section).toBe("tasks")
-            expect(vm.editingBlock.data.id).toBe("log_task")
+            expect(taskEdit.props("section")).toBe("tasks")
+            expect((taskEdit.props("task") as Record<string, unknown>).id).toBe("log_task")
+        })
+
+        it("opens a second tab when another block is clicked, keeping both open", async () => {
+            // Given
+            const wrapper = mount(BlockEditor, makeConfig())
+            const cards = wrapper.findAll("[data-test='block-card']")
+
+            // When — open two different blocks
+            await cards[0].trigger("click")
+            await wrapper.vm.$nextTick()
+            await cards[1].trigger("click")
+            await wrapper.vm.$nextTick()
+
+            // Then — both remain open as dock tabs
+            expect(wrapper.findAll("[role='tab']").length).toBe(2)
+            expect(wrapper.findAllComponents({name: "TaskEdit"}).length).toBe(2)
         })
     })
 
@@ -463,17 +493,18 @@ describe("BlockEditor", () => {
             expect(parsed.tasks[1].id).toBe("http_task")
         })
 
-        it("deselects the block after a successful edit", async () => {
+        it("closes the tab and deselects the block after a successful edit", async () => {
             // Given
             const wrapper = mount(BlockEditor, makeConfig())
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
             await wrapper.vm.$nextTick()
 
-            // When
+            // When — a save emits update:task then closes the panel (as TaskEdit.saveTask does)
             const updatedTaskYaml = "id: log_task\ntype: io.kestra.plugin.core.log.Log\nmessage: Updated"
             const taskEditEl = wrapper.findComponent({name: "TaskEdit"})
             await taskEditEl.vm.$emit("update:task", updatedTaskYaml)
+            await taskEditEl.vm.$emit("close")
             await wrapper.vm.$nextTick()
 
             // Then
@@ -650,12 +681,12 @@ describe("BlockEditor", () => {
             await wrapper.vm.$nextTick()
 
             const vm = wrapper.vm as unknown as {
-                editingBlock: {path?: string} | undefined
+                activeTab: {path?: string} | undefined
                 selectedId: string | undefined
                 handleTaskDragStart: (event: DragEvent, index: number) => void
                 handleTaskDrop: (event: DragEvent, index: number) => void
             }
-            expect(vm.editingBlock?.path).toBe("tasks[1].then[0]")
+            expect(vm.activeTab?.path).toBe("tasks[1].then[0]")
             expect(vm.selectedId).toBe("nested_a")
 
             // When — prime drag from tasks[0], then drop on tasks[1]
@@ -665,9 +696,9 @@ describe("BlockEditor", () => {
             vm.handleTaskDrop(mockEvent, 1)
             await wrapper.vm.$nextTick()
 
-            // Then — stale path is detected, selection cleared
+            // Then — stale path is detected, the tab is closed and selection cleared
             expect(vm.selectedId).toBeUndefined()
-            expect(vm.editingBlock).toBeUndefined()
+            expect(vm.activeTab).toBeUndefined()
         })
 
         it("emits update:selectedId when selectedId changes via v-model", async () => {

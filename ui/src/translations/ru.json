@@ -148,7 +148,9 @@
       "execution_context": "Контекст выполнения",
       "declared_outputs": "Объявленные Outputs",
       "filter_data": "Фильтр доступных данных…",
-      "no_data_matches": "Ничего не соответствует фильтру"
+      "no_data_matches": "Ничего не соответствует фильтру",
+      "open_details": "Открытые сведения",
+      "close_all": "Закрыть все вкладки"
     },
     "blueprints": {
       "all": "Все",

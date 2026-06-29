@@ -148,7 +148,9 @@
       "execution_context": "निष्पादन संदर्भ",
       "declared_outputs": "घोषित Outputs",
       "filter_data": "उपलब्ध डेटा फ़िल्टर करें…",
-      "no_data_matches": "फ़िल्टर से कुछ मेल नहीं खाता"
+      "no_data_matches": "फ़िल्टर से कुछ मेल नहीं खाता",
+      "open_details": "खुले विवरण",
+      "close_all": "सभी टैब बंद करें"
     },
     "blueprints": {
       "all": "सभी",

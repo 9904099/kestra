@@ -58,7 +58,7 @@
         class="task-edit-panel"
         data-test="task-edit-panel"
     >
-        <div class="task-edit-tabstrip">
+        <div v-if="!hideTabstrip" class="task-edit-tabstrip">
             <div class="task-edit-tab">
                 <KsTaskIcon class="task-edit-tab-ico" :cls="taskType" :icons="pluginsStore.icons" :onlyIcon="true" />
                 <span class="task-edit-tab-id">{{ taskId || task?.id || $t("add task") }}</span>
@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-    import {ref, computed, watch} from "vue"
+    import {ref, computed, watch, onMounted} from "vue"
     import {useI18n} from "vue-i18n"
     import {SECTIONS, KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
@@ -152,6 +152,7 @@
         flowSource?: string;
         size?: string;
         presentation?: "drawer" | "panel";
+        hideTabstrip?: boolean;
     }
 
     const props = withDefaults(defineProps<Props>(), {
@@ -167,6 +168,7 @@
         flowSource: undefined,
         size: undefined,
         presentation: "drawer",
+        hideTabstrip: false,
     })
 
     const emit = defineEmits<{
@@ -371,6 +373,10 @@
             emit("close")
             activeTabs.value = props.readOnly ? "source" : "form"
         }
+    })
+
+    onMounted(() => {
+        if (props.presentation === "panel") onShow()
     })
 
     defineExpose({open: onShow})

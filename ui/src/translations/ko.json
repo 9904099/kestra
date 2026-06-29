@@ -148,7 +148,9 @@
       "execution_context": "실행 컨텍스트",
       "declared_outputs": "선언된 Outputs",
       "filter_data": "사용 가능한 데이터 필터…",
-      "no_data_matches": "필터와 일치하는 항목 없음"
+      "no_data_matches": "필터와 일치하는 항목 없음",
+      "open_details": "열린 세부정보",
+      "close_all": "모든 탭 닫기"
     },
     "blueprints": {
       "all": "모두",

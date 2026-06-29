@@ -148,7 +148,9 @@
       "execution_context": "执行上下文",
       "declared_outputs": "已声明的 Outputs",
       "filter_data": "筛选可用数据…",
-      "no_data_matches": "没有匹配筛选的内容"
+      "no_data_matches": "没有匹配筛选的内容",
+      "open_details": "已打开的详情",
+      "close_all": "关闭所有标签页"
     },
     "blueprints": {
       "all": "全部",
