@@ -150,7 +150,8 @@
       "filter_data": "Verfügbare Daten filtern…",
       "no_data_matches": "Nichts entspricht Ihrem Filter",
       "open_details": "Geöffnete Details",
-      "close_all": "Alle Tabs schließen"
+      "close_all": "Alle Tabs schließen",
+      "no_documentation": "Keine Dokumentation für diese task"
     },
     "blueprints": {
       "all": "Alle",

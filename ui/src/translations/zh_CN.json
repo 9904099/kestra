@@ -150,7 +150,8 @@
       "filter_data": "筛选可用数据…",
       "no_data_matches": "没有匹配筛选的内容",
       "open_details": "已打开的详情",
-      "close_all": "关闭所有标签页"
+      "close_all": "关闭所有标签页",
+      "no_documentation": "此 task 没有文档"
     },
     "blueprints": {
       "all": "全部",

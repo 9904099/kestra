@@ -135,6 +135,7 @@
       "nav_rail_title": "Outline",
       "nested_count": "{count} nested tasks",
       "no_data_matches": "Nothing matches your filter",
+      "no_documentation": "No documentation for this task",
       "no_recent": "No recent task types yet",
       "no_task_results": "No matching task types.",
       "open_details": "Open details",

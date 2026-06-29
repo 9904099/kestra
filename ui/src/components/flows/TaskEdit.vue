@@ -73,37 +73,70 @@
             </div>
         </div>
 
-        <div class="task-edit-panel-body">
-            <TaskEditData
-                class="task-edit-col-inputs"
-                kind="inputs"
-                :title="$t('block_editor.inputs')"
-                :subtitle="$t('block_editor.inputs_sub')"
-                :sections="inputSections"
-                :filterable="true"
-            />
-
-            <div class="task-edit-col-params">
-                <TaskEditPanes
-                    :modelValue="taskYaml"
-                    :activeTab="activeTabs"
-                    :section="section"
-                    :readOnly="readOnly"
-                    :pluginMarkdown="pluginMarkdown"
-                    @update:activeTab="activeTabs = $event"
-                    @input="onInput"
-                    @save="saveTask"
+        <KsSplitter class="task-edit-panel-body">
+            <KsSplitterPanel size="18%" min="14%" max="30%">
+                <TaskEditData
+                    class="task-edit-col-inputs"
+                    kind="inputs"
+                    :title="$t('block_editor.inputs')"
+                    :subtitle="$t('block_editor.inputs_sub')"
+                    :sections="inputSections"
+                    :filterable="true"
                 />
-            </div>
+            </KsSplitterPanel>
 
-            <TaskEditData
-                class="task-edit-col-output"
-                kind="output"
-                :title="$t('block_editor.output')"
-                :subtitle="$t('block_editor.output_sub')"
-                :sections="outputSections"
-            />
-        </div>
+            <KsSplitterPanel min="30%">
+                <div class="task-edit-col-params">
+                    <div class="task-edit-params-toolbar">
+                        <KsButton
+                            size="small"
+                            :type="docOpen ? 'primary' : 'default'"
+                            :icon="BookOpenPageVariantOutline"
+                            data-test="task-edit-doc-toggle"
+                            @click="docOpen = !docOpen"
+                        >
+                            {{ $t("documentation.documentation") }}
+                        </KsButton>
+                    </div>
+                    <TaskEditPanes
+                        class="task-edit-panes"
+                        :modelValue="taskYaml"
+                        :activeTab="activeTabs"
+                        :section="section"
+                        :readOnly="readOnly"
+                        :pluginMarkdown="null"
+                        @update:activeTab="activeTabs = $event"
+                        @input="onInput"
+                        @save="saveTask"
+                    />
+                </div>
+            </KsSplitterPanel>
+
+            <KsSplitterPanel size="20%" min="14%" max="32%">
+                <TaskEditData
+                    class="task-edit-col-output"
+                    kind="output"
+                    :title="$t('block_editor.output')"
+                    :subtitle="$t('block_editor.output_sub')"
+                    :sections="outputSections"
+                />
+            </KsSplitterPanel>
+
+            <KsSplitterPanel v-if="docOpen" size="30%" min="22%" max="50%">
+                <div class="task-edit-col-doc" data-test="task-edit-doc-panel">
+                    <div class="task-edit-doc-head">
+                        <span class="task-edit-doc-title">{{ $t("documentation.documentation") }}</span>
+                        <KsIconButton :aria-label="$t('close')" :tooltip="$t('close')" @click="docOpen = false">
+                            <Close />
+                        </KsIconButton>
+                    </div>
+                    <div class="task-edit-doc-body">
+                        <KsMarkdown v-if="pluginMarkdown" :content="pluginMarkdown" />
+                        <p v-else class="task-edit-doc-empty">{{ $t("block_editor.no_documentation") }}</p>
+                    </div>
+                </div>
+            </KsSplitterPanel>
+        </KsSplitter>
 
         <div v-ks-loading="isLoading" class="task-edit-panel-footer">
             <ValidationError link :errors="errors" />
@@ -123,11 +156,12 @@
 <script setup lang="ts">
     import {ref, computed, watch, onMounted} from "vue"
     import {useI18n} from "vue-i18n"
-    import {SECTIONS, KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
+    import {SECTIONS, KsTaskIcon, KsIconButton, KsMarkdown} from "@kestra-io/design-system"
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
     import CodeTags from "vue-material-design-icons/CodeTags.vue"
     import ContentSave from "vue-material-design-icons/ContentSave.vue"
     import Close from "vue-material-design-icons/Close.vue"
+    import BookOpenPageVariantOutline from "vue-material-design-icons/BookOpenPageVariantOutline.vue"
     import TaskEditPanes from "./TaskEditPanes.vue"
     import TaskEditData from "./TaskEditData.vue"
     import {canSaveFlowTemplate} from "../../utils/flowTemplate"
@@ -185,6 +219,7 @@
     const {guardedClose} = useDiscardGuard(() => taskYaml.value !== taskBaseline.value)
     const beforeClose = (done: () => void) => guardedClose(() => done())
     const activeTabs = ref(props.readOnly ? "source" : "form")
+    const docOpen = ref(false)
     const type = ref<string>()
     const revisions = ref<any[]>()
     const timer = ref<ReturnType<typeof setTimeout>>()
@@ -429,24 +464,70 @@
     .task-edit-panel-body {
         flex: 1;
         min-height: 0;
-        display: flex;
     }
 
-    .task-edit-col-inputs {
-        flex: 0 0 240px;
-        border-right: 1px solid var(--ks-border-subtle);
+    .task-edit-col-inputs,
+    .task-edit-col-output {
+        height: 100%;
     }
 
     .task-edit-col-params {
-        flex: 1;
-        min-width: 0;
-        overflow-y: auto;
-        padding: var(--ks-spacing-4);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
     }
 
-    .task-edit-col-output {
-        flex: 0 0 260px;
-        border-left: 1px solid var(--ks-border-subtle);
+    .task-edit-params-toolbar {
+        display: flex;
+        justify-content: flex-end;
+        flex-shrink: 0;
+        padding: var(--ks-spacing-2) var(--ks-spacing-3);
+        border-bottom: 1px solid var(--ks-border-subtle);
+    }
+
+    .task-edit-panes {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: var(--ks-spacing-5) var(--ks-spacing-5) var(--ks-spacing-6);
+    }
+
+    .task-edit-col-doc {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+        background: var(--ks-bg-base);
+    }
+
+    .task-edit-doc-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+        padding: var(--ks-spacing-2) var(--ks-spacing-2) var(--ks-spacing-2) var(--ks-spacing-4);
+        border-bottom: 1px solid var(--ks-border-subtle);
+    }
+
+    .task-edit-doc-title {
+        font-size: var(--ks-font-size-sm);
+        font-weight: 600;
+        color: var(--ks-text-primary);
+    }
+
+    .task-edit-doc-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: var(--ks-spacing-4) var(--ks-spacing-5);
+    }
+
+    .task-edit-doc-empty {
+        margin: var(--ks-spacing-6) 0;
+        text-align: center;
+        font-size: var(--ks-font-size-sm);
+        color: var(--ks-text-muted);
     }
 
     .task-edit-panel-footer {

@@ -150,7 +150,8 @@
       "filter_data": "利用可能なデータを絞り込み…",
       "no_data_matches": "フィルターに一致するものがありません",
       "open_details": "開いている詳細",
-      "close_all": "すべてのタブを閉じる"
+      "close_all": "すべてのタブを閉じる",
+      "no_documentation": "このtaskのドキュメントはありません"
     },
     "blueprints": {
       "all": "すべて",

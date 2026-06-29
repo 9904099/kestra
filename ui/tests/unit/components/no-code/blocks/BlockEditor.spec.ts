@@ -630,22 +630,29 @@ describe("BlockEditor", () => {
             expect(fqcns).toContain("io.kestra.plugin.core.flow.If")
         })
 
-        it("filters picker entries by search text", async () => {
-            // Given
-            const wrapper = mount(BlockEditor, makeConfig())
-            const vm = wrapper.vm as unknown as {
-                taskPickerSearch: string
-                filteredCommonTypes: Array<{fqcn: string; label: string; group: string}>
+        it("filters picker entries by search text (after debounce)", async () => {
+            vi.useFakeTimers()
+            try {
+                // Given
+                const wrapper = mount(BlockEditor, makeConfig())
+                const vm = wrapper.vm as unknown as {
+                    taskPickerSearch: string
+                    filteredCommonTypes: Array<{fqcn: string; label: string; group: string}>
+                }
+
+                // When — the search input is debounced before filtering
+                vm.taskPickerSearch = "If"
+                await wrapper.vm.$nextTick()
+                vi.advanceTimersByTime(200)
+                await wrapper.vm.$nextTick()
+
+                // Then
+                const fqcns = vm.filteredCommonTypes.map(e => e.fqcn)
+                expect(fqcns).toContain("io.kestra.plugin.core.flow.If")
+                expect(fqcns).not.toContain("io.kestra.plugin.core.log.Log")
+            } finally {
+                vi.useRealTimers()
             }
-
-            // When
-            vm.taskPickerSearch = "If"
-            await wrapper.vm.$nextTick()
-
-            // Then
-            const fqcns = vm.filteredCommonTypes.map(e => e.fqcn)
-            expect(fqcns).toContain("io.kestra.plugin.core.flow.If")
-            expect(fqcns).not.toContain("io.kestra.plugin.core.log.Log")
         })
     })
 

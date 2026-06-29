@@ -150,7 +150,8 @@
       "filter_data": "Filtrar datos disponibles…",
       "no_data_matches": "Nada coincide con tu filtro",
       "open_details": "Detalles abiertos",
-      "close_all": "Cerrar todas las pestañas"
+      "close_all": "Cerrar todas las pestañas",
+      "no_documentation": "Sin documentación para esta task"
     },
     "blueprints": {
       "all": "Todo",
