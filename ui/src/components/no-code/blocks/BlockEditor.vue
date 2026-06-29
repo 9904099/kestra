@@ -240,6 +240,7 @@
                             role="group"
                             :aria-label="t('block_editor.split_view')"
                         >
+                            <ViewColumnIcon class="block-editor-dock-split-ico" />
                             <button
                                 v-for="n in 3"
                                 :key="n"
@@ -249,6 +250,7 @@
                                 :disabled="dockTabs.length < n"
                                 :aria-pressed="splitCount === n"
                                 :aria-label="t('block_editor.split_into', {count: n})"
+                                :title="t('block_editor.split_into', {count: n})"
                                 :data-test="`block-editor-split-${n}`"
                                 @click="splitCount = n"
                             >
@@ -423,6 +425,7 @@
     import RecentIcon from "vue-material-design-icons/History.vue"
     import ChevronLeft from "vue-material-design-icons/ChevronLeft.vue"
     import Close from "vue-material-design-icons/Close.vue"
+    import ViewColumnIcon from "vue-material-design-icons/ViewColumnOutline.vue"
 
     import {KsTaskIcon, KsIconButton, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
@@ -1081,6 +1084,13 @@
         padding: var(--ks-spacing-1);
         background: var(--ks-bg-tag);
         border-radius: var(--ks-radius-base);
+    }
+
+    .block-editor-dock-split-ico {
+        display: inline-flex;
+        margin: 0 var(--ks-spacing-1);
+        color: var(--ks-text-muted);
+        font-size: var(--ks-font-size-sm);
     }
 
     .block-editor-dock-split-btn {
