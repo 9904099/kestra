@@ -1,42 +1,44 @@
 <template>
-    <KsRow
-        v-for="(element, index) in items"
-        :key="'array-' + index"
-        :gutter="10"
-        align="top"
-        class="w-100"
-    >
-        <KsCol :span="2" class="d-flex flex-column justify-content-center reorder" v-if="items.length > 1">
-            <ChevronUp
-                @click.prevent.stop="moveItem(index, 'up')"
-                :class="{disabled: index === 0}"
-            />
-            <ChevronDown
-                @click.prevent.stop="moveItem(index, 'down')"
-                :class="{disabled: index === items.length - 1}"
-            />
-        </KsCol>
-        <KsCol :span="items.length > 1 ? 20 : 22" class="pe-2">
-            <Wrapper :merge="!needWrapper">
-                <template #tasks>
-                    <component
-                        :key="'array-' + index"
-                        :is="componentType"
-                        :modelValue="element"
-                        :task="modelValue"
-                        :root="`${root}[${index}]`"
-                        :properties="{}"
-                        :schema="props.schema.items"
-                        @update:model-value="handleInput($event, index)"
-                    />
-                </template>
-            </Wrapper>
-        </KsCol>
-        <KsCol :span="2" class="delete">
-            <DeleteOutline @click="removeItem(index)" />
-        </KsCol>
-    </KsRow>
-    <Add @add="addItem()" />
+    <div class="task-collection" :class="{'task-collection--filled': items.length > 0}">
+        <KsRow
+            v-for="(element, index) in items"
+            :key="'array-' + index"
+            :gutter="10"
+            align="top"
+            class="w-100"
+        >
+            <KsCol :span="2" class="d-flex flex-column justify-content-center reorder" v-if="items.length > 1">
+                <ChevronUp
+                    @click.prevent.stop="moveItem(index, 'up')"
+                    :class="{disabled: index === 0}"
+                />
+                <ChevronDown
+                    @click.prevent.stop="moveItem(index, 'down')"
+                    :class="{disabled: index === items.length - 1}"
+                />
+            </KsCol>
+            <KsCol :span="items.length > 1 ? 20 : 22" class="pe-2">
+                <Wrapper :merge="!needWrapper">
+                    <template #tasks>
+                        <component
+                            :key="'array-' + index"
+                            :is="componentType"
+                            :modelValue="element"
+                            :task="modelValue"
+                            :root="`${root}[${index}]`"
+                            :properties="{}"
+                            :schema="props.schema.items"
+                            @update:model-value="handleInput($event, index)"
+                        />
+                    </template>
+                </Wrapper>
+            </KsCol>
+            <KsCol :span="2" class="delete">
+                <DeleteOutline @click="removeItem(index)" />
+            </KsCol>
+        </KsRow>
+        <Add @add="addItem()" />
+    </div>
 </template>
 
 <script setup lang="ts">

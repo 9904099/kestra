@@ -6,66 +6,68 @@
         :closable="false"
         class="mb-2"
     />
-    <template v-if="componentType">
-        <Wrapper v-for="(item, index) in currentValue" :key="index" class="item-wrapper">
-            <template #tasks>
-                <InputText
-                    :ref="el => { if (el) keyInputRefs[index] = el }"
-                    :modelValue="item[0]"
-                    @update:model-value="onKey(index, $event)"
-                    margin="m-0"
-                    placeholder="Key"
-                    :haveError="duplicatedKeys.includes(item[0])"
-                />
-                <hr>
-                <component
-                    ref="valueComponent"
-                    :is="componentType"
-                    :modelValue="item[1]"
-                    @update:model-value="onValueChange(index, $event)"
-                    :root="getKey(item[0])"
-                    :schema="schema.additionalProperties"
-                    :required="isRequired(item[0])"
-                    :disabled
-                    merge
-                />
-                <div class="delete-container">
-                    <button @click="removeItem(index)" class="remove-entry">
-                        {{ te(`no_code.remove.${root}`) ? t(`no_code.remove.${root}`) : t('no_code.remove.default') }} <DeleteOutline />
-                    </button>
-                </div>
-            </template>
-        </Wrapper>
-    </template>
-    <template v-else>
-        <KsRow v-for="(item, index) in currentValue" :key="index" :gutter="10" class="w-100" style="align-items: center;" :data-testid="`task-dict-item-${item[0]}-${index}`">
-            <KsCol :span="6">
-                <InputText
-                    :ref="el => { if (el) keyInputRefs[index] = el }"
-                    :modelValue="item[0]"
-                    @update:model-value="onKey(index, $event)"
-                    margin="m-0"
-                    placeholder="Key"
-                    :haveError="duplicatedKeys.includes(item[0])"
-                    :inputStyle="{minHeight: 'var(--kel-component-size)', padding: '7px 11px'}"
-                />
-            </KsCol>
-            <KsCol :span="16">
-                <TaskExpression
-                    :modelValue="item[1]"
-                    @update:model-value="onValueChange(index, $event)"
-                    :root="getKey(item[0])"
-                    :schema="schema.additionalProperties"
-                    :required="isRequired(item[0])"
-                    :disabled
-                />
-            </KsCol>
-            <KsCol :span="2" class="col align-self-center delete">
-                <DeleteOutline @click="removeItem(index)" />
-            </KsCol>
-        </KsRow>
-    </template>
-    <Add v-if="!props.disabled" :disabled="addButtonDisabled" @add="addItem()" />
+    <div class="task-collection" :class="{'task-collection--filled': currentValue.length > 0}">
+        <template v-if="componentType">
+            <Wrapper v-for="(item, index) in currentValue" :key="index" class="item-wrapper">
+                <template #tasks>
+                    <InputText
+                        :ref="el => { if (el) keyInputRefs[index] = el }"
+                        :modelValue="item[0]"
+                        @update:model-value="onKey(index, $event)"
+                        margin="m-0"
+                        placeholder="Key"
+                        :haveError="duplicatedKeys.includes(item[0])"
+                    />
+                    <hr>
+                    <component
+                        ref="valueComponent"
+                        :is="componentType"
+                        :modelValue="item[1]"
+                        @update:model-value="onValueChange(index, $event)"
+                        :root="getKey(item[0])"
+                        :schema="schema.additionalProperties"
+                        :required="isRequired(item[0])"
+                        :disabled
+                        merge
+                    />
+                    <div class="delete-container">
+                        <button @click="removeItem(index)" class="remove-entry">
+                            {{ te(`no_code.remove.${root}`) ? t(`no_code.remove.${root}`) : t('no_code.remove.default') }} <DeleteOutline />
+                        </button>
+                    </div>
+                </template>
+            </Wrapper>
+        </template>
+        <template v-else>
+            <KsRow v-for="(item, index) in currentValue" :key="index" :gutter="10" class="w-100" style="align-items: center;" :data-testid="`task-dict-item-${item[0]}-${index}`">
+                <KsCol :span="6">
+                    <InputText
+                        :ref="el => { if (el) keyInputRefs[index] = el }"
+                        :modelValue="item[0]"
+                        @update:model-value="onKey(index, $event)"
+                        margin="m-0"
+                        placeholder="Key"
+                        :haveError="duplicatedKeys.includes(item[0])"
+                        :inputStyle="{minHeight: 'var(--kel-component-size)', padding: '7px 11px'}"
+                    />
+                </KsCol>
+                <KsCol :span="16">
+                    <TaskExpression
+                        :modelValue="item[1]"
+                        @update:model-value="onValueChange(index, $event)"
+                        :root="getKey(item[0])"
+                        :schema="schema.additionalProperties"
+                        :required="isRequired(item[0])"
+                        :disabled
+                    />
+                </KsCol>
+                <KsCol :span="2" class="col align-self-center delete">
+                    <DeleteOutline @click="removeItem(index)" />
+                </KsCol>
+            </KsRow>
+        </template>
+        <Add v-if="!props.disabled" :disabled="addButtonDisabled" @add="addItem()" />
+    </div>
 </template>
 
 <script setup lang="ts">

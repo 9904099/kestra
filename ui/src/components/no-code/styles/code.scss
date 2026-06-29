@@ -35,6 +35,17 @@ $code-font-sm: var(--ks-font-size-sm);
     font-size: $code-font-sm;
 }
 
+.task-collection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ks-spacing-2);
+}
+
+.task-collection--filled {
+    border-left: 2px solid var(--ks-border-subtle);
+    padding-left: var(--ks-spacing-3);
+}
+
 .delete,
 .reorder {
     height: 32px;
