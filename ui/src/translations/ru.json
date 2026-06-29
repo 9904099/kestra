@@ -128,7 +128,17 @@
       "empty_add_hint": "или нажмите /, чтобы искать tasks",
       "empty_add_lead": "Нажмите, чтобы добавить {label}",
       "inline_add": "Добавить {label}",
-      "picker_more_results": "ещё {count}, уточните поиск"
+      "picker_more_results": "ещё {count}, уточните поиск",
+      "inserting_into": "Вставка в {section}",
+      "app_actions": "{count} действий",
+      "all_apps": "Все приложения",
+      "no_recent": "Пока нет недавних tasks",
+      "kbd_navigate": "навигация",
+      "kbd_add": "добавить",
+      "kbd_close": "закрыть",
+      "tab_suggested": "Рекомендуемые",
+      "tab_apps": "По приложению",
+      "tab_recent": "Недавние"
     },
     "blueprints": {
       "all": "Все",

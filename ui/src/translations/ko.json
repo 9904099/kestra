@@ -128,7 +128,17 @@
       "empty_add_hint": "또는 /를 눌러 task 검색",
       "empty_add_lead": "{label}을(를) 추가하려면 클릭",
       "inline_add": "{label} 추가",
-      "picker_more_results": "{count}개 더, 검색을 좁혀보세요"
+      "picker_more_results": "{count}개 더, 검색을 좁혀보세요",
+      "inserting_into": "{section}에 삽입",
+      "app_actions": "{count}개 작업",
+      "all_apps": "모든 앱",
+      "no_recent": "최근 사용한 task 없음",
+      "kbd_navigate": "이동",
+      "kbd_add": "추가",
+      "kbd_close": "닫기",
+      "tab_suggested": "추천",
+      "tab_apps": "앱별",
+      "tab_recent": "최근"
     },
     "blueprints": {
       "all": "모두",

@@ -128,7 +128,17 @@
       "empty_add_hint": "lub naciśnij /, aby wyszukać taski",
       "empty_add_lead": "Kliknij, aby dodać {label}",
       "inline_add": "Dodaj {label}",
-      "picker_more_results": "{count} więcej, zawęź wyszukiwanie"
+      "picker_more_results": "{count} więcej, zawęź wyszukiwanie",
+      "inserting_into": "Wstawianie do {section}",
+      "app_actions": "{count} akcji",
+      "all_apps": "Wszystkie aplikacje",
+      "no_recent": "Brak ostatnich tasków",
+      "kbd_navigate": "nawiguj",
+      "kbd_add": "dodaj",
+      "kbd_close": "zamknij",
+      "tab_suggested": "Sugerowane",
+      "tab_apps": "Wg aplikacji",
+      "tab_recent": "Ostatnie"
     },
     "blueprints": {
       "all": "Wszystkie",

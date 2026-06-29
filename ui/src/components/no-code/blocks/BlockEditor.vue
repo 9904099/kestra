@@ -228,7 +228,8 @@
                     @keydown="onPickerKeydown"
                     @keydown.escape="taskPickerVisible = false"
                 >
-                    <p class="block-editor-picker-title">{{ t('block_editor.pick_task_type') }}</p>
+                    <p class="block-editor-picker-context">{{ t('block_editor.inserting_into', {section: sectionLabel}) }}</p>
+
                     <KsInput
                         v-model="taskPickerSearch"
                         :placeholder="t('block_editor.search_task_placeholder')"
@@ -240,6 +241,24 @@
                         data-test="block-editor-picker-search"
                     />
 
+                    <div v-if="!taskPickerSearch.trim()" class="block-editor-picker-tabs" role="tablist">
+                        <button
+                            v-for="tab in PICKER_TABS"
+                            :key="tab.id"
+                            type="button"
+                            role="tab"
+                            class="block-editor-picker-tab"
+                            :class="{'block-editor-picker-tab--active': pickerTab === tab.id}"
+                            :aria-selected="pickerTab === tab.id"
+                            :data-test="`block-editor-picker-tab-${tab.id}`"
+                            @click="setPickerTab(tab.id)"
+                        >
+                            <component :is="tab.icon" class="block-editor-picker-tab-ico" />
+                            {{ t(tab.labelKey) }}
+                            <span v-if="tab.id === 'apps'" class="block-editor-picker-tab-count">{{ appGroups.length }}</span>
+                        </button>
+                    </div>
+
                     <div
                         id="block-editor-picker-listbox"
                         v-ks-loading="pluginsLoading"
@@ -249,35 +268,67 @@
                         data-test="block-editor-picker-list"
                         role="listbox"
                     >
-                        <button
-                            v-for="(type, idx) in filteredCommonTypes"
-                            :id="`block-editor-picker-option-${idx}`"
-                            :key="type.fqcn"
-                            class="block-editor-picker-row"
-                            :class="{'block-editor-picker-row--focused': pickerFocusedIndex === idx}"
-                            type="button"
-                            role="option"
-                            :aria-selected="pickerFocusedIndex === idx"
-                            @click="insertTask(type.fqcn)"
-                            @mouseenter="pickerFocusedIndex = idx"
-                        >
-                            <KsTaskIcon
-                                class="block-editor-picker-icon"
-                                :cls="type.fqcn"
-                                :icons="pluginsStore.icons"
-                                :onlyIcon="true"
-                            />
-                            <span class="block-editor-picker-label">{{ type.label }}</span>
-                            <span class="block-editor-picker-fqcn">{{ type.fqcn }}</span>
-                        </button>
+                        <template v-if="!taskPickerSearch.trim() && pickerTab === 'apps' && !appFilter">
+                            <button
+                                v-for="grp in appGroups"
+                                :key="grp.group"
+                                type="button"
+                                class="block-editor-picker-app"
+                                @click="appFilter = grp.group"
+                            >
+                                <KsTaskIcon class="block-editor-picker-icon" :cls="grp.sampleFqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
+                                <span class="block-editor-picker-app-name">{{ grp.group }}</span>
+                                <span class="block-editor-picker-app-count">{{ t('block_editor.app_actions', {count: grp.count}) }}</span>
+                            </button>
+                        </template>
 
-                        <p v-if="!pluginsLoading && filteredCommonTypes.length === 0" class="block-editor-picker-empty">
-                            {{ t("block_editor.no_task_results") }}
-                        </p>
+                        <template v-else>
+                            <div
+                                v-if="appFilter && !taskPickerSearch.trim()"
+                                class="block-editor-picker-back"
+                                role="button"
+                                tabindex="0"
+                                @click="appFilter = undefined"
+                                @keydown.enter="appFilter = undefined"
+                            >
+                                <ChevronLeft class="block-editor-picker-back-ico" />
+                                {{ t('block_editor.all_apps') }}
+                            </div>
 
-                        <p v-else-if="pickerHiddenCount > 0" class="block-editor-picker-more">
-                            {{ t("block_editor.picker_more_results", {count: pickerHiddenCount}) }}
-                        </p>
+                            <button
+                                v-for="(type, idx) in displayedEntries"
+                                :id="`block-editor-picker-option-${idx}`"
+                                :key="type.fqcn"
+                                class="block-editor-picker-row"
+                                :class="{'block-editor-picker-row--focused': pickerFocusedIndex === idx}"
+                                type="button"
+                                role="option"
+                                :aria-selected="pickerFocusedIndex === idx"
+                                @click="insertTask(type.fqcn)"
+                                @mouseenter="pickerFocusedIndex = idx"
+                            >
+                                <KsTaskIcon class="block-editor-picker-icon" :cls="type.fqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
+                                <span class="block-editor-picker-main">
+                                    <span class="block-editor-picker-name">{{ type.name }}</span>
+                                    <span class="block-editor-picker-desc">{{ type.label }}</span>
+                                </span>
+                                <span class="block-editor-picker-app-badge">{{ type.group }}</span>
+                            </button>
+
+                            <p v-if="!pluginsLoading && displayedEntries.length === 0" class="block-editor-picker-empty">
+                                {{ (!taskPickerSearch.trim() && pickerTab === "recent") ? t("block_editor.no_recent") : t("block_editor.no_task_results") }}
+                            </p>
+
+                            <p v-else-if="taskPickerSearch.trim() && pickerHiddenCount > 0" class="block-editor-picker-more">
+                                {{ t("block_editor.picker_more_results", {count: pickerHiddenCount}) }}
+                            </p>
+                        </template>
+                    </div>
+
+                    <div class="block-editor-picker-footer" aria-hidden="true">
+                        <span><kbd>↑</kbd><kbd>↓</kbd> {{ t('block_editor.kbd_navigate') }}</span>
+                        <span><kbd>↵</kbd> {{ t('block_editor.kbd_add') }}</span>
+                        <span><kbd>esc</kbd> {{ t('block_editor.kbd_close') }}</span>
                     </div>
                 </div>
             </div>
@@ -286,12 +337,16 @@
 </template>
 
 <script setup lang="ts">
-    import {computed, nextTick, provide, ref, watch} from "vue"
+    import {computed, nextTick, provide, ref, watch, type Component} from "vue"
     import {useI18n} from "vue-i18n"
     import TriggerIcon from "vue-material-design-icons/LightningBoltOutline.vue"
     import TasksIcon from "vue-material-design-icons/FormatListBulleted.vue"
     import ErrorIcon from "vue-material-design-icons/AlertCircleOutline.vue"
     import FinallyIcon from "vue-material-design-icons/FlagOutline.vue"
+    import SuggestedIcon from "vue-material-design-icons/Creation.vue"
+    import AppsIcon from "vue-material-design-icons/ViewGridOutline.vue"
+    import RecentIcon from "vue-material-design-icons/History.vue"
+    import ChevronLeft from "vue-material-design-icons/ChevronLeft.vue"
 
     import {KsTaskIcon, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
@@ -519,8 +574,41 @@
     const pluginsLoading = ref(false)
     const pickerFocusedIndex = ref(-1)
 
+    type PickerTab = "suggested" | "apps" | "recent"
+    const pickerTab = ref<PickerTab>("suggested")
+    const appFilter = ref<string | undefined>(undefined)
+    const recentFqcns = ref<string[]>([])
+
+    const PICKER_TABS: ReadonlyArray<{id: PickerTab; labelKey: string; icon: Component}> = [
+        {id: "suggested", labelKey: "block_editor.tab_suggested", icon: SuggestedIcon},
+        {id: "apps", labelKey: "block_editor.tab_apps", icon: AppsIcon},
+        {id: "recent", labelKey: "block_editor.tab_recent", icon: RecentIcon},
+    ]
+
+    const RECENT_KEY = "blockEditor.recentTaskTypes"
+    const SUGGESTED_FQCNS = [
+        "io.kestra.plugin.core.log.Log",
+        "io.kestra.plugin.core.http.Request",
+        "io.kestra.plugin.scripts.python.Script",
+        "io.kestra.plugin.scripts.shell.Commands",
+        "io.kestra.plugin.core.flow.Subflow",
+        "io.kestra.plugin.core.flow.If",
+        "io.kestra.plugin.core.flow.Switch",
+        "io.kestra.plugin.core.flow.ForEach",
+        "io.kestra.plugin.core.flow.Parallel",
+        "io.kestra.plugin.core.flow.Dag",
+    ]
+
     function anchorFrom(evt?: Event) {
         pickerAnchor.value = (evt?.currentTarget as HTMLElement) ?? editorEl.value ?? undefined
+    }
+
+    function resetPickerView() {
+        taskPickerSearch.value = ""
+        pickerFocusedIndex.value = -1
+        pickerTab.value = "suggested"
+        appFilter.value = undefined
+        loadRecent()
     }
 
     function openTaskPicker(section: BlockSection, evt?: Event) {
@@ -528,8 +616,7 @@
         taskPickerSection.value = section
         taskPickerParentPath.value = undefined
         taskPickerAfterIndex.value = undefined
-        taskPickerSearch.value = ""
-        pickerFocusedIndex.value = -1
+        resetPickerView()
         taskPickerVisible.value = true
         ensurePluginData()
     }
@@ -538,8 +625,7 @@
         anchorFrom(evt)
         taskPickerParentPath.value = parentPath
         taskPickerAfterIndex.value = afterIndex >= 0 ? afterIndex : undefined
-        taskPickerSearch.value = ""
-        pickerFocusedIndex.value = -1
+        resetPickerView()
         taskPickerVisible.value = true
         ensurePluginData()
     }
@@ -548,7 +634,7 @@
         const anchor = pickerAnchor.value
         if (!anchor) return {}
         const rect = anchor.getBoundingClientRect()
-        const width = 380
+        const width = 440
         const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8))
         return {
             top: `${rect.bottom + 4}px`,
@@ -567,6 +653,7 @@
 
     interface PickerEntry {
         fqcn: string
+        name: string
         label: string
         group: string
     }
@@ -582,6 +669,7 @@
                     const parts = el.cls.split(".")
                     entries.push({
                         fqcn: el.cls,
+                        name: parts[parts.length - 1] ?? el.cls,
                         label: el.title ?? parts[parts.length - 1] ?? el.cls,
                         group: plugin.title ?? plugin.name ?? "",
                     })
@@ -613,12 +701,79 @@
         Math.max(0, filteredMatches.value.length - PICKER_MAX_RESULTS),
     )
 
+    const entryByFqcn = computed(() => {
+        const map = new Map<string, PickerEntry>()
+        for (const entry of allPickerEntries.value) map.set(entry.fqcn, entry)
+        return map
+    })
+
+    const suggestedEntries = computed<PickerEntry[]>(() =>
+        SUGGESTED_FQCNS.map(fqcn => entryByFqcn.value.get(fqcn)).filter((e): e is PickerEntry => Boolean(e)),
+    )
+
+    const recentEntries = computed<PickerEntry[]>(() =>
+        recentFqcns.value.map(fqcn => entryByFqcn.value.get(fqcn)).filter((e): e is PickerEntry => Boolean(e)),
+    )
+
+    const appGroups = computed(() => {
+        const groups = new Map<string, {group: string; count: number; sampleFqcn: string}>()
+        for (const entry of allPickerEntries.value) {
+            const existing = groups.get(entry.group)
+            if (existing) existing.count++
+            else groups.set(entry.group, {group: entry.group, count: 1, sampleFqcn: entry.fqcn})
+        }
+        return [...groups.values()].sort((a, b) => b.count - a.count)
+    })
+
+    const displayedEntries = computed<PickerEntry[]>(() => {
+        if (taskPickerSearch.value.trim()) return filteredCommonTypes.value
+        if (pickerTab.value === "suggested") return suggestedEntries.value
+        if (pickerTab.value === "recent") return recentEntries.value
+        if (pickerTab.value === "apps" && appFilter.value) {
+            return allPickerEntries.value.filter(e => e.group === appFilter.value).slice(0, PICKER_MAX_RESULTS)
+        }
+        return []
+    })
+
+    const sectionLabel = computed(() => {
+        const section = taskPickerSection.value
+        if (section === "triggers") return t("no_code.sections.triggers")
+        if (section === "errors") return t("block_editor.lane_errors")
+        if (section === "finally") return t("block_editor.lane_finally")
+        return t("no_code.sections.tasks")
+    })
+
+    function setPickerTab(tab: PickerTab) {
+        pickerTab.value = tab
+        appFilter.value = undefined
+        pickerFocusedIndex.value = -1
+    }
+
+    function loadRecent() {
+        try {
+            const raw = localStorage.getItem(RECENT_KEY)
+            recentFqcns.value = raw ? JSON.parse(raw) : []
+        } catch {
+            recentFqcns.value = []
+        }
+    }
+
+    function pushRecent(fqcn: string) {
+        const next = [fqcn, ...recentFqcns.value.filter(f => f !== fqcn)].slice(0, 8)
+        recentFqcns.value = next
+        try {
+            localStorage.setItem(RECENT_KEY, JSON.stringify(next))
+        } catch {
+            // localStorage may be unavailable; recency is best-effort
+        }
+    }
+
     watch(filteredCommonTypes, () => {
         pickerFocusedIndex.value = -1
     })
 
     function onPickerKeydown(event: KeyboardEvent) {
-        const list = filteredCommonTypes.value
+        const list = displayedEntries.value
         if (list.length === 0) return
         if (event.key === "ArrowDown") {
             event.preventDefault()
@@ -634,6 +789,7 @@
     }
 
     function insertTask(fqcn: string) {
+        pushRecent(fqcn)
         const block = buildMinimalTask(fqcn, collectAllIds(flowYaml.value))
 
         if (taskPickerParentPath.value !== undefined) {
@@ -795,13 +951,54 @@
         box-shadow: var(--ks-shadow-lg);
     }
 
-    .block-editor-picker-title {
+    .block-editor-picker-context {
         font-size: var(--ks-font-size-xs);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
         color: var(--ks-text-muted);
         margin: 0;
+    }
+
+    .block-editor-picker-tabs {
+        display: flex;
+        gap: var(--ks-spacing-1);
+        border-bottom: 1px solid var(--ks-border-subtle);
+    }
+
+    .block-editor-picker-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--ks-spacing-1);
+        padding: var(--ks-spacing-1) var(--ks-spacing-2);
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: var(--ks-text-secondary);
+        font-size: var(--ks-font-size-xs);
+        cursor: pointer;
+        transition: color 0.12s, border-color 0.12s;
+    }
+
+    .block-editor-picker-tab:hover {
+        color: var(--ks-text-primary);
+    }
+
+    .block-editor-picker-tab--active {
+        color: var(--ks-text-link);
+        border-bottom-color: var(--ks-text-link);
+        font-weight: 600;
+    }
+
+    .block-editor-picker-tab-ico {
+        display: flex;
+        font-size: var(--ks-font-size-sm);
+    }
+
+    .block-editor-picker-tab-count {
+        font-size: var(--ks-font-size-xs);
+        font-family: var(--ks-font-family-mono);
+        padding: 0 var(--ks-spacing-1);
+        border-radius: var(--ks-radius-lg);
+        background: var(--ks-bg-tag);
+        color: var(--ks-text-muted);
     }
 
     .block-editor-picker-list {
@@ -841,20 +1038,110 @@
         height: var(--ks-icon-size-base);
     }
 
-    .block-editor-picker-label {
-        font-size: var(--ks-font-size-sm);
-        font-weight: 500;
-        color: var(--ks-text-primary);
-        min-width: 80px;
+    .block-editor-picker-main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
     }
 
-    .block-editor-picker-fqcn {
-        font-size: var(--ks-font-size-xs);
-        color: var(--ks-text-muted);
+    .block-editor-picker-name {
+        font-size: var(--ks-font-size-sm);
+        font-weight: 600;
         font-family: var(--ks-font-family-mono);
+        color: var(--ks-text-primary);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    .block-editor-picker-desc {
+        font-size: var(--ks-font-size-xs);
+        color: var(--ks-text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .block-editor-picker-app-badge {
+        flex-shrink: 0;
+        max-width: 40%;
+        font-size: var(--ks-font-size-xs);
+        color: var(--ks-text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .block-editor-picker-app {
+        display: flex;
+        align-items: center;
+        gap: var(--ks-spacing-3);
+        padding: var(--ks-spacing-2) var(--ks-spacing-3);
+        border: none;
+        border-radius: var(--ks-radius-base);
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+        transition: background-color 0.12s;
+    }
+
+    .block-editor-picker-app:hover {
+        background: var(--ks-bg-hover);
+    }
+
+    .block-editor-picker-app-name {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--ks-font-size-sm);
+        font-weight: 500;
+        color: var(--ks-text-primary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .block-editor-picker-app-count {
+        flex-shrink: 0;
+        font-size: var(--ks-font-size-xs);
+        color: var(--ks-text-muted);
+    }
+
+    .block-editor-picker-back {
+        display: flex;
+        align-items: center;
+        gap: var(--ks-spacing-1);
+        padding: var(--ks-spacing-1) var(--ks-spacing-2);
+        font-size: var(--ks-font-size-xs);
+        color: var(--ks-text-secondary);
+        cursor: pointer;
+        border-radius: var(--ks-radius-base);
+    }
+
+    .block-editor-picker-back:hover {
+        color: var(--ks-text-link);
+    }
+
+    .block-editor-picker-back-ico {
+        display: flex;
+    }
+
+    .block-editor-picker-footer {
+        display: flex;
+        gap: var(--ks-spacing-4);
+        padding-top: var(--ks-spacing-2);
+        border-top: 1px solid var(--ks-border-subtle);
+        font-size: var(--ks-font-size-xs);
+        color: var(--ks-text-muted);
+    }
+
+    .block-editor-picker-footer kbd {
+        font-family: var(--ks-font-family-mono);
+        background: var(--ks-bg-tag);
+        border-radius: var(--ks-radius-sm);
+        padding: 0 var(--ks-spacing-1);
+        margin-right: 2px;
     }
 
     .block-editor-picker-empty {

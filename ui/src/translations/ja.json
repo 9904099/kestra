@@ -128,7 +128,17 @@
       "empty_add_hint": "または / を押してtaskを検索",
       "empty_add_lead": "{label}を追加するにはクリック",
       "inline_add": "{label}を追加",
-      "picker_more_results": "他{count}件、検索を絞り込んでください"
+      "picker_more_results": "他{count}件、検索を絞り込んでください",
+      "inserting_into": "{section}に挿入",
+      "app_actions": "{count}個のアクション",
+      "all_apps": "すべてのアプリ",
+      "no_recent": "最近使用したtaskはありません",
+      "kbd_navigate": "移動",
+      "kbd_add": "追加",
+      "kbd_close": "閉じる",
+      "tab_suggested": "おすすめ",
+      "tab_apps": "アプリ別",
+      "tab_recent": "最近"
     },
     "blueprints": {
       "all": "すべて",

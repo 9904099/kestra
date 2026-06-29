@@ -128,7 +128,17 @@
       "empty_add_hint": "或按 / 搜索task",
       "empty_add_lead": "点击添加{label}",
       "inline_add": "添加{label}",
-      "picker_more_results": "还有{count}个，请细化搜索"
+      "picker_more_results": "还有{count}个，请细化搜索",
+      "inserting_into": "插入到 {section}",
+      "app_actions": "{count} 个操作",
+      "all_apps": "所有应用",
+      "no_recent": "暂无最近的 task",
+      "kbd_navigate": "导航",
+      "kbd_add": "添加",
+      "kbd_close": "关闭",
+      "tab_suggested": "推荐",
+      "tab_apps": "按应用",
+      "tab_recent": "最近"
     },
     "blueprints": {
       "all": "全部",

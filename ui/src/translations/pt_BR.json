@@ -128,7 +128,17 @@
       "empty_add_hint": "ou pressione / para buscar tasks",
       "empty_add_lead": "Clique para adicionar uma {label}",
       "inline_add": "Adicionar uma {label}",
-      "picker_more_results": "mais {count}, refine sua busca"
+      "picker_more_results": "mais {count}, refine sua busca",
+      "inserting_into": "Inserindo em {section}",
+      "app_actions": "{count} ações",
+      "all_apps": "Todas as apps",
+      "no_recent": "Ainda não há tasks recentes",
+      "kbd_navigate": "navegar",
+      "kbd_add": "adicionar",
+      "kbd_close": "fechar",
+      "tab_suggested": "Sugeridas",
+      "tab_apps": "Por app",
+      "tab_recent": "Recentes"
     },
     "blueprints": {
       "all": "Todos",

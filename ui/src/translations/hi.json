@@ -128,7 +128,17 @@
       "empty_add_hint": "या task खोजने के लिए / दबाएँ",
       "empty_add_lead": "{label} जोड़ने के लिए क्लिक करें",
       "inline_add": "{label} जोड़ें",
-      "picker_more_results": "{count} और, अपनी खोज को परिष्कृत करें"
+      "picker_more_results": "{count} और, अपनी खोज को परिष्कृत करें",
+      "inserting_into": "{section} में जोड़ा जा रहा है",
+      "app_actions": "{count} क्रियाएँ",
+      "all_apps": "सभी ऐप्स",
+      "no_recent": "कोई हाल की task नहीं",
+      "kbd_navigate": "नेविगेट",
+      "kbd_add": "जोड़ें",
+      "kbd_close": "बंद करें",
+      "tab_suggested": "सुझाई गई",
+      "tab_apps": "ऐप अनुसार",
+      "tab_recent": "हाल की"
     },
     "blueprints": {
       "all": "सभी",
