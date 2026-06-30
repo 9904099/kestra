@@ -261,7 +261,7 @@
                 }
             }
         }
-        onAnyOfInput(model.value || {type: val})
+        onAnyOfInput(model.value ? {...model.value} : {type: val})
     })
 
     watch(selectedSchema, (val) => {
