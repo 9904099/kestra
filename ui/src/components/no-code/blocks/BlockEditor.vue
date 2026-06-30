@@ -301,6 +301,9 @@
                             :isHidden="true"
                             presentation="panel"
                             :hideTabstrip="true"
+                            v-model:inputsCollapsed="dockInputsCollapsed"
+                            v-model:outputCollapsed="dockOutputCollapsed"
+                            v-model:docOpen="dockDocOpen"
                             data-test="block-editor-task-edit"
                             @update:task="(content) => onTaskEdited(tab, content)"
                             @close="closeTab(tab.id)"
@@ -621,10 +624,17 @@
     const DOCK_SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally"]
     let restoringDock = false
 
+    const dockInputsCollapsed = ref(false)
+    const dockOutputCollapsed = ref(false)
+    const dockDocOpen = ref(false)
+
     const dockStateKey = computed(() => [
         dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(","),
         selectedId.value ?? "",
         splitCount.value,
+        dockInputsCollapsed.value,
+        dockOutputCollapsed.value,
+        dockDocOpen.value,
     ].join("|"))
 
     watch(dockStateKey, () => {
@@ -637,6 +647,14 @@
         else delete query.tab
         if (tabs && splitCount.value > 1) query.cols = String(splitCount.value)
         else delete query.cols
+        const collapsed = [
+            dockInputsCollapsed.value ? "inputs" : "",
+            dockOutputCollapsed.value ? "output" : "",
+        ].filter(Boolean).join(",")
+        if (tabs && collapsed) query.collapsed = collapsed
+        else delete query.collapsed
+        if (tabs && dockDocOpen.value) query.doc = "1"
+        else delete query.doc
         router.replace({query}).catch(() => {})
     })
 
@@ -663,6 +681,10 @@
         }
         const cols = Number(route.query.cols)
         if (cols >= 1 && cols <= 3) splitCount.value = cols
+        const collapsed = typeof route.query.collapsed === "string" ? route.query.collapsed.split(",") : []
+        dockInputsCollapsed.value = collapsed.includes("inputs")
+        dockOutputCollapsed.value = collapsed.includes("output")
+        dockDocOpen.value = route.query.doc === "1"
         nextTick(() => {
             restoringDock = false
         })
