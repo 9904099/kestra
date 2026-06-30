@@ -1,6 +1,7 @@
 <template>
     <div class="task-nested">
         <TaskObject
+            v-bind="$attrs"
             :properties="computedProperties"
             :schema
             merge
@@ -13,6 +14,8 @@
     import TaskObject from "./TaskObject.vue"
     import {resolve$ref} from "../../../../utils/utils"
     import {FULL_SCHEMA_INJECTION_KEY} from "../../injectionKeys"
+
+    defineOptions({inheritAttrs: false})
 
     const props = withDefaults(defineProps<{
         schema: any,
