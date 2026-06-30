@@ -131,6 +131,11 @@
             border-color: var(--ks-text-link);
             background: var(--ks-bg-tag-hover);
         }
+
+        &:focus-visible {
+            outline: 2px solid var(--ks-border-focus);
+            outline-offset: 1px;
+        }
     }
 
     .block-section-add-ico {

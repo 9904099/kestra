@@ -235,6 +235,11 @@
     color: var(--ks-text-link);
 }
 
+.task-duration-add:focus-visible {
+    outline: 2px solid var(--ks-border-focus);
+    outline-offset: 1px;
+}
+
 .task-duration-presets {
     display: flex;
     flex-wrap: wrap;
@@ -256,6 +261,11 @@
 .task-duration-preset:hover {
     border-color: var(--ks-border-default);
     color: var(--ks-text-primary);
+}
+
+.task-duration-preset:focus-visible {
+    outline: 2px solid var(--ks-border-focus);
+    outline-offset: 1px;
 }
 
 .task-duration-preset.active {

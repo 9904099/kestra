@@ -251,6 +251,11 @@
             color: var(--ks-text-link);
             border-color: var(--ks-text-link);
         }
+
+        &:focus-visible {
+            outline: 2px solid var(--ks-border-focus);
+            outline-offset: 1px;
+        }
     }
 
     .branch-lane-add-icon {

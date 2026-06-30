@@ -239,6 +239,7 @@
                             :data-test="`block-editor-dock-tab-${tab.id}`"
                             @click="activateTab(tab.id)"
                             @keydown.enter="activateTab(tab.id)"
+                            @keydown.space.prevent="activateTab(tab.id)"
                         >
                             <KsTaskIcon class="block-editor-dock-tab-ico" :cls="String(tab.data.type ?? '')" :icons="pluginsStore.icons" :onlyIcon="true" />
                             <span class="block-editor-dock-tab-id">{{ tab.id }}</span>
@@ -1358,6 +1359,11 @@
         color: var(--ks-text-primary);
     }
 
+    .block-editor-dock-tab:focus-visible {
+        outline: 2px solid var(--ks-border-focus);
+        outline-offset: -2px;
+    }
+
     .block-editor-dock-tab--active {
         background: var(--ks-bg-surface);
         color: var(--ks-text-primary);
@@ -1394,6 +1400,11 @@
 
     .block-editor-dock-split-btn:hover:not(:disabled) {
         color: var(--ks-text-primary);
+    }
+
+    .block-editor-dock-split-btn:focus-visible {
+        outline: 2px solid var(--ks-border-focus);
+        outline-offset: -1px;
     }
 
     .block-editor-dock-split-btn:disabled {
@@ -1669,6 +1680,11 @@
 
     .block-editor-picker-back:hover {
         color: var(--ks-text-link);
+    }
+
+    .block-editor-picker-back:focus-visible {
+        outline: 2px solid var(--ks-border-focus);
+        outline-offset: -2px;
     }
 
     .block-editor-picker-back-ico {
