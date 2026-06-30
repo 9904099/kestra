@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-    import {computed, inject, provide, ref} from "vue"
+    import {computed, inject, provide, ref, watch} from "vue"
 
     import {DeleteOutline, ChevronUp, ChevronDown} from "../../utils/icons"
 
@@ -87,19 +87,27 @@
         ].includes(componentType.value.ksTaskName)
     })
 
-    const items = computed(() =>
-        props.modelValue === undefined && !props.required
-            // we want to avoid displaying an item when
-            // modelValue is undefined
-            // if field is required though it invites users to fill it in
+    const items = ref<any[]>([])
+    const localEdit = ref(false)
+
+    watch(() => props.modelValue, (value) => {
+        if (localEdit.value) {
+            localEdit.value = false
+            return
+        }
+        items.value = value === undefined && !props.required
             ? []
-            : !Array.isArray(props.modelValue) ? [props.modelValue] : props.modelValue,
-    )
+            : !Array.isArray(value) ? [value] : [...value]
+    }, {immediate: true, deep: true})
+
+    function emitItems(value: any) {
+        localEdit.value = true
+        emits("update:modelValue", value)
+    }
 
     const handleInput = (value: string, index: number) => {
-        const newVal = [...items.value]
-        newVal.splice(index, 1, value)
-        emits("update:modelValue", newVal)
+        items.value.splice(index, 1, value)
+        emitItems([...items.value])
     }
 
     const newEmptyValue = computed(() => {
@@ -110,31 +118,26 @@
     })
 
     const addItem = () => {
-        emits("update:modelValue", [...items.value, newEmptyValue.value])
+        items.value.push(newEmptyValue.value)
+        emitItems([...items.value])
     }
 
     const removeItem = (index: number) => {
-        if (items.value.length <= 1) {
-            emits("update:modelValue", undefined)
-            return
-        }
-        emits("update:modelValue", [...items.value].splice(index, 1))
+        const next = [...items.value]
+        next.splice(index, 1)
+        items.value = next
+        emitItems(next.length ? next : undefined)
     }
 
     const moveItem = (index: number, direction: "up" | "down") => {
-        const tempValue = items.value
+        const next = [...items.value]
         if (direction === "up" && index > 0) {
-            [tempValue[index - 1], tempValue[index]] = [
-                tempValue[index],
-                tempValue[index - 1],
-            ]
-        } else if (direction === "down" && index < tempValue.length - 1) {
-            [tempValue[index + 1], tempValue[index]] = [
-                tempValue[index],
-                tempValue[index + 1],
-            ]
+            [next[index - 1], next[index]] = [next[index], next[index - 1]]
+        } else if (direction === "down" && index < next.length - 1) {
+            [next[index + 1], next[index]] = [next[index], next[index + 1]]
         }
-        emits("update:modelValue", tempValue)
+        items.value = next
+        emitItems(next)
     }
 </script>
 

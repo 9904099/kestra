@@ -373,6 +373,10 @@
                     section: props.section,
                 })
             }
+            if (props.presentation === "panel") {
+                emit("update:task", taskYaml.value)
+                taskBaseline.value = taskYaml.value
+            }
         }, 500) as any
     }
 
