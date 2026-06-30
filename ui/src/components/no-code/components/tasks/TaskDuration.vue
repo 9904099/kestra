@@ -20,7 +20,7 @@
                     @update:model-value="(value) => onUnit(index, String(value))"
                 >
                     <KsOption
-                        v-for="unit in UNITS"
+                        v-for="unit in availableUnits(index)"
                         :key="unit.key"
                         :value="unit.key"
                         :label="$t(`no_code.duration.units.${unit.label}`)"
@@ -155,6 +155,13 @@
     function onUnit(index: number, unit: string) {
         segments.value[index].unit = unit
         emitChange()
+    }
+
+    function availableUnits(index: number) {
+        const usedByOthers = new Set(
+            segments.value.filter((_, position) => position !== index).map((segment) => segment.unit),
+        )
+        return UNITS.filter((unit) => !usedByOthers.has(unit.key))
     }
 
     function addSegment() {
