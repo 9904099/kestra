@@ -213,4 +213,8 @@
             color: var(--ks-text-error);
         }
     }
+
+    .block-kbd-focused {
+        box-shadow: 0 0 0 2px var(--ks-border-focus);
+    }
 </style>

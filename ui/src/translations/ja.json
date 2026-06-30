@@ -153,7 +153,21 @@
       "close_all": "すべてのタブを閉じる",
       "no_documentation": "このtaskのドキュメントはありません",
       "split_view": "分割表示",
-      "split_into": "{count}列表示"
+      "split_into": "{count}列表示",
+      "shortcuts": {
+        "title": "キーボードショートカット",
+        "group_navigate": "移動",
+        "group_edit": "編集",
+        "move_between": "ブロック間を移動",
+        "open": "ブロックを開く",
+        "add_task": "task を追加",
+        "command_palette": "コマンドパレット",
+        "switch_tab": "タブを切り替え",
+        "add_after": "後に追加",
+        "reorder": "並べ替え",
+        "collapse_expand": "折りたたみ / 展開",
+        "toggle": "このヘルプを表示"
+      }
     },
     "blueprints": {
       "all": "すべて",

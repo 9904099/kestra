@@ -379,4 +379,8 @@
         font-size: var(--ks-font-size-sm);
         display: flex;
     }
+
+    .block-kbd-focused {
+        box-shadow: 0 0 0 2px var(--ks-border-focus);
+    }
 </style>

@@ -153,7 +153,21 @@
       "close_all": "Fechar todas as abas",
       "no_documentation": "Sem documentação para esta task",
       "split_view": "Visualização dividida",
-      "split_into": "Visualização de {count} colunas"
+      "split_into": "Visualização de {count} colunas",
+      "shortcuts": {
+        "title": "Atalhos de teclado",
+        "group_navigate": "Navegar",
+        "group_edit": "Editar",
+        "move_between": "Mover entre blocos",
+        "open": "Abrir bloco",
+        "add_task": "Adicionar uma task",
+        "command_palette": "Paleta de comandos",
+        "switch_tab": "Mudar de aba",
+        "add_after": "Adicionar depois",
+        "reorder": "Reordenar",
+        "collapse_expand": "Recolher / expandir",
+        "toggle": "Mostrar esta ajuda"
+      }
     },
     "blueprints": {
       "all": "Todos",

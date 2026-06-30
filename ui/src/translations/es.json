@@ -153,7 +153,21 @@
       "close_all": "Cerrar todas las pestañas",
       "no_documentation": "Sin documentación para esta task",
       "split_view": "Vista dividida",
-      "split_into": "Vista de {count} columnas"
+      "split_into": "Vista de {count} columnas",
+      "shortcuts": {
+        "title": "Atajos de teclado",
+        "group_navigate": "Navegar",
+        "group_edit": "Editar",
+        "move_between": "Moverse entre bloques",
+        "open": "Abrir bloque",
+        "add_task": "Añadir una task",
+        "command_palette": "Paleta de comandos",
+        "switch_tab": "Cambiar de pestaña",
+        "add_after": "Añadir después",
+        "reorder": "Reordenar",
+        "collapse_expand": "Plegar / desplegar",
+        "toggle": "Mostrar esta ayuda"
+      }
     },
     "blueprints": {
       "all": "Todo",

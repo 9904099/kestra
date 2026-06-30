@@ -153,7 +153,21 @@
       "close_all": "关闭所有标签页",
       "no_documentation": "此 task 没有文档",
       "split_view": "分屏视图",
-      "split_into": "{count} 列视图"
+      "split_into": "{count} 列视图",
+      "shortcuts": {
+        "title": "键盘快捷键",
+        "group_navigate": "导航",
+        "group_edit": "编辑",
+        "move_between": "在块之间移动",
+        "open": "打开块",
+        "add_task": "添加 task",
+        "command_palette": "命令面板",
+        "switch_tab": "切换标签",
+        "add_after": "在后面添加",
+        "reorder": "重新排序",
+        "collapse_expand": "折叠 / 展开",
+        "toggle": "显示此帮助"
+      }
     },
     "blueprints": {
       "all": "全部",

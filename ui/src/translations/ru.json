@@ -153,7 +153,21 @@
       "close_all": "Закрыть все вкладки",
       "no_documentation": "Нет документации для этой task",
       "split_view": "Разделённый вид",
-      "split_into": "Вид в {count} столбца"
+      "split_into": "Вид в {count} столбца",
+      "shortcuts": {
+        "title": "Горячие клавиши",
+        "group_navigate": "Навигация",
+        "group_edit": "Редактирование",
+        "move_between": "Перемещение между блоками",
+        "open": "Открыть блок",
+        "add_task": "Добавить task",
+        "command_palette": "Палитра команд",
+        "switch_tab": "Переключить вкладку",
+        "add_after": "Добавить после",
+        "reorder": "Изменить порядок",
+        "collapse_expand": "Свернуть / развернуть",
+        "toggle": "Показать эту справку"
+      }
     },
     "blueprints": {
       "all": "Все",

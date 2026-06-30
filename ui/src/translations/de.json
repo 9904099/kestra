@@ -153,7 +153,21 @@
       "close_all": "Alle Tabs schließen",
       "no_documentation": "Keine Dokumentation für diese task",
       "split_view": "Geteilte Ansicht",
-      "split_into": "{count}-Spalten-Ansicht"
+      "split_into": "{count}-Spalten-Ansicht",
+      "shortcuts": {
+        "title": "Tastenkürzel",
+        "group_navigate": "Navigieren",
+        "group_edit": "Bearbeiten",
+        "move_between": "Zwischen Blöcken wechseln",
+        "open": "Block öffnen",
+        "add_task": "Task hinzufügen",
+        "command_palette": "Befehlspalette",
+        "switch_tab": "Tab wechseln",
+        "add_after": "Danach hinzufügen",
+        "reorder": "Neu anordnen",
+        "collapse_expand": "Ein-/Ausklappen",
+        "toggle": "Diese Hilfe umschalten"
+      }
     },
     "blueprints": {
       "all": "Alle",

@@ -153,7 +153,21 @@
       "close_all": "Fermer tous les onglets",
       "no_documentation": "Aucune documentation pour cette task",
       "split_view": "Vue scindée",
-      "split_into": "Vue à {count} colonnes"
+      "split_into": "Vue à {count} colonnes",
+      "shortcuts": {
+        "title": "Raccourcis clavier",
+        "group_navigate": "Naviguer",
+        "group_edit": "Modifier",
+        "move_between": "Naviguer entre les blocs",
+        "open": "Ouvrir le bloc",
+        "add_task": "Ajouter une task",
+        "command_palette": "Palette de commandes",
+        "switch_tab": "Changer d'onglet",
+        "add_after": "Ajouter après",
+        "reorder": "Réordonner",
+        "collapse_expand": "Replier / déplier",
+        "toggle": "Afficher cette aide"
+      }
     },
     "blueprints": {
       "all": "Tous",

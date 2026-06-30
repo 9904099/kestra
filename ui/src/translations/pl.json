@@ -153,7 +153,21 @@
       "close_all": "Zamknij wszystkie karty",
       "no_documentation": "Brak dokumentacji dla tej task",
       "split_view": "Widok podzielony",
-      "split_into": "Widok {count} kolumn"
+      "split_into": "Widok {count} kolumn",
+      "shortcuts": {
+        "title": "Skróty klawiszowe",
+        "group_navigate": "Nawigacja",
+        "group_edit": "Edycja",
+        "move_between": "Przechodzenie między blokami",
+        "open": "Otwórz blok",
+        "add_task": "Dodaj task",
+        "command_palette": "Paleta poleceń",
+        "switch_tab": "Przełącz kartę",
+        "add_after": "Dodaj po",
+        "reorder": "Zmień kolejność",
+        "collapse_expand": "Zwiń / rozwiń",
+        "toggle": "Pokaż tę pomoc"
+      }
     },
     "blueprints": {
       "all": "Wszystkie",

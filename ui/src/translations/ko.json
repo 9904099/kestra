@@ -153,7 +153,21 @@
       "close_all": "모든 탭 닫기",
       "no_documentation": "이 task에 대한 문서가 없습니다",
       "split_view": "분할 보기",
-      "split_into": "{count}열 보기"
+      "split_into": "{count}열 보기",
+      "shortcuts": {
+        "title": "키보드 단축키",
+        "group_navigate": "탐색",
+        "group_edit": "편집",
+        "move_between": "블록 간 이동",
+        "open": "블록 열기",
+        "add_task": "task 추가",
+        "command_palette": "명령 팔레트",
+        "switch_tab": "탭 전환",
+        "add_after": "뒤에 추가",
+        "reorder": "순서 변경",
+        "collapse_expand": "접기 / 펼치기",
+        "toggle": "이 도움말 표시"
+      }
     },
     "blueprints": {
       "all": "모두",

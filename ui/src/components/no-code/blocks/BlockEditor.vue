@@ -432,11 +432,66 @@
                 </div>
             </div>
         </Teleport>
+
+        <KsDialog v-model="shortcutsOpen" :title="t('block_editor.shortcuts.title')" data-test="block-editor-shortcuts">
+            <div class="block-editor-shortcuts">
+                <div class="block-editor-shortcuts-col">
+                    <span class="block-editor-shortcuts-heading">{{ t('block_editor.shortcuts.group_navigate') }}</span>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>j</kbd><kbd>↓</kbd><kbd>k</kbd><kbd>↑</kbd></span>
+                        <span>{{ t('block_editor.shortcuts.move_between') }}</span>
+                    </div>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>↵</kbd><kbd>e</kbd></span>
+                        <span>{{ t('block_editor.shortcuts.open') }}</span>
+                    </div>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>/</kbd></span>
+                        <span>{{ t('block_editor.shortcuts.add_task') }}</span>
+                    </div>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>⌘K</kbd></span>
+                        <span>{{ t('block_editor.shortcuts.command_palette') }}</span>
+                    </div>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>⌘[</kbd><kbd>⌘]</kbd></span>
+                        <span>{{ t('block_editor.shortcuts.switch_tab') }}</span>
+                    </div>
+                </div>
+                <div class="block-editor-shortcuts-col">
+                    <span class="block-editor-shortcuts-heading">{{ t('block_editor.shortcuts.group_edit') }}</span>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>d</kbd></span>
+                        <span>{{ t('block_editor.duplicate') }}</span>
+                    </div>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>⌫</kbd></span>
+                        <span>{{ t('block_editor.delete') }}</span>
+                    </div>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>a</kbd><kbd>+</kbd></span>
+                        <span>{{ t('block_editor.shortcuts.add_after') }}</span>
+                    </div>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>⌥↑</kbd><kbd>⌥↓</kbd></span>
+                        <span>{{ t('block_editor.shortcuts.reorder') }}</span>
+                    </div>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>␣</kbd><kbd>←</kbd><kbd>→</kbd></span>
+                        <span>{{ t('block_editor.shortcuts.collapse_expand') }}</span>
+                    </div>
+                    <div class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys"><kbd>?</kbd></span>
+                        <span>{{ t('block_editor.shortcuts.toggle') }}</span>
+                    </div>
+                </div>
+            </div>
+        </KsDialog>
     </div>
 </template>
 
 <script setup lang="ts">
-    import {computed, nextTick, provide, ref, watch, type Component} from "vue"
+    import {computed, nextTick, onMounted, provide, ref, watch, type Component} from "vue"
     import {useI18n} from "vue-i18n"
     import TriggerIcon from "vue-material-design-icons/LightningBoltOutline.vue"
     import TasksIcon from "vue-material-design-icons/FormatListBulleted.vue"
@@ -535,7 +590,11 @@
     }
 
     const editorEl = ref<HTMLElement>()
+    const focusedId = ref<string | undefined>()
+    const shortcutsOpen = ref(false)
     const internalSelectedId = ref<string | undefined>(props.selectedId)
+
+    onMounted(() => editorEl.value?.focus())
 
     const selectedId = computed({
         get: () => internalSelectedId.value,
@@ -1043,27 +1102,125 @@
         })
     }
 
+    function navigableCards(): HTMLElement[] {
+        if (!editorEl.value) return []
+        return [...editorEl.value.querySelectorAll<HTMLElement>("[data-block-id]")].filter(el => el.offsetParent !== null)
+    }
+
+    function highlightFocused() {
+        navigableCards().forEach(el =>
+            el.classList.toggle("block-kbd-focused", el.getAttribute("data-block-id") === focusedId.value),
+        )
+    }
+
+    function focusedCard(): HTMLElement | undefined {
+        return navigableCards().find(el => el.getAttribute("data-block-id") === focusedId.value)
+    }
+
+    function moveFocus(direction: 1 | -1) {
+        const cards = navigableCards()
+        if (!cards.length) return
+        const ids = cards.map(el => el.getAttribute("data-block-id") ?? "")
+        const current = focusedId.value ? ids.indexOf(focusedId.value) : -1
+        const next = current < 0 ? (direction > 0 ? 0 : cards.length - 1) : (current + direction + cards.length) % cards.length
+        focusedId.value = ids[next] || undefined
+        cards[next].scrollIntoView({block: "nearest"})
+        nextTick(highlightFocused)
+    }
+
+    function openFocused() {
+        const card = focusedCard()
+        if (!card) return
+        if (card.matches("[data-test='block-card']")) {
+            card.click()
+        } else {
+            card.querySelector<HTMLElement>("[data-test='flowable-cluster-header']")?.click()
+        }
+    }
+
+    function actionInFocused(selector: string) {
+        focusedCard()?.querySelector<HTMLElement>(selector)?.click()
+    }
+
+    function addAfterFocused() {
+        const sectionEl = focusedCard()?.closest<HTMLElement>("[data-test^='block-section-']")
+        const section = sectionEl?.getAttribute("data-test")?.replace("block-section-", "") as BlockSection | undefined
+        openTaskPicker(section ?? "tasks")
+    }
+
+    function cycleTab(direction: 1 | -1) {
+        if (dockTabs.value.length < 2) return
+        const ids = dockTabs.value.map(tab => tab.id)
+        const current = selectedId.value ? ids.indexOf(selectedId.value) : -1
+        activateTab(ids[current < 0 ? 0 : (current + direction + ids.length) % ids.length])
+    }
+
     function onEditorKeydown(event: KeyboardEvent) {
         const target = event.target as HTMLElement
-        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return
+        const typing = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable
 
-        if (event.key === "/" && !taskPickerVisible.value) {
+        if ((event.metaKey || event.ctrlKey) && (event.key === "[" || event.key === "]")) {
+            event.preventDefault()
+            cycleTab(event.key === "]" ? 1 : -1)
+            return
+        }
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
             event.preventDefault()
             openTaskPicker("tasks")
             return
         }
+        if (event.key === "Escape") {
+            if (shortcutsOpen.value) shortcutsOpen.value = false
+            else if (taskPickerVisible.value) taskPickerVisible.value = false
+            return
+        }
+        if (typing || event.metaKey || event.ctrlKey) return
 
-        if (!selectedId.value) return
-
-        if (event.key === "Delete" || event.key === "Backspace") {
+        if (event.key === "?") {
             event.preventDefault()
-            deleteSelected()
-        } else if (event.altKey && event.key === "ArrowUp") {
+            shortcutsOpen.value = !shortcutsOpen.value
+        } else if (event.key === "/" && !taskPickerVisible.value) {
             event.preventDefault()
-            moveSelected("up")
+            openTaskPicker("tasks")
+        } else if (event.key === "j" || (event.key === "ArrowDown" && !event.altKey)) {
+            event.preventDefault()
+            moveFocus(1)
+        } else if (event.key === "k" || (event.key === "ArrowUp" && !event.altKey)) {
+            event.preventDefault()
+            moveFocus(-1)
         } else if (event.altKey && event.key === "ArrowDown") {
             event.preventDefault()
             moveSelected("down")
+        } else if (event.altKey && event.key === "ArrowUp") {
+            event.preventDefault()
+            moveSelected("up")
+        } else if (event.key === "Enter" || event.key === "e" || event.key === "E") {
+            if (focusedId.value) {
+                event.preventDefault()
+                openFocused()
+            }
+        } else if (event.key === "d" || event.key === "D") {
+            if (focusedId.value) {
+                event.preventDefault()
+                actionInFocused("[data-test='block-card-duplicate']")
+            }
+        } else if (event.key === "Delete" || event.key === "Backspace") {
+            if (focusedId.value) {
+                event.preventDefault()
+                actionInFocused("[data-test='block-card-delete']")
+                focusedId.value = undefined
+            } else if (selectedId.value) {
+                event.preventDefault()
+                deleteSelected()
+            }
+        } else if (event.key === "a" || event.key === "A" || event.key === "+") {
+            event.preventDefault()
+            addAfterFocused()
+        } else if (event.key === " " || event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            if (focusedId.value) {
+                event.preventDefault()
+                actionInFocused("[data-test='flowable-cluster-header']")
+            }
         }
     }
 
@@ -1506,5 +1663,52 @@
         text-align: center;
         padding: var(--ks-spacing-2);
         margin: 0;
+    }
+
+    .block-editor-shortcuts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--ks-spacing-5);
+    }
+
+    .block-editor-shortcuts-col {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ks-spacing-2);
+    }
+
+    .block-editor-shortcuts-heading {
+        font-size: var(--ks-font-size-xs);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ks-text-secondary);
+    }
+
+    .block-editor-shortcut {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--ks-spacing-3);
+        font-size: var(--ks-font-size-sm);
+        color: var(--ks-text-primary);
+    }
+
+    .block-editor-shortcut-keys {
+        display: inline-flex;
+        gap: var(--ks-spacing-1);
+        flex-shrink: 0;
+    }
+
+    .block-editor-shortcut-keys kbd {
+        font-family: var(--ks-font-family-mono);
+        font-size: var(--ks-font-size-xs);
+        background: var(--ks-bg-tag-inactive);
+        border: 1px solid var(--ks-border-subtle);
+        border-radius: var(--ks-radius-sm);
+        padding: 1px var(--ks-spacing-1);
+        color: var(--ks-text-secondary);
+        min-width: 18px;
+        text-align: center;
     }
 </style>

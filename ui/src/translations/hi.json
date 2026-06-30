@@ -153,7 +153,21 @@
       "close_all": "सभी टैब बंद करें",
       "no_documentation": "इस task के लिए कोई दस्तावेज़ नहीं",
       "split_view": "विभाजित दृश्य",
-      "split_into": "{count}-स्तंभ दृश्य"
+      "split_into": "{count}-स्तंभ दृश्य",
+      "shortcuts": {
+        "title": "कीबोर्ड शॉर्टकट",
+        "group_navigate": "नेविगेट करें",
+        "group_edit": "संपादित करें",
+        "move_between": "ब्लॉक के बीच जाएँ",
+        "open": "ब्लॉक खोलें",
+        "add_task": "task जोड़ें",
+        "command_palette": "कमांड पैलेट",
+        "switch_tab": "टैब बदलें",
+        "add_after": "बाद में जोड़ें",
+        "reorder": "पुनः क्रमित करें",
+        "collapse_expand": "संक्षिप्त / विस्तृत करें",
+        "toggle": "यह सहायता दिखाएँ"
+      }
     },
     "blueprints": {
       "all": "सभी",
