@@ -155,12 +155,4 @@
         vertical-align: top;
     }
 }
-
-.duration-unit{
-    color: var(--ks-text-inactive);
-    font-size: var(--ks-font-size-sm);
-    line-height: 1.25rem;
-    background-color: transparent;
-}
-
 </style>

@@ -649,7 +649,8 @@
         if (!id || !editorEl.value) return
         await nextTick()
         const card = editorEl.value.querySelector(`[data-block-id="${id}"]`) as HTMLElement | null
-        card?.scrollIntoView({block: "nearest", behavior: "smooth"})
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        card?.scrollIntoView({block: "nearest", behavior: reduceMotion ? "auto" : "smooth"})
     })
 
     interface EditingBlock {

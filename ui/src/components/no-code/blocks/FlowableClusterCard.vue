@@ -145,7 +145,7 @@
 
     const depth = computed(() => props.depth ?? 0)
 
-    const expanded = ref(true)
+    const expanded = ref(depth.value < 2)
 
     function toggle() {
         expanded.value = !expanded.value
