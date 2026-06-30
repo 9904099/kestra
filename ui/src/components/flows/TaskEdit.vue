@@ -526,7 +526,7 @@
             border-bottom: none;
         }
 
-        .task-edit-panes {
+        .task-edit-col-params .task-edit-panes {
             overflow: visible;
         }
 
