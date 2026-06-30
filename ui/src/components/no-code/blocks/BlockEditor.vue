@@ -42,6 +42,12 @@
                                     :label="t('block_editor.trigger_noun')"
                                     @add="(e) => openTaskPicker('triggers', e)"
                                 />
+                                <BlockEmptyDrop
+                                    v-else
+                                    variant="inline"
+                                    :label="t('block_editor.trigger_noun')"
+                                    @add="(e) => openTaskPicker('triggers', e)"
+                                />
                             </div>
                         </BlockSectionCard>
 
@@ -153,6 +159,12 @@
                                     :label="t('block_editor.error_task_noun')"
                                     @add="(e) => openTaskPicker('errors', e)"
                                 />
+                                <BlockEmptyDrop
+                                    v-else
+                                    variant="inline"
+                                    :label="t('block_editor.error_task_noun')"
+                                    @add="(e) => openTaskPicker('errors', e)"
+                                />
                             </div>
                         </BlockSectionCard>
 
@@ -195,6 +207,12 @@
                                 <BlockEmptyDrop
                                     v-if="flowLevelFinally.length === 0"
                                     variant="empty"
+                                    :label="t('block_editor.task_noun')"
+                                    @add="(e) => openTaskPicker('finally', e)"
+                                />
+                                <BlockEmptyDrop
+                                    v-else
+                                    variant="inline"
                                     :label="t('block_editor.task_noun')"
                                     @add="(e) => openTaskPicker('finally', e)"
                                 />
