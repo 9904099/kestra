@@ -1403,7 +1403,17 @@
       },
       "toggle_pebble": "切换Pebble编辑器",
       "unnamed": "无名称",
-      "version_oss_placeholder": "解锁企业版插件版本控制"
+      "version_oss_placeholder": "解锁企业版插件版本控制",
+      "duration": {
+        "units": {
+          "second": "秒",
+          "minute": "分钟",
+          "hour": "小时",
+          "day": "天",
+          "week": "周"
+        },
+        "add_unit": "添加单位"
+      }
     },
     "no_data": "看起来这里还没有内容……<br/>调整您的过滤器，或者再试一次！",
     "no_file_choosen": "未选择文件",

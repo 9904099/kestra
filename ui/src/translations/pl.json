@@ -1403,7 +1403,17 @@
       },
       "toggle_pebble": "Przełącz edytor Pebble",
       "unnamed": "Brak Nazwy",
-      "version_oss_placeholder": "Odblokuj wersjonowanie pluginów z Enterprise Edition"
+      "version_oss_placeholder": "Odblokuj wersjonowanie pluginów z Enterprise Edition",
+      "duration": {
+        "units": {
+          "second": "sekundy",
+          "minute": "minuty",
+          "hour": "godziny",
+          "day": "dni",
+          "week": "tygodnie"
+        },
+        "add_unit": "Dodaj jednostkę"
+      }
     },
     "no_data": "Wygląda na to, że nic tu nie ma... jeszcze!<br/>Dostosuj swoje filtry lub spróbuj ponownie!",
     "no_file_choosen": "Nie wybrano pliku",

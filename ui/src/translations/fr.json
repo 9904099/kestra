@@ -1403,7 +1403,17 @@
       },
       "toggle_pebble": "Basculer l'éditeur Pebble",
       "unnamed": "Aucun Nom",
-      "version_oss_placeholder": "Kestra Enterprise permet de versionner les plugins"
+      "version_oss_placeholder": "Kestra Enterprise permet de versionner les plugins",
+      "duration": {
+        "units": {
+          "second": "secondes",
+          "minute": "minutes",
+          "hour": "heures",
+          "day": "jours",
+          "week": "semaines"
+        },
+        "add_unit": "Ajouter une unité"
+      }
     },
     "no_data": "On dirait qu'il n'y a rien ici… pour l'instant !<br/>Ajustez vos filtres, ou réessayez !",
     "no_file_choosen": "Aucun fichier choisi",

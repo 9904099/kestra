@@ -1,36 +1,44 @@
 <template>
-    <KsFormItem :class="{'anyof-switch': !isSelectingPlugins}">
-        <KsSelect
-            v-if="isSelectingPlugins"
-            v-model="selectedSchema"
-            filterable
-        >
-            <KsOption
-                v-for="item in schemaOptions"
-                :key="item.value"
-                :label="item.id"
-                :value="item.value"
+    <TaskString
+        v-if="durationSchema"
+        :schema="durationSchema"
+        :modelValue="model"
+        @update:model-value="onInput"
+    />
+    <template v-else>
+        <KsFormItem :class="{'anyof-switch': !isSelectingPlugins}">
+            <KsSelect
+                v-if="isSelectingPlugins"
+                v-model="selectedSchema"
+                filterable
+            >
+                <KsOption
+                    v-for="item in schemaOptions"
+                    :key="item.value"
+                    :label="item.id"
+                    :value="item.value"
+                />
+            </KsSelect>
+            <KsSegmented
+                v-else
+                v-model="selectedSchema"
+                :options="schemaOptions"
+                size="small"
+                @change="(value) => onSelectType(String(value))"
             />
-        </KsSelect>
-        <KsSegmented
-            v-else
-            v-model="selectedSchema"
-            :options="schemaOptions"
-            size="small"
-            @change="(value) => onSelectType(String(value))"
-        />
-    </KsFormItem>
-    <KsForm labelPosition="top" v-if="selectedSchema">
-        <component
-            :is="currentSchemaType"
-            v-if="currentSchema"
-            :modelValue="modelValue"
-            :schema="currentSchema"
-            :properties="Object.fromEntries(filteredProperties)"
-            @update:model-value="onAnyOfInput"
-            merge
-        />
-    </KsForm>
+        </KsFormItem>
+        <KsForm labelPosition="top" v-if="selectedSchema">
+            <component
+                :is="currentSchemaType"
+                v-if="currentSchema"
+                :modelValue="modelValue"
+                :schema="currentSchema"
+                :properties="Object.fromEntries(filteredProperties)"
+                @update:model-value="onAnyOfInput"
+                merge
+            />
+        </KsForm>
+    </template>
 </template>
 
 <script setup lang="ts">
@@ -39,6 +47,7 @@
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
     import {SCHEMA_DEFINITIONS_INJECTION_KEY} from "../../injectionKeys"
     import {useBlockComponent} from "./useBlockComponent"
+    import TaskString from "./TaskString.vue"
 
     const props = defineProps<{
         schema: Schema,
@@ -117,6 +126,14 @@
             }
             return schema
         })
+    })
+
+    const durationSchema = computed<Schema | null>(() => {
+        const list = schemas.value
+        if (list.length !== 2) return null
+        const duration = list.find((item: Schema) => item.type === "string" && item.format === "duration")
+        const string = list.find((item: Schema) => item.type === "string" && !item.format)
+        return duration && string ? duration : null
     })
 
     const allSchemaSameType = computed(() => {
@@ -255,6 +272,7 @@
     })
 
     onMounted(() => {
+        if (durationSchema.value) return
         const schema = schemaOptions.value?.find((item: any) =>
             item.value === model.value?.type ||
             (typeof model.value === "string" && item.value === "string") ||

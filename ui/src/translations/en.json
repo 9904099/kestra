@@ -1345,6 +1345,16 @@
         "triggers": "Add a trigger",
         "where": "Filter your data"
       },
+      "duration": {
+        "add_unit": "Add unit",
+        "units": {
+          "day": "days",
+          "hour": "hours",
+          "minute": "minutes",
+          "second": "seconds",
+          "week": "weeks"
+        }
+      },
       "fields": {
         "general": {
           "checks": "Checks",
