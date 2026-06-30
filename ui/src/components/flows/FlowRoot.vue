@@ -125,6 +125,7 @@
                     component: BlockEditorPage,
                     title: t("blocks"),
                     maximized: true,
+                    noOverflow: true,
                 })
             }
 
@@ -348,5 +349,6 @@
 
     section.no-overflow {
         overflow: hidden;
+        min-height: 0;
     }
 </style>
