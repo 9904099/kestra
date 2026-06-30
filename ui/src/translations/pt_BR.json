@@ -153,7 +153,7 @@
       "close_all": "Fechar todas as abas",
       "no_documentation": "Sem documentação para esta task",
       "split_view": "Visualização dividida",
-      "split_into": "Dividir em {count}"
+      "split_into": "Visualização de {count} colunas"
     },
     "blueprints": {
       "all": "Todos",

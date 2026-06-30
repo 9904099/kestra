@@ -153,7 +153,7 @@
       "close_all": "Закрыть все вкладки",
       "no_documentation": "Нет документации для этой task",
       "split_view": "Разделённый вид",
-      "split_into": "Разделить на {count}"
+      "split_into": "Вид в {count} столбца"
     },
     "blueprints": {
       "all": "Все",

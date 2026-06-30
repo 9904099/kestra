@@ -153,7 +153,7 @@
       "close_all": "Alle Tabs schließen",
       "no_documentation": "Keine Dokumentation für diese task",
       "split_view": "Geteilte Ansicht",
-      "split_into": "In {count} teilen"
+      "split_into": "{count}-Spalten-Ansicht"
     },
     "blueprints": {
       "all": "Alle",

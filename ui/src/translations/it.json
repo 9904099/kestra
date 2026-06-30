@@ -153,7 +153,7 @@
       "close_all": "Chiudi tutte le schede",
       "no_documentation": "Nessuna documentazione per questa task",
       "split_view": "Vista divisa",
-      "split_into": "Dividi in {count}"
+      "split_into": "Vista a {count} colonne"
     },
     "blueprints": {
       "all": "Tutti",

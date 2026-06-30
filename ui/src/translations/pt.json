@@ -153,7 +153,7 @@
       "close_all": "Fechar todos os separadores",
       "no_documentation": "Sem documentação para esta task",
       "split_view": "Vista dividida",
-      "split_into": "Dividir em {count}"
+      "split_into": "Vista de {count} colunas"
     },
     "blueprints": {
       "all": "Todos",

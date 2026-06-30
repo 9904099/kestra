@@ -153,7 +153,7 @@
       "close_all": "关闭所有标签页",
       "no_documentation": "此 task 没有文档",
       "split_view": "分屏视图",
-      "split_into": "分成 {count} 个"
+      "split_into": "{count} 列视图"
     },
     "blueprints": {
       "all": "全部",

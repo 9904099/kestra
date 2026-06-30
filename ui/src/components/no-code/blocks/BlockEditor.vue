@@ -240,7 +240,6 @@
                             role="group"
                             :aria-label="t('block_editor.split_view')"
                         >
-                            <ViewColumnIcon class="block-editor-dock-split-ico" />
                             <button
                                 v-for="n in 3"
                                 :key="n"
@@ -254,7 +253,9 @@
                                 :data-test="`block-editor-split-${n}`"
                                 @click="splitCount = n"
                             >
-                                {{ n }}
+                                <span class="block-editor-dock-split-glyph">
+                                    <span v-for="c in n" :key="c" class="block-editor-dock-split-col" />
+                                </span>
                             </button>
                         </div>
                         <KsIconButton
@@ -425,7 +426,6 @@
     import RecentIcon from "vue-material-design-icons/History.vue"
     import ChevronLeft from "vue-material-design-icons/ChevronLeft.vue"
     import Close from "vue-material-design-icons/Close.vue"
-    import ViewColumnIcon from "vue-material-design-icons/ViewColumnOutline.vue"
 
     import {KsTaskIcon, KsIconButton, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
@@ -1086,22 +1086,14 @@
         border-radius: var(--ks-radius-base);
     }
 
-    .block-editor-dock-split-ico {
-        display: inline-flex;
-        margin: 0 var(--ks-spacing-1);
-        color: var(--ks-text-muted);
-        font-size: var(--ks-font-size-sm);
-    }
-
     .block-editor-dock-split-btn {
-        min-width: var(--ks-spacing-5);
-        padding: 0 var(--ks-spacing-2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--ks-spacing-1) var(--ks-spacing-2);
         border: none;
         background: transparent;
-        color: var(--ks-text-secondary);
-        font-size: var(--ks-font-size-xs);
-        font-family: var(--ks-font-family-mono);
-        line-height: var(--ks-font-size-2xl);
+        color: var(--ks-icon-default);
         border-radius: var(--ks-radius-sm);
         cursor: pointer;
         transition: background-color 0.12s, color 0.12s;
@@ -1119,7 +1111,22 @@
     .block-editor-dock-split-btn--active {
         background: var(--ks-bg-surface);
         color: var(--ks-text-link);
-        font-weight: 600;
+    }
+
+    .block-editor-dock-split-glyph {
+        display: flex;
+        gap: 1.5px;
+        width: 18px;
+        height: 13px;
+        padding: 2px;
+        border: 1.5px solid currentColor;
+        border-radius: 3px;
+    }
+
+    .block-editor-dock-split-col {
+        flex: 1;
+        background: currentColor;
+        border-radius: 1px;
     }
 
     .block-editor-dock-tab-ico {

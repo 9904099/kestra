@@ -153,7 +153,7 @@
       "close_all": "すべてのタブを閉じる",
       "no_documentation": "このtaskのドキュメントはありません",
       "split_view": "分割表示",
-      "split_into": "{count} 分割"
+      "split_into": "{count}列表示"
     },
     "blueprints": {
       "all": "すべて",

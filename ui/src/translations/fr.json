@@ -153,7 +153,7 @@
       "close_all": "Fermer tous les onglets",
       "no_documentation": "Aucune documentation pour cette task",
       "split_view": "Vue scindée",
-      "split_into": "Diviser en {count}"
+      "split_into": "Vue à {count} colonnes"
     },
     "blueprints": {
       "all": "Tous",

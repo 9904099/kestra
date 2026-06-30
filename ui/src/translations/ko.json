@@ -153,7 +153,7 @@
       "close_all": "모든 탭 닫기",
       "no_documentation": "이 task에 대한 문서가 없습니다",
       "split_view": "분할 보기",
-      "split_into": "{count}개로 분할"
+      "split_into": "{count}열 보기"
     },
     "blueprints": {
       "all": "모두",

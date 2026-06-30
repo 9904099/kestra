@@ -153,7 +153,7 @@
       "close_all": "सभी टैब बंद करें",
       "no_documentation": "इस task के लिए कोई दस्तावेज़ नहीं",
       "split_view": "विभाजित दृश्य",
-      "split_into": "{count} में विभाजित करें"
+      "split_into": "{count}-स्तंभ दृश्य"
     },
     "blueprints": {
       "all": "सभी",

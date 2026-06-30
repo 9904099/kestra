@@ -144,7 +144,7 @@
       "pick_task_type": "Choose a task type",
       "picker_more_results": "{count} more, refine your search",
       "search_task_placeholder": "Search or describe a task…",
-      "split_into": "Split into {count}",
+      "split_into": "{count}-column view",
       "split_view": "Split view",
       "switch_case_key_placeholder": "New case key",
       "tab_apps": "By app",
