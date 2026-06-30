@@ -305,6 +305,8 @@
                             v-model:outputCollapsed="dockOutputCollapsed"
                             v-model:docOpen="dockDocOpen"
                             data-test="block-editor-task-edit"
+                            @mousedown="focusPane(tab.id)"
+                            @focusin="focusPane(tab.id)"
                             @update:task="(content) => onTaskEdited(tab, content)"
                             @close="closeTab(tab.id)"
                         />
@@ -657,6 +659,10 @@
     function activateTab(id: string) {
         selectedId.value = id
         touchActivation(id)
+    }
+
+    function focusPane(id: string) {
+        if (selectedId.value !== id) activateTab(id)
     }
 
     watch(() => activeTab.value?.data?.type, (type) => {
