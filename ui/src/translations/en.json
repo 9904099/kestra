@@ -95,6 +95,7 @@
       "add_trigger": "Add trigger",
       "all_apps": "All apps",
       "app_actions": "{count} actions",
+      "block_deleted": "{name} deleted",
       "card_aria_label": "Block {id} of type {type}",
       "close_all": "Close all tabs",
       "cluster_collapse_aria": "Collapse {id}",
@@ -167,6 +168,7 @@
       "task_noun": "a task",
       "then_required_warning": "Then branch is required",
       "trigger_noun": "a trigger",
+      "undo": "Undo",
       "upstream_outputs": "Upstream outputs"
     },
     "blocks": "Blocks",

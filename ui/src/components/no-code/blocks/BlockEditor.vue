@@ -512,6 +512,20 @@
             <Keyboard class="block-editor-help-ico" />
             <kbd class="block-editor-help-kbd">?</kbd>
         </button>
+
+        <Transition name="block-editor-undo">
+            <div v-if="undoState" class="block-editor-undo" role="status" aria-live="polite">
+                <span class="block-editor-undo-label">{{ undoState.label }}</span>
+                <button
+                    type="button"
+                    class="block-editor-undo-btn"
+                    data-test="block-editor-undo"
+                    @click="performUndo"
+                >
+                    {{ t("block_editor.undo") }}
+                </button>
+            </div>
+        </Transition>
     </div>
 </template>
 
@@ -815,21 +829,48 @@
         }
     }
 
+    const undoState = ref<{label: string} | null>(null)
+    let undoSnapshot: string | null = null
+    let undoTimer: ReturnType<typeof setTimeout> | undefined
+
+    function deleteWithUndo(name: string, mutate: () => void) {
+        const snapshot = flowYaml.value
+        mutate()
+        undoSnapshot = snapshot
+        undoState.value = {label: t("block_editor.block_deleted", {name})}
+        clearTimeout(undoTimer)
+        undoTimer = setTimeout(dismissUndo, 6000)
+    }
+
+    function performUndo() {
+        if (undoSnapshot != null) applyYaml(undoSnapshot)
+        dismissUndo()
+    }
+
+    function dismissUndo() {
+        undoState.value = null
+        undoSnapshot = null
+        clearTimeout(undoTimer)
+    }
+
     function onDelete(section: BlockSection, id: unknown) {
         if (typeof id !== "string") return
-        const newYaml = deleteBlock(flowYaml.value, section, id)
-        closeTab(id)
-        applyYaml(newYaml)
+        deleteWithUndo(id, () => {
+            const newYaml = deleteBlock(flowYaml.value, section, id)
+            closeTab(id)
+            applyYaml(newYaml)
+        })
     }
 
     function onDeleteAtPath(path: string) {
-        const newYaml = deleteBlockAtPath(flowYaml.value, path)
         const blockYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path})
-        if (blockYaml) {
-            const parsed = flowYamlUtils.parse<Record<string, unknown>>(blockYaml)
+        const parsed = blockYaml ? flowYamlUtils.parse<Record<string, unknown>>(blockYaml) : null
+        const name = parsed?.id ? String(parsed.id) : path
+        deleteWithUndo(name, () => {
+            const newYaml = deleteBlockAtPath(flowYaml.value, path)
             if (parsed?.id) closeTab(String(parsed.id))
-        }
-        applyYaml(newYaml)
+            applyYaml(newYaml)
+        })
     }
 
     function onDuplicate(section: BlockSection, id: unknown) {
@@ -1814,5 +1855,66 @@
         padding: 1px var(--ks-spacing-1);
         min-width: 18px;
         text-align: center;
+    }
+
+    .block-editor-undo {
+        position: absolute;
+        bottom: var(--ks-spacing-4);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 11;
+        display: flex;
+        align-items: center;
+        gap: var(--ks-spacing-3);
+        padding: var(--ks-spacing-2) var(--ks-spacing-2) var(--ks-spacing-2) var(--ks-spacing-4);
+        background: var(--ks-bg-elevated);
+        border: 1px solid var(--ks-border-default);
+        border-radius: var(--ks-radius-lg);
+        box-shadow: var(--ks-shadow-sm);
+        font-size: var(--ks-font-size-sm);
+        color: var(--ks-text-primary);
+    }
+
+    .block-editor-undo-label {
+        white-space: nowrap;
+    }
+
+    .block-editor-undo-btn {
+        border: none;
+        background: transparent;
+        color: var(--ks-text-link);
+        font-weight: 600;
+        font-size: var(--ks-font-size-sm);
+        cursor: pointer;
+        padding: var(--ks-spacing-1) var(--ks-spacing-2);
+        border-radius: var(--ks-radius-sm);
+        transition: background-color 0.12s;
+    }
+
+    .block-editor-undo-btn:hover {
+        background: var(--ks-bg-hover);
+    }
+
+    .block-editor-undo-btn:focus-visible {
+        outline: 2px solid var(--ks-border-focus);
+        outline-offset: 1px;
+    }
+
+    .block-editor-undo-enter-active,
+    .block-editor-undo-leave-active {
+        transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .block-editor-undo-enter-from,
+    .block-editor-undo-leave-to {
+        opacity: 0;
+        transform: translate(-50%, 8px);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .block-editor-undo-enter-active,
+        .block-editor-undo-leave-active {
+            transition: none;
+        }
     }
 </style>
