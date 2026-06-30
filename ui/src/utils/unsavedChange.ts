@@ -12,7 +12,7 @@ export default (app: any, router: Router) => {
         }
     })
 
-    const routeEqualsExceptHash = (route1: RouteLocation, route2: RouteLocation) => {
+    const isSamePage = (route1: RouteLocation, route2: RouteLocation) => {
         const deleteTenantIfEmpty = (route: RouteLocation) => {
             if (route.params.tenant === "") {
                 delete route.params.tenant
@@ -21,7 +21,6 @@ export default (app: any, router: Router) => {
 
         const filteredRouteForEquals = (route: RouteLocation) => ({
             path: route.path,
-            query: route.query,
             params: route.params,
         })
 
@@ -32,7 +31,7 @@ export default (app: any, router: Router) => {
     }
 
     router.beforeEach(async (to, from) => {
-        if (unsavedChangesStore.unsavedChange && !routeEqualsExceptHash(from, to)) {
+        if (unsavedChangesStore.unsavedChange && !isSamePage(from, to)) {
             const shouldLeave = await unsavedChangesStore.showDialog()
             if (shouldLeave) {
                 unsavedChangesStore.unsavedChange = false
