@@ -273,7 +273,7 @@
 
     onMounted(() => {
         if (durationSchema.value) return
-        const schema = schemaOptions.value?.find((item: any) =>
+        let schema = schemaOptions.value?.find((item: any) =>
             item.value === model.value?.type ||
             (typeof model.value === "string" && item.value === "string") ||
             (typeof model.value === "number" && item.value === "integer") ||
@@ -283,6 +283,13 @@
             (Array.isArray(model.value) && typeof model.value[0] === "string" && !isNaN(Date.parse(item.value[0])) && item.value === "array.string.date-time") ||
             (Array.isArray(model.value) && typeof model.value[0] === "string" && item.value === "array.string"),
         )
+
+        if (!schema && model.value && typeof model.value === "object" && !Array.isArray(model.value) && model.value.type) {
+            schema = schemaOptions.value?.find((item: any) => {
+                const raw = definitions.value[item.value] ?? schemaByType.value[item.value]
+                return consolidateAllOfSchemas(raw, definitions.value)?.properties?.type?.const === model.value.type
+            })
+        }
 
         selectedSchema.value = schema?.value
 
