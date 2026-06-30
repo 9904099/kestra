@@ -4,7 +4,7 @@
             <div class="block-section-title">
                 <component :is="icon" class="block-section-ico" />
                 <span>{{ title }}</span>
-                <span class="block-section-count">{{ count }}</span>
+                <span class="block-section-count" :class="{'block-section-count--active': count > 0}">{{ count }}</span>
             </div>
 
             <button
@@ -92,6 +92,11 @@
         font-family: var(--ks-font-family-mono);
         padding: 0 var(--ks-spacing-2);
         border-radius: var(--ks-radius-lg);
+        background: var(--ks-bg-tag-inactive);
+        color: var(--ks-text-muted);
+    }
+
+    .block-section-count--active {
         background: var(--ks-bg-tag-hover);
         color: var(--ks-text-link);
 
