@@ -76,11 +76,16 @@
         <div class="task-edit-panel-body">
             <TaskEditData
                 class="task-edit-col task-edit-col-inputs"
+                :class="{'task-edit-col--collapsed': inputsCollapsed}"
                 kind="inputs"
                 :title="$t('block_editor.inputs')"
                 :subtitle="$t('block_editor.inputs_sub')"
                 :sections="inputSections"
                 :filterable="true"
+                :collapsible="true"
+                :isCollapsed="inputsCollapsed"
+                side="left"
+                @toggle="inputsCollapsed = !inputsCollapsed"
             />
 
             <div class="task-edit-col task-edit-col-params">
@@ -110,10 +115,15 @@
 
             <TaskEditData
                 class="task-edit-col task-edit-col-output"
+                :class="{'task-edit-col--collapsed': outputCollapsed}"
                 kind="output"
                 :title="$t('block_editor.output')"
                 :subtitle="$t('block_editor.output_sub')"
                 :sections="outputSections"
+                :collapsible="true"
+                :isCollapsed="outputCollapsed"
+                side="right"
+                @toggle="outputCollapsed = !outputCollapsed"
             />
 
             <div v-if="docOpen" class="task-edit-col task-edit-col-doc" data-test="task-edit-doc-panel">
@@ -212,6 +222,8 @@
     const beforeClose = (done: () => void) => guardedClose(() => done())
     const activeTabs = ref(props.readOnly ? "source" : "form")
     const docOpen = ref(false)
+    const inputsCollapsed = ref(false)
+    const outputCollapsed = ref(false)
     const type = ref<string>()
     const revisions = ref<any[]>()
     const timer = ref<ReturnType<typeof setTimeout>>()
@@ -480,6 +492,11 @@
         border-left: 1px solid var(--ks-border-subtle);
     }
 
+    .task-edit-col-inputs.task-edit-col--collapsed,
+    .task-edit-col-output.task-edit-col--collapsed {
+        flex: 0 0 2.5rem;
+    }
+
     .task-edit-col-params {
         flex: 1 1 0;
         display: flex;
@@ -511,6 +528,12 @@
 
         .task-edit-panes {
             overflow: visible;
+        }
+
+        .task-edit-col-inputs.task-edit-col--collapsed,
+        .task-edit-col-output.task-edit-col--collapsed {
+            flex: none;
+            width: 100%;
         }
     }
 

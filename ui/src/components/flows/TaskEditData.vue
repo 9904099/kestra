@@ -1,8 +1,30 @@
 <template>
-    <div class="task-edit-data" :data-test="`task-edit-data-${kind}`">
+    <button
+        v-if="isCollapsed"
+        class="task-edit-data-rail"
+        type="button"
+        :aria-label="`${t('expand')} — ${title}`"
+        :title="title"
+        :data-test="`task-edit-data-${kind}`"
+        @click="emit('toggle')"
+    >
+        <component :is="side === 'right' ? ChevronLeft : ChevronRight" class="task-edit-data-rail-ico" />
+        <span class="task-edit-data-rail-label">{{ title }}</span>
+    </button>
+    <div v-else class="task-edit-data" :data-test="`task-edit-data-${kind}`">
         <div class="task-edit-data-head">
-            <span class="task-edit-data-title">{{ title }}</span>
-            <span class="task-edit-data-sub">{{ subtitle }}</span>
+            <div class="task-edit-data-head-text">
+                <span class="task-edit-data-title">{{ title }}</span>
+                <span class="task-edit-data-sub">{{ subtitle }}</span>
+            </div>
+            <KsIconButton
+                v-if="collapsible"
+                class="task-edit-data-collapse"
+                :tooltip="t('collapse')"
+                @click="emit('toggle')"
+            >
+                <component :is="side === 'right' ? ChevronRight : ChevronLeft" />
+            </KsIconButton>
         </div>
 
         <div v-if="filterable" class="task-edit-data-filter">
@@ -57,6 +79,7 @@
     import {useI18n} from "vue-i18n"
     import Magnify from "vue-material-design-icons/Magnify.vue"
     import ChevronRight from "vue-material-design-icons/ChevronRight.vue"
+    import ChevronLeft from "vue-material-design-icons/ChevronLeft.vue"
 
     interface DataChip {
         label: string
@@ -74,9 +97,17 @@
         subtitle: string
         sections: DataSection[]
         filterable?: boolean
+        collapsible?: boolean
+        isCollapsed?: boolean
+        side?: "left" | "right"
     }>(), {
         filterable: false,
+        collapsible: false,
+        isCollapsed: false,
+        side: "left",
     })
+
+    const emit = defineEmits<{(e: "toggle"): void}>()
 
     const {t} = useI18n()
 
@@ -121,9 +152,67 @@
 
     .task-edit-data-head {
         display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--ks-spacing-2);
+        padding: var(--ks-spacing-3) var(--ks-spacing-2) var(--ks-spacing-2) var(--ks-spacing-3);
+    }
+
+    .task-edit-data-head-text {
+        display: flex;
         flex-direction: column;
         gap: 1px;
-        padding: var(--ks-spacing-3) var(--ks-spacing-3) var(--ks-spacing-2);
+        min-width: 0;
+    }
+
+    .task-edit-data-collapse {
+        flex-shrink: 0;
+    }
+
+    .task-edit-data-rail {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--ks-spacing-2);
+        width: 100%;
+        height: 100%;
+        padding: var(--ks-spacing-3) 0;
+        background: var(--ks-bg-base);
+        border: none;
+        cursor: pointer;
+        color: var(--ks-text-secondary);
+        transition: color 0.12s, background-color 0.12s;
+    }
+
+    .task-edit-data-rail:hover {
+        color: var(--ks-text-primary);
+        background: var(--ks-bg-hover);
+    }
+
+    .task-edit-data-rail-ico {
+        display: flex;
+        font-size: var(--ks-font-size-sm);
+    }
+
+    .task-edit-data-rail-label {
+        writing-mode: vertical-rl;
+        font-size: var(--ks-font-size-xs);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    @container (max-width: 760px) {
+        .task-edit-data-rail {
+            flex-direction: row;
+            justify-content: flex-start;
+            height: auto;
+            padding: var(--ks-spacing-2) var(--ks-spacing-3);
+        }
+
+        .task-edit-data-rail-label {
+            writing-mode: horizontal-tb;
+        }
     }
 
     .task-edit-data-title {
