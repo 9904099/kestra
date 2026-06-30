@@ -545,7 +545,7 @@
 
     import {KsTaskIcon, KsIconButton, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
-    import {useRoute, useRouter} from "vue-router"
+    import {useRoute, useRouter, type LocationQueryRaw} from "vue-router"
 
     import {useFlowStore} from "../../../stores/flow"
     import {usePluginsStore} from "../../../stores/plugins"
@@ -743,7 +743,7 @@
 
     watch(dockStateKey, () => {
         if (restoringDock) return
-        const query: Record<string, unknown> = {...route.query}
+        const query: LocationQueryRaw = {...route.query}
         const tabs = dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(",")
         if (tabs) query.tabs = tabs
         else delete query.tabs

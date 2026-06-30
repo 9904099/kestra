@@ -7,7 +7,7 @@
                 class="task-duration-row"
             >
                 <KsInputNumber
-                    :modelValue="segment.value"
+                    :modelValue="segment.value ?? undefined"
                     :min="0"
                     :controls="false"
                     placeholder="0"
