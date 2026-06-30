@@ -1345,6 +1345,7 @@
       "add_field": "{field}を追加",
       "adding": "+ {what}を追加",
       "adding_default": "+ 新しいvalueを追加",
+      "choose_placeholder": "{field} を選択",
       "clearSelection": "選択をクリア",
       "creation": {
         "afterExecution": "実行後ブロックを追加",
@@ -1360,6 +1361,7 @@
         "triggers": "トリガーを追加",
         "where": "データをフィルタリングする"
       },
+      "expression_placeholder": "ここに {field} を入力...",
       "fields": {
         "general": {
           "checks": "チェック",

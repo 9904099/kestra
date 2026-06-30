@@ -14,7 +14,7 @@
             v-if="!pebble && schema?.format === 'date-time'"
             :modelValue="modelValue"
             type="date"
-            :placeholder="`Choose a${/^[aeiou]/i.test(root || '') ? 'n' : ''} ${root || 'date'}`"
+            :placeholder="$t('no_code.choose_placeholder', {field: root || 'date'})"
             @update:model-value="(v: Date | string | null) => onInput(v instanceof Date ? v.toISOString() : '')"
         />
         <TaskDuration

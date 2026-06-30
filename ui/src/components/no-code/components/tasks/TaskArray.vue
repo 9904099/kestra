@@ -65,14 +65,20 @@
                 class="w-100"
             >
                 <KsCol :span="2" class="d-flex flex-column justify-content-center reorder" v-if="items.length > 1">
-                    <ChevronUp
+                    <KsIconButton
+                        :disabled="index === 0"
+                        :tooltip="$t('block_editor.move_up')"
                         @click.prevent.stop="moveItem(index, 'up')"
-                        :class="{disabled: index === 0}"
-                    />
-                    <ChevronDown
+                    >
+                        <ChevronUp />
+                    </KsIconButton>
+                    <KsIconButton
+                        :disabled="index === items.length - 1"
+                        :tooltip="$t('block_editor.move_down')"
                         @click.prevent.stop="moveItem(index, 'down')"
-                        :class="{disabled: index === items.length - 1}"
-                    />
+                    >
+                        <ChevronDown />
+                    </KsIconButton>
                 </KsCol>
                 <KsCol :span="items.length > 1 ? 20 : 22" class="pe-2">
                     <Wrapper merge>
@@ -90,7 +96,12 @@
                     </Wrapper>
                 </KsCol>
                 <KsCol :span="2" class="delete">
-                    <DeleteOutline @click="removeItem(index)" />
+                    <KsIconButton
+                        :tooltip="$t('block_editor.delete')"
+                        @click.stop="removeItem(index)"
+                    >
+                        <DeleteOutline />
+                    </KsIconButton>
                 </KsCol>
             </KsRow>
         </template>

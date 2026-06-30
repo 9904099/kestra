@@ -1345,6 +1345,7 @@
       "add_field": "Добавить {field}",
       "adding": "+ Добавить {what}",
       "adding_default": "+ Добавить новое value",
+      "choose_placeholder": "Выберите {field}",
       "clearSelection": "Очистить выбор",
       "creation": {
         "afterExecution": "Добавить блок после выполнения",
@@ -1360,6 +1361,7 @@
         "triggers": "Добавить trigger",
         "where": "Фильтруйте ваши данные"
       },
+      "expression_placeholder": "Ваш {field} здесь...",
       "fields": {
         "general": {
           "checks": "Проверки",

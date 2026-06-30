@@ -141,7 +141,9 @@
         </div>
 
         <div v-ks-loading="isLoading" class="task-edit-panel-footer">
-            <ValidationError link :errors="errors" />
+            <div class="task-edit-validation-status" role="status" aria-live="polite">
+                <ValidationError link :errors="errors" />
+            </div>
             <KsButton
                 v-if="canSave && !readOnly"
                 :icon="ContentSave"
@@ -602,5 +604,10 @@
         padding: var(--ks-spacing-3) var(--ks-spacing-4);
         border-top: 1px solid var(--ks-border-subtle);
         background: var(--ks-bg-surface);
+    }
+
+    .task-edit-validation-status {
+        display: flex;
+        align-items: center;
     }
 </style>

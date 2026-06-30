@@ -1345,6 +1345,7 @@
       "add_field": "添加{field}",
       "adding": "+ 添加{what}",
       "adding_default": "+ 添加新value",
+      "choose_placeholder": "选择 {field}",
       "clearSelection": "清除选择",
       "creation": {
         "afterExecution": "添加执行后块",
@@ -1360,6 +1361,7 @@
         "triggers": "添加一个trigger",
         "where": "筛选您的数据"
       },
+      "expression_placeholder": "在此输入 {field}...",
       "fields": {
         "general": {
           "checks": "检查",

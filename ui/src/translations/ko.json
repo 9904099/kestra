@@ -1345,6 +1345,7 @@
       "add_field": "{field} 추가",
       "adding": "+ {what} 추가",
       "adding_default": "+ 새 value 추가",
+      "choose_placeholder": "{field} 선택",
       "clearSelection": "선택 해제",
       "creation": {
         "afterExecution": "실행 후 블록 추가",
@@ -1360,6 +1361,7 @@
         "triggers": "트리거 추가",
         "where": "데이터 필터링"
       },
+      "expression_placeholder": "여기에 {field} 입력...",
       "fields": {
         "general": {
           "checks": "점검",

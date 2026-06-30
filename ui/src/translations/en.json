@@ -1346,6 +1346,7 @@
       "add_field": "Add {field}",
       "adding": "+ Add a {what}",
       "adding_default": "+ Add a new value",
+      "choose_placeholder": "Choose {field}",
       "clearSelection": "Clear selection",
       "creation": {
         "afterExecution": "Add an after execution block",
@@ -1371,6 +1372,7 @@
           "week": "weeks"
         }
       },
+      "expression_placeholder": "Your {field} here...",
       "fields": {
         "general": {
           "checks": "Checks",

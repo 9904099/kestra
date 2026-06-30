@@ -1345,6 +1345,7 @@
       "add_field": "Agregar {field}",
       "adding": "+ Agregar un {what}",
       "adding_default": "+ Añadir un nuevo value",
+      "choose_placeholder": "Elegir {field}",
       "clearSelection": "Borrar selección",
       "creation": {
         "afterExecution": "Agregar un bloque después de la ejecución",
@@ -1360,6 +1361,7 @@
         "triggers": "Agregar un trigger",
         "where": "Filtra tus datos"
       },
+      "expression_placeholder": "Tu {field} aquí...",
       "fields": {
         "general": {
           "checks": "Comprobaciones",
