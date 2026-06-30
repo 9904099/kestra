@@ -41,7 +41,7 @@
             <div class="flowable-cluster-actions">
                 <KsIconButton
                     :aria-label="t('block_editor.duplicate')"
-                    :tooltip="t('block_editor.duplicate')"
+                    :tooltip="`${t('block_editor.duplicate')} (d)`"
                     data-test="block-card-duplicate"
                     @click.stop="emit('duplicate', path)"
                 >
@@ -51,7 +51,7 @@
                 <KsIconButton
                     class="flowable-cluster-action--danger"
                     :aria-label="t('block_editor.delete')"
-                    :tooltip="t('block_editor.delete')"
+                    :tooltip="`${t('block_editor.delete')} (⌫)`"
                     data-test="block-card-delete"
                     @click.stop="emit('delete', path)"
                 >

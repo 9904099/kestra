@@ -39,7 +39,7 @@
             <KsIconButton
                 class="block-card-action"
                 :aria-label="t('block_editor.duplicate')"
-                :tooltip="t('block_editor.duplicate')"
+                :tooltip="`${t('block_editor.duplicate')} (d)`"
                 data-test="block-card-duplicate"
                 @click.stop="emit('duplicate')"
             >
@@ -49,7 +49,7 @@
             <KsIconButton
                 class="block-card-action block-card-action--danger"
                 :aria-label="t('block_editor.delete')"
-                :tooltip="t('block_editor.delete')"
+                :tooltip="`${t('block_editor.delete')} (⌫)`"
                 data-test="block-card-delete"
                 @click.stop="emit('delete')"
             >

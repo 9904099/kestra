@@ -285,6 +285,15 @@
                         >
                             <Close />
                         </KsIconButton>
+                        <KsIconButton
+                            class="block-editor-dock-help"
+                            :aria-label="t('block_editor.shortcuts.title')"
+                            :tooltip="t('block_editor.shortcuts.title')"
+                            data-test="block-editor-help-dock"
+                            @click="shortcutsOpen = true"
+                        >
+                            <Keyboard />
+                        </KsIconButton>
                     </div>
 
                     <div class="block-editor-dock-body">
@@ -489,6 +498,19 @@
                 </div>
             </div>
         </KsDialog>
+
+        <button
+            v-if="!dockTabs.length"
+            type="button"
+            class="block-editor-help"
+            :aria-label="t('block_editor.shortcuts.title')"
+            :title="t('block_editor.shortcuts.title')"
+            data-test="block-editor-help"
+            @click="shortcutsOpen = true"
+        >
+            <Keyboard class="block-editor-help-ico" />
+            <kbd class="block-editor-help-kbd">?</kbd>
+        </button>
     </div>
 </template>
 
@@ -504,6 +526,7 @@
     import RecentIcon from "vue-material-design-icons/History.vue"
     import ChevronLeft from "vue-material-design-icons/ChevronLeft.vue"
     import Close from "vue-material-design-icons/Close.vue"
+    import Keyboard from "vue-material-design-icons/Keyboard.vue"
 
     import {KsTaskIcon, KsIconButton, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
@@ -1209,6 +1232,9 @@
             if (focusedId.value) {
                 event.preventDefault()
                 actionInFocused("[data-test='block-card-duplicate']")
+            } else if (selectedId.value) {
+                event.preventDefault()
+                duplicateSelected()
             }
         } else if (event.key === "Delete" || event.key === "Backspace") {
             if (focusedId.value) {
@@ -1237,6 +1263,16 @@
             onDeleteAtPath(tab.path)
         } else {
             onDelete(tab.section, tab.id)
+        }
+    }
+
+    function duplicateSelected() {
+        const tab = activeTab.value
+        if (!selectedId.value || !tab) return
+        if (tab.path) {
+            onDuplicateAtPath(tab.path)
+        } else {
+            onDuplicate(tab.section, tab.id)
         }
     }
 
@@ -1269,6 +1305,7 @@
 
 <style scoped lang="scss">
     .block-editor {
+        position: relative;
         height: 100%;
         overflow: hidden;
         background: var(--ks-bg-base);
@@ -1714,6 +1751,51 @@
         border-radius: var(--ks-radius-sm);
         padding: 1px var(--ks-spacing-1);
         color: var(--ks-text-secondary);
+        min-width: 18px;
+        text-align: center;
+    }
+
+    .block-editor-help {
+        position: absolute;
+        right: var(--ks-spacing-4);
+        bottom: var(--ks-spacing-4);
+        z-index: 10;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--ks-spacing-2);
+        padding: var(--ks-spacing-1) var(--ks-spacing-2);
+        background: var(--ks-bg-elevated);
+        border: 1px solid var(--ks-border-default);
+        border-radius: var(--ks-radius-lg);
+        box-shadow: var(--ks-shadow-sm);
+        color: var(--ks-text-secondary);
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    }
+
+    .block-editor-help:hover {
+        color: var(--ks-text-primary);
+        border-color: var(--ks-border-strong);
+        background: var(--ks-bg-surface);
+    }
+
+    .block-editor-help:focus-visible {
+        outline: 2px solid var(--ks-border-focus);
+        outline-offset: 2px;
+    }
+
+    .block-editor-help-ico {
+        display: flex;
+        font-size: 1rem;
+    }
+
+    .block-editor-help-kbd {
+        font-family: var(--ks-font-family-mono);
+        font-size: var(--ks-font-size-xs);
+        background: var(--ks-bg-tag-inactive);
+        border: 1px solid var(--ks-border-subtle);
+        border-radius: var(--ks-radius-sm);
+        padding: 1px var(--ks-spacing-1);
         min-width: 18px;
         text-align: center;
     }
