@@ -429,6 +429,7 @@
 
     import {KsTaskIcon, KsIconButton, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
+    import {useRoute, useRouter} from "vue-router"
 
     import {useFlowStore} from "../../../stores/flow"
     import {usePluginsStore} from "../../../stores/plugins"
@@ -596,6 +597,58 @@
         activationOrder.value = []
         selectedId.value = undefined
     }
+
+    const route = useRoute()
+    const router = useRouter()
+    const DOCK_SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally"]
+    let restoringDock = false
+
+    const dockStateKey = computed(() => [
+        dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(","),
+        selectedId.value ?? "",
+        splitCount.value,
+    ].join("|"))
+
+    watch(dockStateKey, () => {
+        if (restoringDock) return
+        const query: Record<string, unknown> = {...route.query}
+        const tabs = dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(",")
+        if (tabs) query.tabs = tabs
+        else delete query.tabs
+        if (selectedId.value) query.tab = selectedId.value
+        else delete query.tab
+        if (tabs && splitCount.value > 1) query.cols = String(splitCount.value)
+        else delete query.cols
+        router.replace({query}).catch(() => {})
+    })
+
+    const dockRestored = ref(false)
+
+    watch(parsedFlow, (flow) => {
+        if (dockRestored.value || !flow) return
+        dockRestored.value = true
+        const tabsParam = typeof route.query.tabs === "string" ? route.query.tabs : ""
+        if (!tabsParam) return
+        restoringDock = true
+        for (const token of tabsParam.split(",")) {
+            const separator = token.indexOf(":")
+            if (separator < 0) continue
+            const section = token.slice(0, separator) as BlockSection
+            const id = token.slice(separator + 1)
+            if (!id || !DOCK_SECTIONS.includes(section)) continue
+            const block = sectionList(section).find(item => String(item.id) === id)
+            if (block) openTab({id, section, data: block})
+        }
+        const active = route.query.tab
+        if (typeof active === "string" && dockTabs.value.some(tab => tab.id === active)) {
+            activateTab(active)
+        }
+        const cols = Number(route.query.cols)
+        if (cols >= 1 && cols <= 3) splitCount.value = cols
+        nextTick(() => {
+            restoringDock = false
+        })
+    }, {immediate: true})
 
     function selectBlock(section: BlockSection, block: Record<string, unknown>) {
         const strId = block.id != null ? String(block.id) : undefined
