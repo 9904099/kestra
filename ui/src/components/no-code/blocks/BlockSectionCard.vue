@@ -3,7 +3,7 @@
         <header class="block-section-head">
             <div class="block-section-title">
                 <component :is="icon" class="block-section-ico" />
-                <span>{{ title }}</span>
+                <span class="block-section-title-text">{{ title }}</span>
                 <span class="block-section-count" :class="{'block-section-count--active': count > 0}">{{ count }}</span>
             </div>
 
@@ -12,10 +12,11 @@
                 type="button"
                 :data-test="addTest"
                 :aria-label="addLabel"
+                :title="addLabel"
                 @click="emit('add', $event)"
             >
                 <Plus class="block-section-add-ico" />
-                {{ addLabel }}
+                <span class="block-section-add-label">{{ addLabel }}</span>
             </button>
         </header>
 
@@ -48,6 +49,7 @@
 
 <style scoped lang="scss">
     .block-section {
+        container-type: inline-size;
         background: var(--ks-bg-surface);
         border: 1px solid var(--ks-border-default);
         border-radius: var(--ks-radius-lg);
@@ -66,10 +68,17 @@
     .block-section-title {
         display: flex;
         align-items: center;
+        min-width: 0;
         gap: var(--ks-spacing-2);
         font-size: var(--ks-font-size-base);
         font-weight: 600;
         color: var(--ks-text-primary);
+    }
+
+    .block-section-title-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .block-section-ico {
@@ -87,6 +96,7 @@
     }
 
     .block-section-count {
+        flex-shrink: 0;
         font-size: var(--ks-font-size-xs);
         font-weight: 600;
         font-family: var(--ks-font-family-mono);
@@ -141,6 +151,16 @@
     .block-section-add-ico {
         display: flex;
         font-size: var(--ks-font-size-sm);
+    }
+
+    @container (max-width: 280px) {
+        .block-section-add-label {
+            display: none;
+        }
+
+        .block-section-add {
+            padding: var(--ks-spacing-1) var(--ks-spacing-2);
+        }
     }
 
     .block-section-body {

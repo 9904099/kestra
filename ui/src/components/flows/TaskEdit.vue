@@ -526,6 +526,10 @@
             border-bottom: none;
         }
 
+        .task-edit-col-params {
+            order: -1;
+        }
+
         .task-edit-col-params .task-edit-panes {
             overflow: visible;
         }
