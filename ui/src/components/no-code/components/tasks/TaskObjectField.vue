@@ -25,6 +25,15 @@
         :disabled
         class="mt-1 mb-2 wrapper"
     />
+    <component
+        v-else-if="frameRoot"
+        ref="taskComponent"
+        :is="type"
+        v-bind="componentProps"
+        :bare="true"
+        :disabled
+        class="wrapper"
+    />
     <KsFormItem v-else-if="fieldKey" :required="isRequired">
         <template #label>
             <div class="inline-wrapper">
@@ -108,7 +117,8 @@
         disabled?: boolean;
         drillEnabled?: boolean;
         rootOverride?: string;
-    }>(), {drillEnabled: true})
+        frameRoot?: boolean;
+    }>(), {drillEnabled: true, frameRoot: false})
 
     const {t} = useI18n()
 

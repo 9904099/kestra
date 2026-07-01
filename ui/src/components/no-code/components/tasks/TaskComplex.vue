@@ -1,5 +1,5 @@
 <template>
-    <div class="task-nested">
+    <div class="task-nested" :class="{'task-nested--bare': bare}">
         <TaskObject
             v-bind="$attrs"
             :properties="computedProperties"
@@ -20,8 +20,10 @@
     const props = withDefaults(defineProps<{
         schema: any,
         properties?: Record<string, any>,
+        bare?: boolean,
     }>(), {
         properties: undefined,
+        bare: false,
     })
 
     const fullSchema = inject(FULL_SCHEMA_INJECTION_KEY, ref({}))
@@ -52,5 +54,10 @@
 .task-nested {
     border-left: 2px solid var(--ks-border-subtle);
     padding-left: var(--ks-spacing-4);
+}
+
+.task-nested--bare {
+    border-left: none;
+    padding-left: 0;
 }
 </style>

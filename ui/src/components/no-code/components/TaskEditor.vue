@@ -45,6 +45,7 @@
             :fieldKey="navCurrent.label"
             :task="taskModel"
             :drillEnabled="false"
+            :frameRoot="true"
             v-model="frameValue"
         />
     </div>
