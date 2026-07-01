@@ -510,11 +510,9 @@
         border-left: 1px solid var(--ks-border-subtle);
     }
 
-    @container (max-width: 760px) {
-        .task-edit-panel-body {
-            flex-direction: column;
-            overflow-y: auto;
-        }
+    @mixin task-edit-stacked {
+        flex-direction: column;
+        overflow-y: auto;
 
         .task-edit-col {
             flex: none;
@@ -522,10 +520,6 @@
             height: auto;
             border: none;
             border-bottom: 1px solid var(--ks-border-subtle);
-        }
-
-        .task-edit-col-doc {
-            border-bottom: none;
         }
 
         .task-edit-col-params {
@@ -540,6 +534,35 @@
         .task-edit-col-output.task-edit-col--collapsed {
             flex: none;
             width: 100%;
+        }
+    }
+
+    @container (max-width: 760px) {
+        .task-edit-panel-body {
+            @include task-edit-stacked;
+
+            .task-edit-col-doc {
+                border-bottom: none;
+            }
+        }
+    }
+
+    @container (max-width: 1160px) {
+        .task-edit-panel-body:has(.task-edit-col-doc) {
+            @include task-edit-stacked;
+
+            .task-edit-col-doc {
+                order: 0;
+            }
+
+            .task-edit-col-inputs {
+                order: 1;
+            }
+
+            .task-edit-col-output {
+                order: 2;
+                border-bottom: none;
+            }
         }
     }
 
