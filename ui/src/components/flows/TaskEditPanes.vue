@@ -1,5 +1,5 @@
 <template>
-    <KsTabs :modelValue="activeTab" @update:modelValue="(v) => emit('update:activeTab', v ?? '')">
+    <KsTabs paneScroll :modelValue="activeTab" @update:modelValue="(v) => emit('update:activeTab', v ?? '')">
         <KsTabPane v-if="!readOnly" name="form">
             <template #label>
                 <span>{{ $t("form") }}</span>

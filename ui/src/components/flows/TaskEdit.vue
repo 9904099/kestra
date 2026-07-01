@@ -554,7 +554,6 @@
     .task-edit-panes {
         flex: 1;
         min-height: 0;
-        overflow-y: auto;
         padding: var(--ks-spacing-5) var(--ks-spacing-5) var(--ks-spacing-6);
     }
 
