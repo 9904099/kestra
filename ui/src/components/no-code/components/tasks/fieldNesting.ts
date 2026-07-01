@@ -31,6 +31,57 @@ export function looksLikeObject(
     return false
 }
 
+function resolvedProperties(schema: any, definitions: Record<string, any>): Record<string, any> {
+    const resolved = resolve$ref({definitions}, schema)
+    if (!resolved) return {}
+    if (resolved.properties) return resolved.properties
+    return (resolved.allOf ?? []).reduce(
+        (acc: Record<string, any>, item: any) => ({
+            ...acc,
+            ...(resolve$ref({definitions}, item)?.properties ?? {}),
+        }),
+        {},
+    )
+}
+
+/**
+ * Whether an object-like item is worth opening in its own push-in-place panel
+ * rather than deploying inline. Drill only when inlining would be genuinely
+ * unreadable: the item is polymorphic (an anyOf/oneOf of object variants, which
+ * needs a type selector) or it nests further structure (a child object or a list
+ * of objects). A flat record of scalars stays inline.
+ */
+export function shouldDrillItem(
+    schema: any,
+    definitions: Record<string, any>,
+    key?: string,
+): boolean {
+    if (!schema) return false
+
+    const branches = branchesOf(schema).length
+        ? branchesOf(schema)
+        : branchesOf(resolve$ref({definitions}, schema))
+    if (branches.length) {
+        return branches.some((branch) =>
+            looksLikeObject(resolve$ref({definitions}, branch), definitions),
+        )
+    }
+
+    if (!looksLikeObject(schema, definitions, key)) return false
+
+    return Object.values(resolvedProperties(schema, definitions)).some((prop: any) => {
+        const type = getType(prop, definitions)
+        if (OBJECT_LIKE_TYPES.has(type)) return true
+        if (type === "list" || type === "array") return looksLikeObject(prop?.items, definitions)
+        if (type === "any-of") {
+            return branchesOf(prop).some((branch) =>
+                looksLikeObject(resolve$ref({definitions}, branch), definitions),
+            )
+        }
+        return false
+    })
+}
+
 export type ValueSummary =
     | {kind: "empty"}
     | {kind: "count"; count: number}

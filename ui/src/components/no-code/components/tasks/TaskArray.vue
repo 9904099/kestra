@@ -161,7 +161,7 @@
     import Wrapper from "./Wrapper.vue"
     import {BLOCK_SCHEMA_PATH_INJECTION_KEY, FIELD_NAV_INJECTION_KEY, SCHEMA_DEFINITIONS_INJECTION_KEY} from "../../injectionKeys"
     import {useBlockComponent} from "./useBlockComponent"
-    import {summarizeValue, looksLikeObject} from "./fieldNesting"
+    import {summarizeValue, shouldDrillItem} from "./fieldNesting"
 
     defineOptions({inheritAttrs: false})
 
@@ -191,7 +191,7 @@
     const definitions = inject(SCHEMA_DEFINITIONS_INJECTION_KEY, ref<Record<string, any>>({}))
 
     const canDrillItems = computed(() =>
-        Boolean(fieldNav) && looksLikeObject(props.schema?.items, definitions.value),
+        Boolean(fieldNav) && shouldDrillItem(props.schema?.items, definitions.value),
     )
 
     function itemLabel(element: any, index: number): string {

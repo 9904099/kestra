@@ -1,11 +1,14 @@
 import {describe, it, expect} from "vitest"
 import {
     looksLikeObject,
+    shouldDrillItem,
     summarizeValue,
 } from "../../../src/components/no-code/components/tasks/fieldNesting"
 
 const definitions = {
     Foo: {type: "object", properties: {a: {type: "string"}}},
+    AssetIdentifier: {type: "object", properties: {id: {type: "string"}, type: {type: "string"}}},
+    Input: {anyOf: [{$ref: "#/definitions/Foo"}, {type: "object", properties: {b: {type: "string"}}}]},
 }
 
 describe("looksLikeObject", () => {
@@ -19,6 +22,28 @@ describe("looksLikeObject", () => {
         expect(looksLikeObject({type: "string"}, {})).toBe(false)
         expect(looksLikeObject({type: "object", additionalProperties: {}}, {})).toBe(false)
         expect(looksLikeObject({anyOf: [{type: "string"}, {type: "integer"}]}, {})).toBe(false)
+    })
+})
+
+describe("shouldDrillItem", () => {
+    it("keeps a flat scalar record inline", () => {
+        expect(shouldDrillItem({type: "object", properties: {id: {type: "string"}, type: {type: "string"}}}, {})).toBe(false)
+        expect(shouldDrillItem({allOf: [{$ref: "#/definitions/AssetIdentifier"}, {$dynamic: true}]}, definitions)).toBe(false)
+    })
+
+    it("keeps primitives and primitive arrays inline", () => {
+        expect(shouldDrillItem({type: "string"}, {})).toBe(false)
+        expect(shouldDrillItem({type: "array", items: {type: "string"}}, {})).toBe(false)
+    })
+
+    it("drills a polymorphic item, direct or behind a $ref", () => {
+        expect(shouldDrillItem({anyOf: [{$ref: "#/definitions/Foo"}, {type: "object", properties: {b: {}}}]}, definitions)).toBe(true)
+        expect(shouldDrillItem({$ref: "#/definitions/Input"}, definitions)).toBe(true)
+    })
+
+    it("drills an item that nests an object or a list of objects", () => {
+        expect(shouldDrillItem({type: "object", properties: {child: {type: "object", properties: {x: {}}}}}, {})).toBe(true)
+        expect(shouldDrillItem({type: "object", properties: {list: {type: "array", items: {$ref: "#/definitions/Foo"}}}}, definitions)).toBe(true)
     })
 })
 
