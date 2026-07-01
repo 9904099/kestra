@@ -1,6 +1,5 @@
 import {describe, it, expect} from "vitest"
 import {
-    isDrillableField,
     looksLikeObject,
     summarizeValue,
 } from "../../../src/components/no-code/components/tasks/fieldNesting"
@@ -8,62 +7,6 @@ import {
 const definitions = {
     Foo: {type: "object", properties: {a: {type: "string"}}},
 }
-
-describe("isDrillableField", () => {
-    it("keeps scalars inline", () => {
-        expect(isDrillableField({type: "string"}, {})).toBe(false)
-        expect(isDrillableField({type: "boolean"}, {})).toBe(false)
-        expect(isDrillableField({type: "integer"}, {})).toBe(false)
-        expect(isDrillableField({enum: ["A", "B"]}, {})).toBe(false)
-    })
-
-    it("keeps maps inline", () => {
-        expect(isDrillableField({type: "object", additionalProperties: {type: "string"}}, {})).toBe(false)
-    })
-
-    it("keeps arrays of primitives inline", () => {
-        expect(isDrillableField({type: "array", items: {type: "string"}}, {})).toBe(false)
-    })
-
-    it("keeps a scalar anyOf inline", () => {
-        expect(isDrillableField({anyOf: [{type: "string"}, {type: "integer"}]}, {})).toBe(false)
-    })
-
-    it("drills an object with properties", () => {
-        expect(isDrillableField({type: "object", properties: {a: {type: "string"}}}, {})).toBe(true)
-    })
-
-    it("drills a complex $ref", () => {
-        expect(isDrillableField({$ref: "#/definitions/Foo"}, definitions)).toBe(true)
-    })
-
-    it("keeps arrays inline (their items drill in the array renderer)", () => {
-        expect(isDrillableField({type: "array", items: {type: "object", properties: {a: {}}}}, {})).toBe(false)
-        expect(isDrillableField({type: "array", items: {$ref: "#/definitions/Foo"}}, definitions)).toBe(false)
-    })
-
-    it("keeps anyOf inline (its branch fields drill individually)", () => {
-        expect(isDrillableField({anyOf: [{type: "string"}, {type: "object", properties: {a: {}}}]}, {})).toBe(false)
-        expect(isDrillableField({anyOf: [{type: "string"}, {$ref: "#/definitions/Foo"}]}, definitions)).toBe(false)
-    })
-
-    it("never drills a big-anyOf list (block canvas territory)", () => {
-        const items = {anyOf: Array.from({length: 11}, () => ({$ref: "#/definitions/Foo"}))}
-        expect(isDrillableField({type: "array", items}, definitions)).toBe(false)
-    })
-
-    it("never drills a task", () => {
-        expect(isDrillableField({$ref: "#/definitions/io.kestra.core.models.tasks.Task"}, {})).toBe(false)
-    })
-
-    it("forces inline in plugin-defaults inlineMode", () => {
-        expect(isDrillableField({type: "object", properties: {a: {}}}, {}, undefined, {inlineMode: true})).toBe(false)
-    })
-
-    it("handles missing schema", () => {
-        expect(isDrillableField(undefined, {})).toBe(false)
-    })
-})
 
 describe("looksLikeObject", () => {
     it("is true for object / complex / object-anyOf", () => {

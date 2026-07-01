@@ -31,32 +31,6 @@ export function looksLikeObject(
     return false
 }
 
-export interface DrillOptions {
-    inlineMode?: boolean;
-}
-
-/**
- * Decides whether a field opens its own push-in-place view (drill) instead of
- * rendering inline.
- *
- * Drill (deep): a single nested object, i.e. an object with properties or a
- * complex ($ref) definition. Everything else stays inline: scalars, enum, map,
- * primitive arrays, and anyOf render in place; an array of objects renders as an
- * inline list whose individual items drill (handled by the array renderer via
- * looksLikeObject). Task and lists of tasks are owned by the block canvas.
- */
-export function isDrillableField(
-    schema: any,
-    definitions: Record<string, any>,
-    key?: string,
-    options: DrillOptions = {},
-): boolean {
-    if (options.inlineMode || !schema) return false
-
-    const type = getType(schema, definitions, key)
-    return type === "object" || type === "complex"
-}
-
 export type ValueSummary =
     | {kind: "empty"}
     | {kind: "count"; count: number}
