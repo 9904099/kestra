@@ -1,6 +1,16 @@
 <template>
+    <KsDrillRow
+        v-if="isDrill"
+        :label="fieldKey"
+        :type="drillType"
+        :preview="previewText"
+        :aria-label="fieldKey"
+        data-test="task-field-drill"
+        @open="openDrill"
+    />
+
     <TaskObjectListInline
-        v-if="inlineMode && simpleType === 'list'"
+        v-else-if="inlineMode && simpleType === 'list'"
         v-model="modelValue"
         :fieldKey
         :root="componentProps.root"
@@ -69,8 +79,10 @@
 
 <script setup lang="ts">
     import {computed, inject, ref, useTemplateRef} from "vue"
+    import {useI18n} from "vue-i18n"
     import {useBlockComponent} from "./useBlockComponent"
-    import {INLINE_TASK_MODE_INJECTION_KEY, BLOCK_SCHEMA_PATH_INJECTION_KEY} from "../../injectionKeys"
+    import {isDrillableField, summarizeValue} from "./fieldNesting"
+    import {INLINE_TASK_MODE_INJECTION_KEY, BLOCK_SCHEMA_PATH_INJECTION_KEY, FIELD_NAV_INJECTION_KEY, SCHEMA_DEFINITIONS_INJECTION_KEY} from "../../injectionKeys"
 
     import ClearButton from "./ClearButton.vue"
     import {KsMarkdown} from "@kestra-io/design-system"
@@ -82,14 +94,17 @@
 
     const modelValue = defineModel<any>()
 
-    const props = defineProps<{
+    const props = withDefaults(defineProps<{
         schema: any;
         root?: string;
         fieldKey: string;
         task: any;
         required?: string[];
         disabled?: boolean;
-    }>()
+        drillEnabled?: boolean;
+    }>(), {drillEnabled: true})
+
+    const {t} = useI18n()
 
     const taskComponent = useTemplateRef<{resetSelectType?: () => void}>("taskComponent")
 
@@ -152,6 +167,35 @@
     /** Whether the component is rendered in inline mode (used for Plugin Defaults) */
     const inlineMode = inject(INLINE_TASK_MODE_INJECTION_KEY, false)
     const blockSchemaPathInjected = inject(BLOCK_SCHEMA_PATH_INJECTION_KEY, ref(""))
+
+    const fieldNav = inject(FIELD_NAV_INJECTION_KEY, undefined)
+    const definitions = inject(SCHEMA_DEFINITIONS_INJECTION_KEY, ref<Record<string, any>>({}))
+
+    const isDrill = computed(() =>
+        Boolean(fieldNav)
+        && props.drillEnabled
+        && !inlineMode
+        && isDrillableField(props.schema, definitions.value, props.fieldKey),
+    )
+
+    const drillType = computed(() => (simpleType.value === "any-of" ? "anyOf" : simpleType.value))
+
+    const previewText = computed(() => {
+        const summary = summarizeValue(modelValue.value)
+        if (summary.kind === "empty") return t("no_code.nav.not_set")
+        if (summary.kind === "count") return t("no_code.nav.items", {count: summary.count})
+        return summary.text
+    })
+
+    function openDrill() {
+        fieldNav?.push({
+            path: componentProps.value.root,
+            label: props.fieldKey,
+            root: props.root ?? "",
+            fieldKey: props.fieldKey,
+            schema: props.schema,
+        })
+    }
 
     /**
      * Resolves the JSON schema path for the current field.

@@ -1431,6 +1431,12 @@
           "week": "Wochen"
         },
         "add_unit": "Einheit hinzufügen"
+      },
+      "nav": {
+        "back": "Zurück",
+        "breadcrumb_aria": "Feldpfad",
+        "items": "{count} Elemente",
+        "not_set": "Nicht gesetzt"
       }
     },
     "no_data": "Es sieht so aus, als wäre hier noch nichts... bisher!<br/>Passen Sie Ihre Filter an oder versuchen Sie es erneut!",

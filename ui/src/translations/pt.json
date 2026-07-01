@@ -1431,6 +1431,12 @@
           "week": "semanas"
         },
         "add_unit": "Adicionar unidade"
+      },
+      "nav": {
+        "back": "Voltar",
+        "breadcrumb_aria": "Caminho do campo",
+        "items": "{count} itens",
+        "not_set": "Não definido"
       }
     },
     "no_data": "Parece que não há nada aqui... ainda!<br/>Ajuste seus filtros ou tente novamente!",

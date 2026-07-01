@@ -1,6 +1,7 @@
 import type {ComputedRef, InjectionKey, Ref} from "vue"
 import {NoCodeElement, TopologyClickParams} from "./utils/types"
 import {Panel} from "../../utils/multiPanelTypes"
+import type {FieldNavigation} from "./utils/useFieldNavigation"
 
 export const BLOCK_SCHEMA_PATH_INJECTION_KEY = Symbol("block-schema-path-injection-key") as InjectionKey<ComputedRef<string>>
 /**
@@ -102,3 +103,10 @@ export const DATA_TYPES_MAP_INJECTION_KEY = Symbol("data-types-injection-key") a
 export const ON_TASK_EDITOR_CLICK_INJECTION_KEY = Symbol("on-task-editor-click-injection-key") as InjectionKey<(elt?: Partial<NoCodeElement>) => void>
 
 export const DEFAULT_NAMESPACE_INJECTION_KEY = Symbol("default-namespace-injection-key") as InjectionKey<ComputedRef<string>>
+
+/**
+ * Push-in-place field navigation stack, provided per task-form pane. Present
+ * only inside the task editor; absent on the flow-root form and plugin
+ * defaults, where fields never drill.
+ */
+export const FIELD_NAV_INJECTION_KEY = Symbol("field-nav-injection-key") as InjectionKey<FieldNavigation>

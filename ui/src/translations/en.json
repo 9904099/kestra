@@ -1402,6 +1402,12 @@
         "variable": "Variable",
         "yaml": "YAML Editor"
       },
+      "nav": {
+        "back": "Back",
+        "breadcrumb_aria": "Field path",
+        "items": "{count} items",
+        "not_set": "Not set"
+      },
       "remove": {
         "cases": "Remove this case",
         "default": "Remove this entry"

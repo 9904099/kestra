@@ -1,8 +1,17 @@
 <template>
-    <div v-if="playgroundStore.enabled && isTask && taskModel?.id" class="flow-playground">
+    <div v-if="playgroundStore.enabled && isTask && taskModel?.id && !navStack.length" class="flow-playground">
         <PlaygroundRunTaskButton :taskId="taskModel?.id" />
     </div>
-    <KsForm v-if="isTaskDefinitionBasedOnType" labelPosition="top">
+
+    <FieldNavBreadcrumb
+        v-if="navStack.length"
+        :frames="navStack"
+        :rootLabel="rootLabel"
+        @navigate="onCrumb"
+        @back="fieldNav.pop"
+    />
+
+    <KsForm v-if="isTaskDefinitionBasedOnType && !navStack.length" labelPosition="top">
         <KsFormItem>
             <template #label>
                 <div class="type-div">
@@ -20,13 +29,23 @@
     <div @click="() => onTaskEditorClick(taskModel)">
         <TaskObject
             v-ks-loading="isLoading || isPluginSchemaLoading"
-            v-if="(selectedTaskType || !isTaskDefinitionBasedOnType) && schema"
+            v-if="!navStack.length && (selectedTaskType || !isTaskDefinitionBasedOnType) && schema"
             name="root"
             :modelValue="taskModel"
             @update:model-value="onTaskInput"
             :schema
             :properties
             filterType
+        />
+        <TaskObjectField
+            v-else-if="navCurrent"
+            :key="navCurrent.path"
+            :schema="navCurrent.schema"
+            :root="navCurrent.root"
+            :fieldKey="navCurrent.fieldKey"
+            :task="taskModel"
+            :drillEnabled="false"
+            v-model="frameValue"
         />
     </div>
 </template>
@@ -35,8 +54,14 @@
     import {computed, inject, onActivated, provide, ref, toRaw, watch} from "vue"
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
     import TaskObject from "./tasks/TaskObject.vue"
+    import TaskObjectField from "./tasks/TaskObjectField.vue"
     import PluginSelect from "../../plugins/PluginSelect.vue"
+    import FieldNavBreadcrumb from "./FieldNavBreadcrumb.vue"
+    import {useFieldNavigation} from "../utils/useFieldNavigation"
     import {NoCodeElement, Schemas} from "../utils/types"
+    import get from "lodash/get"
+    import set from "lodash/set"
+    import cloneDeep from "lodash/cloneDeep"
     import {
         FIELDNAME_INJECTION_KEY, PARENT_PATH_INJECTION_KEY,
         BLOCK_SCHEMA_PATH_INJECTION_KEY,
@@ -44,6 +69,7 @@
         SCHEMA_DEFINITIONS_INJECTION_KEY,
         DATA_TYPES_MAP_INJECTION_KEY,
         ON_TASK_EDITOR_CLICK_INJECTION_KEY,
+        FIELD_NAV_INJECTION_KEY,
     } from "../injectionKeys"
     import {removeNullAndUndefined} from "../utils/cleanUp"
     import {removeRefPrefix, usePluginsStore} from "../../../stores/plugins"
@@ -68,6 +94,33 @@
     const taskModel = ref<PartialNoCodeElement | undefined>({})
     const selectedTaskType = ref<string>()
     const isLoading = ref(false)
+
+    const fieldNav = useFieldNavigation()
+    provide(FIELD_NAV_INJECTION_KEY, fieldNav)
+    const {stack: navStack, current: navCurrent} = fieldNav
+
+    const rootLabel = computed(() =>
+        taskModel.value?.id
+        || selectedTaskType.value?.split(".").pop()
+        || "task",
+    )
+
+    const frameValue = computed({
+        get: () => (navCurrent.value ? get(taskModel.value, navCurrent.value.path) : undefined),
+        set: (value) => {
+            if (!navCurrent.value) return
+            const next = cloneDeep(toRaw(taskModel.value) ?? {})
+            set(next as Record<string, any>, navCurrent.value.path, value)
+            onTaskInput(next)
+        },
+    })
+
+    function onCrumb(index: number) {
+        if (index < 0) fieldNav.reset()
+        else fieldNav.popTo(index)
+    }
+
+    watch(selectedTaskType, () => fieldNav.reset())
 
     const parentPath = inject(PARENT_PATH_INJECTION_KEY, "")
     const fieldName = inject(FIELDNAME_INJECTION_KEY, undefined)

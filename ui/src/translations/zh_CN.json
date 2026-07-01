@@ -1431,6 +1431,12 @@
           "week": "周"
         },
         "add_unit": "添加单位"
+      },
+      "nav": {
+        "back": "返回",
+        "breadcrumb_aria": "字段路径",
+        "items": "{count} 项",
+        "not_set": "未设置"
       }
     },
     "no_data": "看起来这里还没有内容……<br/>调整您的过滤器，或者再试一次！",

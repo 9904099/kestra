@@ -1431,6 +1431,12 @@
           "week": "tygodnie"
         },
         "add_unit": "Dodaj jednostkę"
+      },
+      "nav": {
+        "back": "Wstecz",
+        "breadcrumb_aria": "Ścieżka pola",
+        "items": "{count} elementów",
+        "not_set": "Nie ustawiono"
       }
     },
     "no_data": "Wygląda na to, że nic tu nie ma... jeszcze!<br/>Dostosuj swoje filtry lub spróbuj ponownie!",
