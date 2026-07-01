@@ -14,6 +14,7 @@ import KsAvatar from "./components/Data/KsAvatar.vue"
 import KsBadge from "./components/Data/KsBadge.vue"
 import KsNewBadge from "./components/Data/KsNewBadge.vue"
 import KsBreadcrumb from "./components/Navigation/KsBreadcrumb/KsBreadcrumb.vue"
+import KsDrillRow from "./components/Navigation/KsDrillRow/KsDrillRow.vue"
 import KsButton from "./components/Basic/KsButton/KsButton.vue"
 import KsButtonGroup from "./components/Basic/KsButton/KsButtonGroup.vue"
 import KsCard from "./components/Data/KsCard.vue"
@@ -218,6 +219,7 @@ const components: Record<string, Component> = {
     KsBadge,
     KsNewBadge,
     KsBreadcrumb,
+    KsDrillRow,
     KsButton,
     KsButtonGroup,
     KsCard,
@@ -326,6 +328,7 @@ export {
     KsBadge,
     KsNewBadge,
     KsBreadcrumb,
+    KsDrillRow,
     KsButton,
     KsButtonGroup,
     KsCard,
@@ -455,6 +458,7 @@ declare module "vue" {
         KsBadge: typeof KsBadge
         KsNewBadge: typeof KsNewBadge
         KsBreadcrumb: typeof KsBreadcrumb
+        KsDrillRow: typeof KsDrillRow
         KsButton: typeof KsButton
         KsButtonGroup: typeof KsButtonGroup
         KsCard: typeof KsCard
