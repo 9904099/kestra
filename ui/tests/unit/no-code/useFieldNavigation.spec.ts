@@ -1,7 +1,7 @@
 import {describe, it, expect} from "vitest"
 import {useFieldNavigation, type NavFrame} from "../../../src/components/no-code/utils/useFieldNavigation"
 
-const frame = (path: string): NavFrame => ({path, label: path, root: "", fieldKey: path, schema: {}})
+const frame = (path: string): NavFrame => ({path, label: path, schema: {}})
 
 describe("useFieldNavigation", () => {
     it("starts empty", () => {

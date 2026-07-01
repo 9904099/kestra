@@ -39,11 +39,11 @@ export interface DrillOptions {
  * Decides whether a field opens its own push-in-place view (drill) instead of
  * rendering inline.
  *
- * Drill (deep): object with properties, complex ($ref to a structured
- * definition), array/list of objects, or an anyOf whose selected branch is an
- * object. Inline (shallow): scalar, enum, boolean, number, duration, secret,
- * map, array of primitives, and a scalar anyOf. Task and lists of tasks are
- * owned by the block canvas and are never drilled from the field form.
+ * Drill (deep): a single nested object, i.e. an object with properties or a
+ * complex ($ref) definition. Everything else stays inline: scalars, enum, map,
+ * primitive arrays, and anyOf render in place; an array of objects renders as an
+ * inline list whose individual items drill (handled by the array renderer via
+ * looksLikeObject). Task and lists of tasks are owned by the block canvas.
  */
 export function isDrillableField(
     schema: any,
@@ -54,22 +54,7 @@ export function isDrillableField(
     if (options.inlineMode || !schema) return false
 
     const type = getType(schema, definitions, key)
-
-    switch (type) {
-        case "object":
-        case "complex":
-            return true
-        case "array": {
-            const items = resolve$ref({definitions}, schema.items)
-            return looksLikeObject(items, definitions)
-        }
-        case "any-of":
-            return branchesOf(schema).some((branch) =>
-                looksLikeObject(resolve$ref({definitions}, branch), definitions),
-            )
-        default:
-            return false
-    }
+    return type === "object" || type === "complex"
 }
 
 export type ValueSummary =

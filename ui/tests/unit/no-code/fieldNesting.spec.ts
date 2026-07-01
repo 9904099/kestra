@@ -37,17 +37,14 @@ describe("isDrillableField", () => {
         expect(isDrillableField({$ref: "#/definitions/Foo"}, definitions)).toBe(true)
     })
 
-    it("drills an array of inline objects", () => {
-        expect(isDrillableField({type: "array", items: {type: "object", properties: {a: {}}}}, {})).toBe(true)
+    it("keeps arrays inline (their items drill in the array renderer)", () => {
+        expect(isDrillableField({type: "array", items: {type: "object", properties: {a: {}}}}, {})).toBe(false)
+        expect(isDrillableField({type: "array", items: {$ref: "#/definitions/Foo"}}, definitions)).toBe(false)
     })
 
-    it("drills an array of $ref objects", () => {
-        expect(isDrillableField({type: "array", items: {$ref: "#/definitions/Foo"}}, definitions)).toBe(true)
-    })
-
-    it("drills an anyOf with an object branch", () => {
-        expect(isDrillableField({anyOf: [{type: "string"}, {type: "object", properties: {a: {}}}]}, {})).toBe(true)
-        expect(isDrillableField({anyOf: [{type: "string"}, {$ref: "#/definitions/Foo"}]}, definitions)).toBe(true)
+    it("keeps anyOf inline (its branch fields drill individually)", () => {
+        expect(isDrillableField({anyOf: [{type: "string"}, {type: "object", properties: {a: {}}}]}, {})).toBe(false)
+        expect(isDrillableField({anyOf: [{type: "string"}, {$ref: "#/definitions/Foo"}]}, definitions)).toBe(false)
     })
 
     it("never drills a big-anyOf list (block canvas territory)", () => {

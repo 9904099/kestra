@@ -6,7 +6,48 @@
             'task-collection--cards': needWrapper && items.length > 0,
         }"
     >
-        <template v-if="needWrapper">
+        <template v-if="needWrapper && canDrillItems">
+            <div
+                v-for="(element, index) in items"
+                :key="'drill-' + index"
+                class="task-array-drill"
+            >
+                <KsDrillRow
+                    class="task-array-drill-row"
+                    :label="itemLabel(element, index)"
+                    :preview="itemPreview(element)"
+                    :aria-label="itemLabel(element, index)"
+                    data-test="task-array-item-drill"
+                    @open="openItem(index)"
+                />
+                <div class="task-array-drill-actions">
+                    <KsIconButton
+                        v-if="items.length > 1"
+                        :disabled="index === 0"
+                        :tooltip="$t('block_editor.move_up')"
+                        @click.stop="moveItem(index, 'up')"
+                    >
+                        <ChevronUp />
+                    </KsIconButton>
+                    <KsIconButton
+                        v-if="items.length > 1"
+                        :disabled="index === items.length - 1"
+                        :tooltip="$t('block_editor.move_down')"
+                        @click.stop="moveItem(index, 'down')"
+                    >
+                        <ChevronDown />
+                    </KsIconButton>
+                    <KsIconButton
+                        :tooltip="$t('block_editor.delete')"
+                        @click.stop="removeItem(index)"
+                    >
+                        <DeleteOutline />
+                    </KsIconButton>
+                </div>
+            </div>
+        </template>
+
+        <template v-else-if="needWrapper">
             <div
                 v-for="(element, index) in items"
                 :key="'array-' + index"
@@ -115,10 +156,12 @@
 
     import {DeleteOutline, ChevronUp, ChevronDown} from "../../utils/icons"
 
+    import {useI18n} from "vue-i18n"
     import Add from "../Add.vue"
     import Wrapper from "./Wrapper.vue"
-    import {BLOCK_SCHEMA_PATH_INJECTION_KEY} from "../../injectionKeys"
+    import {BLOCK_SCHEMA_PATH_INJECTION_KEY, FIELD_NAV_INJECTION_KEY, SCHEMA_DEFINITIONS_INJECTION_KEY} from "../../injectionKeys"
     import {useBlockComponent} from "./useBlockComponent"
+    import {summarizeValue, looksLikeObject} from "./fieldNesting"
 
     defineOptions({inheritAttrs: false})
 
@@ -142,6 +185,36 @@
     })
 
     const {getBlockComponent} = useBlockComponent()
+
+    const {t} = useI18n()
+    const fieldNav = inject(FIELD_NAV_INJECTION_KEY, undefined)
+    const definitions = inject(SCHEMA_DEFINITIONS_INJECTION_KEY, ref<Record<string, any>>({}))
+
+    const canDrillItems = computed(() =>
+        Boolean(fieldNav) && looksLikeObject(props.schema?.items, definitions.value),
+    )
+
+    function itemLabel(element: any, index: number): string {
+        if (element && typeof element === "object" && !Array.isArray(element)) {
+            return String(element.id ?? element.name ?? element.type ?? `#${index + 1}`)
+        }
+        return `#${index + 1}`
+    }
+
+    function itemPreview(element: any): string {
+        const summary = summarizeValue(element)
+        if (summary.kind === "empty") return t("no_code.nav.not_set")
+        if (summary.kind === "count") return t("no_code.nav.items", {count: summary.count})
+        return summary.text
+    }
+
+    function openItem(index: number) {
+        fieldNav?.push({
+            path: `${props.root}[${index}]`,
+            label: itemLabel(items.value[index], index),
+            schema: props.schema.items,
+        })
+    }
 
     const componentType = computed(() => {
         return getBlockComponent.value?.(props.schema.items, props.root)
@@ -221,6 +294,24 @@
 
 .task-collection--cards {
     gap: var(--ks-spacing-3);
+}
+
+.task-array-drill {
+    display: flex;
+    align-items: center;
+    gap: var(--ks-spacing-2);
+}
+
+.task-array-drill-row {
+    flex: 1;
+    min-width: 0;
+}
+
+.task-array-drill-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ks-spacing-1);
+    flex: none;
 }
 
 .task-array-item {

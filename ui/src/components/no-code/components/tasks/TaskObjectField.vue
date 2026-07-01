@@ -102,6 +102,7 @@
         required?: string[];
         disabled?: boolean;
         drillEnabled?: boolean;
+        rootOverride?: string;
     }>(), {drillEnabled: true})
 
     const {t} = useI18n()
@@ -125,7 +126,7 @@
                 hasSelectedASchema.value = value !== undefined
             },
             task: props.task,
-            root: props.root ? `${props.root}.${props.fieldKey}` : props.fieldKey,
+            root: props.rootOverride ?? (props.root ? `${props.root}.${props.fieldKey}` : props.fieldKey),
             schema: props.schema,
             required: isRequired.value,
         }
@@ -191,8 +192,6 @@
         fieldNav?.push({
             path: componentProps.value.root,
             label: props.fieldKey,
-            root: props.root ?? "",
-            fieldKey: props.fieldKey,
             schema: props.schema,
         })
     }

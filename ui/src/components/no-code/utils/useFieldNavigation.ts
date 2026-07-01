@@ -1,15 +1,11 @@
 import {ref, computed} from "vue"
 
 export interface NavFrame {
-    /** Dot path of the field inside the task model, e.g. "retry" or "batch.options". */
+    /** Path of the field inside the task model, e.g. "retry" or "inputs[0]". */
     path: string;
-    /** Display label shown in the breadcrumb (the field key). */
+    /** Display label shown in the breadcrumb and the field header. */
     label: string;
-    /** The `root` prop the field was rendered with, reused to re-render it. */
-    root: string;
-    /** The field key. */
-    fieldKey: string;
-    /** The field schema. */
+    /** The field (or array item) schema. */
     schema: any;
 }
 
