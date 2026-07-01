@@ -91,6 +91,7 @@
                         :root="`${root}[${index}]`"
                         :properties="{}"
                         :schema="props.schema.items"
+                        :bare="true"
                         @update:model-value="handleInput($event, index)"
                     />
                 </div>
