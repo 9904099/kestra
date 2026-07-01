@@ -629,6 +629,35 @@
         return parsedTasks.value
     }
 
+    const NESTED_BLOCK_KEYS = ["tasks", "then", "else", "finally", "errors", "defaults"]
+
+    function findNestedPath(items: Record<string, unknown>[], id: string, prefix: string): string | undefined {
+        for (let index = 0; index < items.length; index++) {
+            const item = items[index]
+            if (!item || typeof item !== "object") continue
+            const path = `${prefix}[${index}]`
+            if (String(item.id) === id) return path
+            for (const key of NESTED_BLOCK_KEYS) {
+                const branch = item[key]
+                if (Array.isArray(branch)) {
+                    const found = findNestedPath(branch as Record<string, unknown>[], id, `${path}.${key}`)
+                    if (found) return found
+                }
+            }
+            const cases = item.cases
+            if (cases && typeof cases === "object" && !Array.isArray(cases)) {
+                for (const caseKey of Object.keys(cases as Record<string, unknown>)) {
+                    const branch = (cases as Record<string, unknown>)[caseKey]
+                    if (Array.isArray(branch)) {
+                        const found = findNestedPath(branch as Record<string, unknown>[], id, `${path}.cases.${caseKey}`)
+                        if (found) return found
+                    }
+                }
+            }
+        }
+        return undefined
+    }
+
     const editorEl = ref<HTMLElement>()
     const focusedId = ref<string | undefined>()
     const shortcutsOpen = ref(false)
@@ -782,7 +811,12 @@
             const id = token.slice(separator + 1)
             if (!id || !DOCK_SECTIONS.includes(section)) continue
             const block = sectionList(section).find(item => String(item.id) === id)
-            if (block) openTab({id, section, data: block})
+            if (block) {
+                openTab({id, section, data: block})
+            } else {
+                const nestedPath = findNestedPath(sectionList(section), id, section)
+                if (nestedPath) openNestedEdit(nestedPath)
+            }
         }
         const active = route.query.tab
         if (typeof active === "string" && dockTabs.value.some(tab => tab.id === active)) {
