@@ -79,6 +79,11 @@ const mockOnEdit = vi.fn()
 // --- Store and UI mocks ---
 // vi.mock factories are hoisted before imports. Keep factories self-contained.
 
+vi.mock("vue-router", () => ({
+    useRoute: () => ({query: {}}),
+    useRouter: () => ({replace: () => Promise.resolve(), push: () => Promise.resolve()}),
+}))
+
 vi.mock("../../../../../src/stores/flow", () => ({
     useFlowStore: () => ({
         get flowYaml() { return mockFlowYaml.value },
