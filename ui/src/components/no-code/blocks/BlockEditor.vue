@@ -311,9 +311,9 @@
                             :isHidden="true"
                             presentation="panel"
                             :hideTabstrip="true"
-                            v-model:inputsCollapsed="dockInputsCollapsed"
-                            v-model:outputCollapsed="dockOutputCollapsed"
-                            v-model:docOpen="dockDocOpen"
+                            v-model:inputsCollapsed="tab.inputsCollapsed"
+                            v-model:outputCollapsed="tab.outputCollapsed"
+                            v-model:docOpen="tab.docOpen"
                             data-test="block-editor-task-edit"
                             @mousedown="focusPane(tab.id)"
                             @focusin="focusPane(tab.id)"
@@ -658,6 +658,9 @@
         section: BlockSection
         data: Record<string, unknown>
         path?: string
+        docOpen?: boolean
+        inputsCollapsed?: boolean
+        outputCollapsed?: boolean
     }
 
     const dockTabs = ref<EditingBlock[]>([])
@@ -689,7 +692,12 @@
             existing.data = tab.data
             existing.path = tab.path
         } else {
-            dockTabs.value = [...dockTabs.value, tab]
+            dockTabs.value = [...dockTabs.value, {
+                ...tab,
+                docOpen: tab.docOpen ?? false,
+                inputsCollapsed: tab.inputsCollapsed ?? false,
+                outputCollapsed: tab.outputCollapsed ?? false,
+            }]
         }
         selectedId.value = tab.id
         touchActivation(tab.id)
@@ -728,17 +736,13 @@
     const DOCK_SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally"]
     let restoringDock = false
 
-    const dockInputsCollapsed = ref(false)
-    const dockOutputCollapsed = ref(false)
-    const dockDocOpen = ref(false)
-
     const dockStateKey = computed(() => [
         dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(","),
         selectedId.value ?? "",
         splitCount.value,
-        dockInputsCollapsed.value,
-        dockOutputCollapsed.value,
-        dockDocOpen.value,
+        activeTab.value?.inputsCollapsed ?? false,
+        activeTab.value?.outputCollapsed ?? false,
+        activeTab.value?.docOpen ?? false,
     ].join("|"))
 
     watch(dockStateKey, () => {
@@ -751,13 +755,14 @@
         else delete query.tab
         if (tabs && splitCount.value > 1) query.cols = String(splitCount.value)
         else delete query.cols
+        const active = activeTab.value
         const collapsed = [
-            dockInputsCollapsed.value ? "inputs" : "",
-            dockOutputCollapsed.value ? "output" : "",
+            active?.inputsCollapsed ? "inputs" : "",
+            active?.outputCollapsed ? "output" : "",
         ].filter(Boolean).join(",")
         if (tabs && collapsed) query.collapsed = collapsed
         else delete query.collapsed
-        if (tabs && dockDocOpen.value) query.doc = "1"
+        if (tabs && active?.docOpen) query.doc = "1"
         else delete query.doc
         router.replace({query}).catch(() => {})
     })
@@ -786,9 +791,12 @@
         const cols = Number(route.query.cols)
         if (cols >= 1 && cols <= 3) splitCount.value = cols
         const collapsed = typeof route.query.collapsed === "string" ? route.query.collapsed.split(",") : []
-        dockInputsCollapsed.value = collapsed.includes("inputs")
-        dockOutputCollapsed.value = collapsed.includes("output")
-        dockDocOpen.value = route.query.doc === "1"
+        const activeTabObj = dockTabs.value.find(tab => tab.id === selectedId.value)
+        if (activeTabObj) {
+            activeTabObj.inputsCollapsed = collapsed.includes("inputs")
+            activeTabObj.outputCollapsed = collapsed.includes("output")
+            activeTabObj.docOpen = route.query.doc === "1"
+        }
         nextTick(() => {
             restoringDock = false
         })
