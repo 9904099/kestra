@@ -12,23 +12,13 @@ export default (app: any, router: Router) => {
         }
     })
 
-    const isSamePage = (route1: RouteLocation, route2: RouteLocation) => {
-        const deleteTenantIfEmpty = (route: RouteLocation) => {
-            if (route.params.tenant === "") {
-                delete route.params.tenant
-            }
-        }
-
-        const filteredRouteForEquals = (route: RouteLocation) => ({
-            path: route.path,
-            params: route.params,
-        })
-
-        deleteTenantIfEmpty(route1)
-        deleteTenantIfEmpty(route2)
-
-        return JSON.stringify(filteredRouteForEquals(route1)) === JSON.stringify(filteredRouteForEquals(route2))
-    }
+    // Same page = same resolved path, ignoring query string (which the block
+    // editor uses for transient UI state: open tabs, doc panel, collapsed
+    // panels). Comparing path strings is order-independent, unlike a
+    // JSON.stringify of the params object whose key order can vary between
+    // from/to and spuriously trip the guard.
+    const isSamePage = (route1: RouteLocation, route2: RouteLocation) =>
+        route1.path === route2.path
 
     router.beforeEach(async (to, from) => {
         if (unsavedChangesStore.unsavedChange && !isSamePage(from, to)) {
