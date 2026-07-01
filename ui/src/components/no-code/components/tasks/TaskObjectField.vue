@@ -24,6 +24,37 @@
         :disabled
         class="wrapper"
     />
+    <div v-else-if="isNestedObject" class="nested-card">
+        <div class="nested-card-head">
+            <span class="nested-card-label">{{ fieldKey }}</span>
+            <span class="type-pill">{{ simpleType }}</span>
+            <KsTooltip
+                v-if="hasTooltip && !inlineHelp"
+                placement="left-start"
+                :showArrow="false"
+                popperClass="singleton-tooltip"
+            >
+                <template #content>
+                    <KsMarkdown class="markdown-tooltip" :content="helpText" />
+                </template>
+                <Help />
+            </KsTooltip>
+        </div>
+        <div class="nested-card-body">
+            <component
+                ref="taskComponent"
+                :is="type"
+                v-bind="componentProps"
+                :bare="true"
+                :disabled
+            />
+            <KsMarkdown
+                v-if="inlineHelp && inlineHelpText"
+                class="field-help"
+                :content="inlineHelpText"
+            />
+        </div>
+    </div>
     <KsFormItem v-else-if="fieldKey" :required="isRequired">
         <template #label>
             <div class="inline-wrapper">
@@ -174,6 +205,12 @@
     const inlineHelp = computed(() => Boolean(fieldNav))
     const inlineHelpText = computed(() => props.schema?.description || props.schema?.title || "")
 
+    const isNestedObject = computed(() =>
+        Boolean(props.fieldKey)
+        && !inlineMode
+        && (simpleType.value === "complex" || simpleType.value === "object"),
+    )
+
     /**
      * Resolves the JSON schema path for the current field.
      * Used by inline components to fetch metadata for nested objects or list items.
@@ -249,21 +286,48 @@
         font-weight: 600;
     }
 
-    .type-pill {
-        flex-shrink: 0;
-        font-size: var(--ks-font-size-xs);
-        line-height: 1.5;
-        padding: 0 var(--ks-spacing-2);
-        border-radius: var(--ks-radius-base);
-        background: var(--ks-bg-tag-inactive);
-        border: 1px solid var(--ks-border-subtle);
-        color: var(--ks-text-secondary);
-        text-transform: capitalize;
-    }
-
     .information-icon {
         color: var(--ks-text-secondary);
         cursor: pointer;
     }
+}
+
+.type-pill {
+    flex-shrink: 0;
+    font-size: var(--ks-font-size-xs);
+    line-height: 1.5;
+    padding: 0 var(--ks-spacing-2);
+    border-radius: var(--ks-radius-base);
+    background: var(--ks-bg-tag-inactive);
+    border: 1px solid var(--ks-border-subtle);
+    color: var(--ks-text-secondary);
+    text-transform: capitalize;
+}
+
+.nested-card {
+    border: 1px solid var(--ks-border-subtle);
+    border-radius: var(--ks-radius-base);
+    background: var(--ks-bg-surface);
+    overflow: hidden;
+    margin: var(--ks-spacing-1) 0 var(--ks-spacing-2);
+}
+
+.nested-card-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ks-spacing-2);
+    padding: var(--ks-spacing-2) var(--ks-spacing-3);
+    background: var(--ks-bg-elevated);
+    border-bottom: 1px solid var(--ks-border-subtle);
+}
+
+.nested-card-label {
+    font-size: var(--ks-font-size-sm);
+    font-weight: 600;
+    color: var(--ks-text-primary);
+}
+
+.nested-card-body {
+    padding: var(--ks-spacing-4) var(--ks-spacing-4) var(--ks-spacing-2);
 }
 </style>
