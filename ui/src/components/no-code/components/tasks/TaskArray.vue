@@ -122,7 +122,7 @@
                         <ChevronDown />
                     </KsIconButton>
                 </KsCol>
-                <KsCol :span="items.length > 1 ? 20 : 22" class="pe-2">
+                <KsCol :span="items.length > 1 ? 20 : 22" class="pe-2 array-value-col">
                     <Wrapper merge>
                         <template #tasks>
                             <component
@@ -291,6 +291,11 @@
     opacity: 0.5;
     pointer-events: none;
     cursor: not-allowed;
+}
+
+.array-value-col {
+    flex: 1;
+    max-width: none;
 }
 
 .task-collection--cards {
