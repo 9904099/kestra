@@ -66,7 +66,7 @@
                 </KsCol>
             </KsRow>
         </template>
-        <Add v-if="!props.disabled" :disabled="addButtonDisabled" @add="addItem()" />
+        <Add v-if="!props.disabled" @add="addItem()" />
     </div>
 </template>
 
@@ -81,7 +81,6 @@
     import debounce from "lodash/debounce"
     import Wrapper from "./Wrapper.vue"
     import {useBlockComponent} from "./useBlockComponent"
-    import {useToast} from "../../../../utils/toast"
 
     const {t, te} = useI18n()
 
@@ -138,6 +137,7 @@
 
     const duplicatedKeys = computed(() => {
         return currentValue.value.map(pair => pair[0])
+            .filter(key => key !== "")
             .filter((key, index, self) =>
                 self.indexOf(key) !== index,
             )
@@ -177,28 +177,17 @@
         emitUpdate()
     }
 
-    const toast = useToast()
-
     function addItem() {
-        if(addButtonDisabled.value) {
-            toast.warning(t("no_code.add.disabled_warning"))
-            return
-        }
         currentValue.value.push(["", undefined])
         const newIndex = currentValue.value.length - 1
         emitUpdate()
 
-        // Focus the key input field after the new row is rendered
         nextTick(() => {
             setTimeout(() => {
                 keyInputRefs[newIndex]?.focus()
             }, 100)
         })
     }
-
-    const addButtonDisabled = computed(() => {
-        return currentValue.value.at(-1)?.[0] === "" && currentValue.value.at(-1)?.[1] === undefined
-    })
 </script>
 
 <style scoped lang="scss">
