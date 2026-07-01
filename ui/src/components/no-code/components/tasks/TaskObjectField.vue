@@ -45,7 +45,7 @@
                 </div>
                 <span v-if="!isAnyOf" class="type-pill">{{ simpleType }}</span>
                 <KsTooltip
-                    v-if="!isAnyOf && hasTooltip"
+                    v-if="!isAnyOf && hasTooltip && !inlineHelp"
                     placement="left-start"
                     :showArrow="false"
                     popperClass="singleton-tooltip"
@@ -73,6 +73,11 @@
             v-bind="componentProps"
             :disabled
             class="mt-1 mb-2 wrapper"
+        />
+        <KsMarkdown
+            v-if="inlineHelp && inlineHelpText && !isBoolean"
+            class="field-help"
+            :content="inlineHelpText"
         />
     </KsFormItem>
 </template>
@@ -181,6 +186,9 @@
 
     const drillType = computed(() => (simpleType.value === "any-of" ? "anyOf" : simpleType.value))
 
+    const inlineHelp = computed(() => Boolean(fieldNav))
+    const inlineHelpText = computed(() => props.schema?.description || props.schema?.title || "")
+
     const previewText = computed(() => {
         const summary = summarizeValue(modelValue.value)
         if (summary.kind === "empty") return t("no_code.nav.not_set")
@@ -223,6 +231,25 @@
         display: flex;
         align-items: center;
         padding: 0;
+    }
+}
+
+.field-help {
+    margin-top: var(--ks-spacing-1);
+    font-size: var(--ks-font-size-sm);
+    color: var(--ks-text-muted);
+    line-height: 1.45;
+
+    :deep(p) {
+        margin: 0;
+    }
+
+    :deep(code) {
+        font-family: var(--ks-font-family-mono);
+        font-size: var(--ks-font-size-xs);
+        background: var(--ks-bg-tag-inactive);
+        padding: 0 var(--ks-spacing-1);
+        border-radius: var(--ks-radius-xs);
     }
 }
 
