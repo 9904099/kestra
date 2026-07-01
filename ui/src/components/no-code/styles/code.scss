@@ -51,6 +51,8 @@ $code-font-sm: var(--ks-font-size-sm);
 }
 
 .reorder {
+    flex: 0 0 auto;
+    max-width: none;
     align-items: center;
 
     // HACK: reset Element Plus adjacent-button margin-left (horizontal-group assumption) in this vertical stack
