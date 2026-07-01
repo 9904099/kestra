@@ -50,6 +50,15 @@ $code-font-sm: var(--ks-font-size-sm);
     text-align: right;
 }
 
+.reorder {
+    align-items: center;
+
+    // HACK: reset Element Plus adjacent-button margin-left (horizontal-group assumption) in this vertical stack
+    :deep(.kel-button) {
+        margin-left: 0;
+    }
+}
+
 .wrapper {
     :deep(*) {
         --kel-disabled-text-color: #{$code-gray};
