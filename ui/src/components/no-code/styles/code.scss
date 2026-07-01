@@ -41,11 +41,6 @@ $code-font-sm: var(--ks-font-size-sm);
     gap: var(--ks-spacing-2);
 }
 
-.task-collection--filled {
-    border-left: 2px solid var(--ks-border-subtle);
-    padding-left: var(--ks-spacing-3);
-}
-
 .delete,
 .reorder {
     height: 32px;
