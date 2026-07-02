@@ -5,6 +5,12 @@
         :modelValue="model"
         @update:model-value="onInput"
     />
+    <TaskString
+        v-else-if="booleanStringSchema"
+        :schema="booleanStringSchema"
+        :modelValue="model"
+        @update:model-value="onInput"
+    />
     <template v-else>
         <KsFormItem :class="{'anyof-switch': !isSelectingPlugins}">
             <KsSelect
@@ -134,6 +140,14 @@
         const duration = list.find((item: Schema) => item.type === "string" && item.format === "duration")
         const string = list.find((item: Schema) => item.type === "string" && !item.format)
         return duration && string ? duration : null
+    })
+
+    const booleanStringSchema = computed<Schema | null>(() => {
+        const list = schemas.value
+        if (list.length !== 2) return null
+        const bool = list.find((item: Schema) => item.type === "boolean")
+        const string = list.find((item: Schema) => item.type === "string" && !item.format)
+        return bool && string ? {type: "boolean", $language: props.schema.$language} as Schema : null
     })
 
     const allSchemaSameType = computed(() => {
