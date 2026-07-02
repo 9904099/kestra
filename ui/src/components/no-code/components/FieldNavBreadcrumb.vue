@@ -73,11 +73,15 @@
         font-size: var(--ks-font-size-sm);
         padding: 2px var(--ks-spacing-2);
         cursor: pointer;
-        transition: color 0.15s, border-color 0.15s;
+        transition: color 0.15s ease, border-color 0.15s ease, scale 0.1s ease;
 
         &:hover {
             color: var(--ks-text-primary);
             border-color: var(--ks-border-strong);
+        }
+
+        &:active {
+            scale: 0.96;
         }
 
         &:focus-visible {
@@ -104,9 +108,14 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         max-width: 12rem;
+        transition: color 0.15s ease, scale 0.1s ease;
 
         &:hover:not(:disabled) {
             color: var(--ks-text-link);
+        }
+
+        &:active:not(:disabled) {
+            scale: 0.96;
         }
 
         &:focus-visible {

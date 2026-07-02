@@ -416,6 +416,11 @@
     font-family: inherit;
     padding: var(--ks-spacing-3) var(--ks-spacing-4);
     text-align: left;
+    transition: background-color 0.12s ease;
+}
+
+.group-head:hover {
+    background: var(--ks-bg-hover);
 }
 
 .gh-caret {
@@ -449,6 +454,7 @@
     color: var(--ks-text-muted);
     background: var(--ks-bg-tag-inactive);
     border-radius: var(--ks-radius-xl);
+    font-variant-numeric: tabular-nums;
 }
 
 .group-body {

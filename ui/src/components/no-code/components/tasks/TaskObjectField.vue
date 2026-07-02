@@ -246,6 +246,7 @@
     font-size: var(--ks-font-size-sm);
     color: var(--ks-text-muted);
     line-height: 1.45;
+    text-wrap: pretty;
 
     :deep(p) {
         margin: 0;
