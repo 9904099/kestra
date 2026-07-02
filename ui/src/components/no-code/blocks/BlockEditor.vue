@@ -1032,11 +1032,13 @@
     const allPickerEntries = computed<PickerEntry[]>(() => {
         if (!pluginsStore.plugins) return []
         const entries: PickerEntry[] = []
+        const seen = new Set<string>()
         for (const plugin of pluginsStore.plugins) {
             for (const [key, value] of Object.entries(plugin)) {
                 if (!isEntryAPluginElementPredicate(key, value)) continue
                 for (const el of value as PluginElement[]) {
-                    if (el.deprecated) continue
+                    if (el.deprecated || seen.has(el.cls)) continue
+                    seen.add(el.cls)
                     const parts = el.cls.split(".")
                     entries.push({
                         fqcn: el.cls,
