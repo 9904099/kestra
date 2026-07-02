@@ -43,7 +43,7 @@
             @click="addSegment"
         >
             <Plus :size="16" />
-            {{ $t("no_code.duration.add_unit") }}
+            <span>{{ $t("no_code.duration.add_unit") }}</span>
         </button>
 
         <div class="task-duration-presets">
@@ -59,9 +59,9 @@
             </button>
         </div>
 
-        <div v-if="iso" class="task-duration-preview">
+        <div v-if="humanText" class="task-duration-echo" :title="iso">
             <ClockOutline :size="14" />
-            <code>{{ iso }}</code>
+            <span>{{ humanText }}</span>
         </div>
     </div>
 </template>
@@ -71,6 +71,7 @@
     import Close from "vue-material-design-icons/Close.vue"
     import Plus from "vue-material-design-icons/Plus.vue"
     import ClockOutline from "vue-material-design-icons/ClockOutline.vue"
+    import {durationUtils} from "@kestra-io/design-system"
 
     interface Segment {
         value: number | null;
@@ -142,6 +143,11 @@
 
     const iso = computed(() => build(segments.value))
 
+    const humanText = computed(() => {
+        const value = iso.value
+        return value ? durationUtils.humanDuration(value) : ""
+    })
+
     function emitChange() {
         localEdit.value = true
         emit("update:modelValue", build(segments.value))
@@ -207,32 +213,41 @@
 }
 
 .task-duration-value {
-    width: 7rem;
+    width: 5rem;
+    flex: none;
+    font-variant-numeric: tabular-nums;
 }
 
 .task-duration-unit {
     flex: 1;
-    max-width: 12rem;
+    max-width: 14rem;
 }
 
 .task-duration-add {
     display: inline-flex;
     align-items: center;
-    gap: var(--ks-spacing-1);
+    gap: var(--ks-spacing-2);
     align-self: flex-start;
-    padding: var(--ks-spacing-1) var(--ks-spacing-2);
+    min-height: 2.25rem;
+    padding: 0 var(--ks-spacing-3);
     background: transparent;
-    border: 1px dashed var(--ks-border-default);
+    border: 1px dashed var(--ks-border-strong);
     border-radius: var(--ks-radius-base);
     color: var(--ks-text-secondary);
+    font-family: inherit;
     font-size: var(--ks-font-size-sm);
     cursor: pointer;
-    transition: border-color 0.12s, color 0.12s;
+    transition: border-color 0.12s ease, color 0.12s ease, background-color 0.12s ease, scale 0.1s ease;
 }
 
 .task-duration-add:hover {
     border-color: var(--ks-text-link);
     color: var(--ks-text-link);
+    background: var(--ks-bg-hover);
+}
+
+.task-duration-add:active {
+    scale: 0.98;
 }
 
 .task-duration-add:focus-visible {
@@ -247,7 +262,10 @@
 }
 
 .task-duration-preset {
-    padding: 2px var(--ks-spacing-2);
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.875rem;
+    padding: 0 var(--ks-spacing-3);
     background: var(--ks-bg-tag-inactive);
     border: 1px solid var(--ks-border-subtle);
     border-radius: var(--ks-radius-base);
@@ -255,12 +273,17 @@
     font-family: var(--ks-font-family-mono);
     font-size: var(--ks-font-size-xs);
     cursor: pointer;
-    transition: border-color 0.12s, color 0.12s;
+    transition: border-color 0.12s ease, color 0.12s ease, background-color 0.12s ease, scale 0.1s ease;
 }
 
 .task-duration-preset:hover {
     border-color: var(--ks-border-default);
     color: var(--ks-text-primary);
+    background: var(--ks-bg-hover);
+}
+
+.task-duration-preset:active {
+    scale: 0.96;
 }
 
 .task-duration-preset:focus-visible {
@@ -271,18 +294,19 @@
 .task-duration-preset.active {
     border-color: var(--ks-text-link);
     color: var(--ks-text-link);
+    background: var(--ks-bg-tag-hover);
 }
 
-.task-duration-preview {
+.task-duration-echo {
     display: flex;
     align-items: center;
     gap: var(--ks-spacing-1);
     color: var(--ks-text-muted);
-    font-size: var(--ks-font-size-xs);
+    font-size: var(--ks-font-size-sm);
+    font-variant-numeric: tabular-nums;
 }
 
-.task-duration-preview code {
-    font-family: var(--ks-font-family-mono);
+.task-duration-echo span {
     color: var(--ks-text-secondary);
 }
 </style>
