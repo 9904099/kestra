@@ -231,7 +231,7 @@
 
     .recipe-layout {
         display: grid;
-        grid-template-columns: 1fr 22rem;
+        grid-template-columns: minmax(0, 1fr) 22rem;
         gap: var(--ks-spacing-5);
         align-items: start;
 
