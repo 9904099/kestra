@@ -67,8 +67,9 @@ input family, each verified against persisted YAML:
 - Renaming a task's id via the inline Monaco id field, canvas card follows
 - Editing a plain text field (message)
 - String ⇄ Array segmented toggle
-- Enum select (inside a collapsed "Optional" group)
-- Boolean switch (inside a collapsed "Execution" group)
+- Enum select (inside the collapsed "Logging" group)
+- Boolean switch (inside the collapsed "Execution" group, Form column —
+  distinct from the Inputs column's unrelated "Execution context" section)
 - Duration field via its preset buttons
 - Raw Source-tab YAML edit, canvas syncs from it
 - Regression: editing one open tab's Source must never bleed into another
@@ -82,10 +83,11 @@ input family, each verified against persisted YAML:
   Undo restores the block
 - `Backspace` on an empty-section placeholder is a no-op (no dialog)
 - `Alt+Arrow` reorders the focused block, persisted order checked
-- Split view: each tiled pane shows its own label, the shared tabbar never
-  repeats a name, and a pane can be closed independently
-- Dragging one pane's tab onto another re-parents it (VSCode editor-group
-  behavior)
+- Split view: each tiled tab gets its own group/tabbar (VSCode editor
+  groups), no tab is ever duplicated across tabbars, and a pane can be
+  closed independently
+- Dragging one pane's only tab onto another pane merges it in, collapsing
+  the emptied pane (VSCode editor-group behavior)
 - Command menu jumps between sections
 - `Ctrl/Cmd+S` saves the draft from the Blocks page itself (this page does
   not mount `NoCode.vue`'s global save handler, so it needs its own)
@@ -111,6 +113,23 @@ it in `afterEach` (`FlowsApi.generateFlowViaApi` / `removeFlowsViaApi`),
 so runs are self-cleaning against whatever backend `E2E_BASE_URL` points
 to.
 
+## Bugs found and fixed while writing this suite
+
+- **Task-type picker never confirmed a fresh search with Enter**
+  (`BlockEditor.vue`): `pickerFocusedIndex` reset to `-1` on every filter
+  change instead of auto-highlighting the top result (unlike the command
+  menu, which already did this correctly). A keyboard user typing a
+  search and pressing Enter got nothing. Fixed to mirror the command
+  menu's default-highlighted-first-item behavior.
+- **`a` on a focused trigger offered task types instead of trigger types**
+  (`sectionFromParentPath`): anchoring the picker on a `triggers[i]` path
+  fell through to the generic "tasks" section. Fixed and covered by a
+  regression test.
+- **`Ctrl/Cmd+S` was a no-op on the Blocks page**: `NoCode.vue`'s
+  `useKeyboardSave()` isn't mounted on this route, so the footer's
+  advertised shortcut did nothing. Added a `save` case to
+  `dispatchBlockEditorAction`.
+
 ## Known gaps / follow-ups
 
 - Coverage is Log/Sequential/If/Schedule/Webhook/Fail task types plus the
@@ -120,3 +139,22 @@ to.
   yet covered.
 - No visual-regression (screenshot diff) coverage — this suite asserts
   behavior and persisted YAML, not pixels.
+- **Dev-server timing sensitivity**: a couple of interactions (opening
+  the task-edit dock, switching to the Source tab, expanding an accordion
+  group) trigger an async re-render that briefly recreates the Monaco
+  editor instances. `blocks.helpers.ts`'s `waitForMonacoStable()` guards
+  against this by polling the editor count until it settles — if a new
+  test adds a Monaco interaction after a tab switch or accordion expand,
+  call it first.
+- **Possible robustness gap, not fully root-caused**: typing a full block
+  replacement into the Source tab character-by-character (as a real
+  keyboard user would with individual keystrokes, rather than a single
+  paste) produces many transient invalid-YAML intermediate states. In one
+  observed run this cascaded into an uncaught `YAMLException` storm, a
+  batch of 404s, and the whole app navigating to a "Page not found" route
+  — though it did not reproduce on repeated attempts. The suite avoids
+  the flake by using `page.keyboard.insertText(...)` (atomic paste,
+  matches how a user would realistically replace a whole block) instead
+  of `page.keyboard.type(...)` for Source-tab edits, but the underlying
+  crash risk under rapid partial-YAML keystrokes has not been fixed and
+  is worth a dedicated look.

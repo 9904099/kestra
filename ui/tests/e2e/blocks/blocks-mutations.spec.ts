@@ -1,6 +1,6 @@
 import {expect, test} from "@playwright/test"
 import {FlowsApi} from "../api/flows.api"
-import {canvasCardIds, expectRing, fetchFlowSource, login, openBlockEditor, saveFlow, walkTo} from "./blocks.helpers"
+import {canvasCardIds, expectRing, fetchFlowSource, login, openBlockEditor, saveFlow, taskIdsInOrder, walkTo} from "./blocks.helpers"
 
 // Destructive/structural mutations (duplicate, delete + undo, reorder) and the
 // split-view multi-pane behaviors, all keyboard-first.
@@ -27,8 +27,7 @@ test.describe("Block editor — mutations & split view", () => {
 
         await saveFlow(page)
         const source = await fetchFlowSource(request, baseURL!, flowId)
-        const order = [...source.matchAll(/^ {2}- id: (\S+)/gm)].map(m => m[1])
-        expect(order).toEqual(["seq_group", "middle_task", "middle_task_copy", "last_task"])
+        expect(taskIdsInOrder(source)).toEqual(["seq_group", "middle_task", "middle_task_copy", "last_task"])
     })
 
     test("Backspace deletes after an Enter-confirmed dialog, moves focus to the neighbor, and Undo restores", async ({page}) => {
@@ -61,43 +60,43 @@ test.describe("Block editor — mutations & split view", () => {
 
         await saveFlow(page)
         const source = await fetchFlowSource(request, baseURL!, flowId)
-        const order = [...source.matchAll(/^ {2}- id: (\S+)/gm)].map(m => m[1])
-        expect(order).toEqual(["seq_group", "last_task", "middle_task"])
+        expect(taskIdsInOrder(source)).toEqual(["seq_group", "last_task", "middle_task"])
     })
 
-    test("split view labels each pane, dedupes the tabbar, and supports per-pane close", async ({page}) => {
+    test("split view gives each pane its own tabbar, with no tab duplicated, and supports per-pane close", async ({page}) => {
         await page.locator("[data-block-id='middle_task']").click()
         await page.locator("[data-block-id='last_task']").click()
         await page.locator("[data-test='block-editor-split-2']").click()
 
-        // Each tiled pane shows its own label next to its own content…
-        const middlePane = page.locator("[data-dock-pane-id='middle_task']")
-        const lastPane = page.locator("[data-dock-pane-id='last_task']")
-        await expect(middlePane.locator("[data-test='task-edit-tab']")).toContainText("middle_task")
-        await expect(lastPane.locator("[data-test='task-edit-tab']")).toContainText("last_task")
+        // Each tiled tab now has its own group/tabbar (VSCode editor groups) —
+        // no tab appears twice across the two tabbars
+        await expect(page.locator(".block-editor-dock-group")).toHaveCount(2)
+        await expect(page.locator("[data-test='block-editor-dock-tab-middle_task']")).toHaveCount(1)
+        await expect(page.locator("[data-test='block-editor-dock-tab-last_task']")).toHaveCount(1)
 
-        // …so the shared tabbar lists nothing twice (both tabs are tiled)
-        await expect(page.locator(".block-editor-dock-tabbar [role='tab']")).toHaveCount(0)
-
-        // Closing from a pane's own label actually closes that tab
-        await lastPane.locator("[data-test='task-edit-tab-close']").click()
+        // Closing a pane's tab actually closes that pane
+        await page.locator("[data-test='block-editor-dock-tab-close-last_task']").click()
         await expect(page.locator("[data-dock-pane-id='last_task']")).toBeHidden()
-        await expect(middlePane).toBeVisible()
+        await expect(page.locator("[data-dock-pane-id='middle_task']")).toBeVisible()
     })
 
-    test("dragging a pane's tab onto the other pane swaps their sides", async ({page}) => {
+    test("merges a pane into another when its tab is dropped there, collapsing the emptied pane", async ({page}) => {
         await page.locator("[data-block-id='middle_task']").click()
         await page.locator("[data-block-id='last_task']").click()
         await page.locator("[data-test='block-editor-split-2']").click()
 
         const paneOrder = () => page.locator("[data-dock-pane-id]:visible")
             .evaluateAll(els => els.map(el => el.getAttribute("data-dock-pane-id")))
-        expect(await paneOrder()).toEqual(["middle_task", "last_task"])
+        // Splitting redeals by recency — last_task (clicked most recently) anchors first
+        expect(await paneOrder()).toEqual(["last_task", "middle_task"])
 
-        await page.locator("[data-dock-pane-id='middle_task'] [data-test='task-edit-tab']")
+        await page.locator("[data-test='block-editor-dock-tab-middle_task']")
             .dragTo(page.locator("[data-dock-pane-id='last_task']"))
 
-        expect(await paneOrder()).toEqual(["last_task", "middle_task"])
+        // The emptied pane closes (VSCode editor-group behavior); both tabs now
+        // live together in the surviving pane, with the dropped-in tab active
+        await expect(page.locator(".block-editor-dock-group")).toHaveCount(1)
+        expect(await paneOrder()).toEqual(["middle_task"])
     })
 
     test("the command menu jumps between sections", async ({page}) => {
@@ -138,8 +137,7 @@ test.describe("Block editor — mutations & split view", () => {
 
         await saveFlow(page)
         const source = await fetchFlowSource(request, baseURL!, flowId)
-        const order = [...source.matchAll(/^ {2}- id: (\S+)/gm)].map(m => m[1])
-        expect(order).toEqual(["seq_group", "last_task_copy", "middle_task"])
+        expect(taskIdsInOrder(source)).toEqual(["seq_group", "last_task_copy", "middle_task"])
 
         const canvasOrder = (await canvasCardIds(page)).filter(id => !id.startsWith("__"))
         expect(canvasOrder.slice(-2)).toEqual(["last_task_copy", "middle_task"])

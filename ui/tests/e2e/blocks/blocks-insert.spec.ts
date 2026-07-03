@@ -1,6 +1,6 @@
 import {expect, test} from "@playwright/test"
 import {FlowsApi} from "../api/flows.api"
-import {expectRing, fetchFlowSource, login, openBlockEditor, pickTask, saveFlow, waitForRing, walkTo} from "./blocks.helpers"
+import {canvasCardIds, expectRing, fetchFlowSource, login, openBlockEditor, pickTask, saveFlow, taskIdsInOrder, waitForRing, walkTo} from "./blocks.helpers"
 
 // Every insertion path of the block editor, all keyboard-driven, each verified
 // against the YAML the backend actually persisted (not just the DOM).
@@ -36,8 +36,7 @@ test.describe("Block editor — insertions", () => {
 
         await saveFlow(page)
         const source = await fetchFlowSource(request, baseURL!, flowId)
-        const order = [...source.matchAll(/^ {2}- id: (\S+)/gm)].map(m => m[1])
-        expect(order).toEqual(["seq_group", "middle_task", newId, "last_task"])
+        expect(taskIdsInOrder(source)).toEqual(["seq_group", "middle_task", newId, "last_task"])
     })
 
     test("Shift+A inserts a task right before the focused block", async ({page, request, baseURL}) => {
@@ -49,8 +48,7 @@ test.describe("Block editor — insertions", () => {
 
         await saveFlow(page)
         const source = await fetchFlowSource(request, baseURL!, flowId)
-        const order = [...source.matchAll(/^ {2}- id: (\S+)/gm)].map(m => m[1])
-        expect(order).toEqual(["seq_group", newId, "middle_task", "last_task"])
+        expect(taskIdsInOrder(source)).toEqual(["seq_group", newId, "middle_task", "last_task"])
     })
 
     test("/ opens the picker anchored on the focused block", async ({page}) => {
@@ -66,7 +64,9 @@ test.describe("Block editor — insertions", () => {
         await walkTo(page, "__section:errors")
         await page.keyboard.press("a")
         await expect(page.getByText("Inserting into Errors", {exact: true})).toBeVisible()
-        await pickTask(page, "log", "Log")
+        // Fail has no required fields, unlike Log's mandatory "message" — the
+        // freshly-inserted block must be saveable with no further editing.
+        await pickTask(page, "fail", "Fail")
 
         await saveFlow(page)
         const source = await fetchFlowSource(request, baseURL!, flowId)
@@ -77,7 +77,7 @@ test.describe("Block editor — insertions", () => {
         await walkTo(page, "__lane:tasks[0].errors")
         await page.keyboard.press("a")
         await expect(page.getByText("Inserting into Errors", {exact: true})).toBeVisible()
-        await pickTask(page, "log", "Log")
+        await pickTask(page, "fail", "Fail")
 
         await saveFlow(page)
         const source = await fetchFlowSource(request, baseURL!, flowId)
@@ -97,18 +97,20 @@ test.describe("Block editor — insertions", () => {
         await expectRing(page, "__lane:tasks[3].then")
     })
 
-    test("a on a focused trigger offers trigger types, not task types", async ({page, request, baseURL}) => {
+    test("a on a focused trigger offers trigger types, not task types", async ({page}) => {
+        // Every trigger type requires config the minimal-insert can't guess
+        // (e.g. Webhook's "key"), so this checks placement on the canvas
+        // rather than round-tripping through a save that would 422.
         await walkTo(page, "schedule_trigger")
         await page.keyboard.press("a")
         await expect(page.getByText("Inserting into Triggers", {exact: true})).toBeVisible()
         await pickTask(page, "webhook", "Webhook")
 
-        await saveFlow(page)
-        const source = await fetchFlowSource(request, baseURL!, flowId)
-        expect(source).toContain("io.kestra.plugin.core.trigger.Webhook")
-        // ...and it landed in the triggers array, not in tasks
-        const triggersSection = source.slice(source.indexOf("triggers:"), source.indexOf("tasks:"))
-        expect(triggersSection).toContain("Webhook")
+        const newId = await waitForRing(page)
+        const order = await canvasCardIds(page)
+        // ...landed right after the existing trigger and before the first
+        // real task, i.e. inside the triggers array, not tasks
+        expect(order.slice(0, 3)).toEqual(["schedule_trigger", newId, "seq_group"])
     })
 
     test("inserts from the command menu, scoped to the focused block", async ({page}) => {

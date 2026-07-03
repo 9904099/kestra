@@ -1,8 +1,23 @@
-import type {APIRequestContext, Page} from "@playwright/test"
+import type {APIRequestContext, Locator, Page} from "@playwright/test"
 import {expect} from "@playwright/test"
 import {shared} from "../fixtures/shared"
 
 export const TENANT = process.env.E2E_TENANT ?? "main"
+
+// The generated task-edit form loads its plugin schema asynchronously and
+// re-renders (recreating its Monaco instances) once it lands — same for
+// switching tabs or expanding an accordion group, which mount fresh fields.
+// Wait for the Monaco editor count within scope to settle before touching one,
+// so an index-based locator doesn't grab a node that's about to be detached.
+export async function waitForMonacoStable(page: Page, scope: Page | Locator = page) {
+    const editors = scope.locator(".monaco-editor")
+    await expect(async () => {
+        const before = await editors.count()
+        await page.waitForTimeout(150)
+        const after = await editors.count()
+        expect(after).toBe(before)
+    }).toPass({timeout: 10000})
+}
 
 export async function login(page: Page) {
     await page.goto("/ui")
@@ -10,6 +25,13 @@ export async function login(page: Page) {
     await page.getByRole("textbox", {name: "Password"}).fill(shared.password)
     await page.getByRole("button", {name: "Login"}).click()
     await page.waitForURL(url => !url.pathname.includes("login"))
+    // The Login button click leaves the cursor parked at a fixed viewport
+    // position. If a later hover-highlighted overlay (task picker, command
+    // menu) happens to render an option under that exact stale point, the
+    // browser fires a real mouseenter and hijacks the highlighted selection
+    // away from index 0 with no keyboard action involved. Park it out of the
+    // way once, up front, instead of chasing this in every test that opens one.
+    await page.mouse.move(0, 0)
 }
 
 export async function openBlockEditor(page: Page, flowId: string) {
@@ -59,15 +81,23 @@ export async function walkTo(page: Page, targetId: string, direction: "down" | "
     expect(await ringId(page), `walkTo(${targetId}) never reached its target`).toBe(targetId)
 }
 
-// Search the insert picker and confirm the top (already-highlighted) match
-// with the keyboard — the picker preselects the first result, so no
-// ArrowDown is needed (pressing one would skip onto the second match).
+// Search the insert picker and confirm the named match. Confirms with a
+// click rather than Enter: the picker preselects whatever landed first in
+// the filtered list, which for a broad search term (e.g. "if" substring-
+// matches dozens of unrelated plugins) is often not the entry the test
+// actually asked for. The lookup is scoped to the picker's own listbox — an
+// unscoped page-wide text match can resolve to an identically named block
+// already on the canvas (e.g. an existing "Log" task) sitting underneath the
+// picker overlay, which looks "visible" to Playwright but is a different
+// element entirely.
 export async function pickTask(page: Page, search: string, optionTitle: string) {
     const input = page.getByPlaceholder("Search or describe a task…")
     await expect(input).toBeVisible()
     await input.fill(search)
-    await expect(page.getByText(optionTitle, {exact: true}).first()).toBeVisible()
-    await page.keyboard.press("Enter")
+    const listbox = page.locator("#block-editor-picker-listbox")
+    const option = listbox.getByText(optionTitle, {exact: true}).first()
+    await expect(option).toBeVisible()
+    await option.click()
     await expect(input).toBeHidden()
 }
 
@@ -90,4 +120,15 @@ export async function fetchFlowSource(request: APIRequestContext, baseURL: strin
 export async function canvasCardIds(page: Page): Promise<string[]> {
     return page.locator("[data-test='block-card'][data-block-id]")
         .evaluateAll(els => els.map(el => el.getAttribute("data-block-id") ?? ""))
+}
+
+// Top-level task ids in persisted YAML order — scoped to the `tasks:` block so
+// a same-indent `triggers:`/`errors:`/`finally:` entry is never mistaken for one.
+export function taskIdsInOrder(source: string): string[] {
+    const start = source.indexOf("\ntasks:")
+    if (start < 0) return []
+    const rest = source.slice(start + 1)
+    const nextTopLevelKey = rest.slice(6).search(/\n\S/)
+    const block = nextTopLevelKey < 0 ? rest : rest.slice(0, nextTopLevelKey + 6)
+    return [...block.matchAll(/^ {2}- id: (\S+)/gm)].map(m => m[1])
 }
