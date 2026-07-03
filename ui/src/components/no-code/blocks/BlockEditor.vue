@@ -1310,6 +1310,10 @@
                 : undefined
             applyYaml(addBlock(flowYaml.value, section, block, lastId))
         }
+        // Move focus onto the block that was just created so the keyboard flow
+        // continues naturally (edit it, reorder it, insert after it again)
+        // instead of leaving the ring on whatever was focused before insertion.
+        focusedId.value = String(block.id)
         taskPickerVisible.value = false
     }
 
