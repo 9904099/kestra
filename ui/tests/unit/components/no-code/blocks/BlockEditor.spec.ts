@@ -587,30 +587,33 @@ describe("BlockEditor", () => {
             expect(shownCount()).toBe(2)
         })
 
-        it("drops tiled tabs from the shared tabbar (each pane already shows its own label)", async () => {
-            // Given — two tabs open, both tiled at split 2
+        it("gives each tiled pane its own tabbar, with no tab duplicated across groups", async () => {
+            // Given — two tabs open, sharing one group/tabbar at split 1
             const localWrapper = wrapper = mount(BlockEditor, makeConfig())
             const cards = localWrapper.findAll("[data-test='block-card']")
             await cards[0].trigger("click")
             await localWrapper.vm.$nextTick()
             await cards[1].trigger("click")
             await localWrapper.vm.$nextTick()
-            const topTabIds = () => localWrapper.findAll(".block-editor-dock-tabbar [role='tab']")
+            const allTabIds = () => localWrapper.findAll(".block-editor-dock-tabbar [role='tab']")
                 .map(tab => tab.attributes("data-test"))
-            expect(topTabIds()).toEqual(["block-editor-dock-tab-log_task", "block-editor-dock-tab-http_task"])
+            expect(localWrapper.findAll(".block-editor-dock-tabbar").length).toBe(1)
+            expect(allTabIds()).toEqual(["block-editor-dock-tab-log_task", "block-editor-dock-tab-http_task"])
 
-            // When
+            // When — split into 2, tiling both tabs into their own group
             const vm = localWrapper.vm as unknown as {splitCount: number}
             vm.splitCount = 2
             await localWrapper.vm.$nextTick()
 
-            // Then — both names now live on their own pane, so the shared bar
-            // lists nothing instead of repeating them
-            expect(topTabIds()).toEqual([])
+            // Then — each tab now has its own group/tabbar (VSCode editor groups),
+            // so across all tabbars each tab id still appears exactly once
+            expect(localWrapper.findAll(".block-editor-dock-tabbar").length).toBe(2)
+            expect(allTabIds().sort()).toEqual(["block-editor-dock-tab-http_task", "block-editor-dock-tab-log_task"])
         })
 
-        it("swaps two tiled panes when one pane's tab is dropped onto the other", async () => {
-            // Given — two tabs tiled side by side
+        it("merges a pane into another when its tab is dropped there, collapsing the emptied pane", async () => {
+            // Given — two tabs tiled into their own panes; splitting redeals by
+            // recency, so the most-recently-clicked (http_task) anchors first
             const localWrapper = wrapper = mount(BlockEditor, makeConfig())
             const cards = localWrapper.findAll("[data-test='block-card']")
             await cards[0].trigger("click")
@@ -620,38 +623,26 @@ describe("BlockEditor", () => {
             const vm = localWrapper.vm as unknown as {splitCount: number; dockTabs: Array<{id: string}>}
             vm.splitCount = 2
             await localWrapper.vm.$nextTick()
-            expect(vm.dockTabs.map(t => t.id)).toEqual(["log_task", "http_task"])
+            expect(vm.dockTabs.map(t => t.id)).toEqual(["http_task", "log_task"])
+            expect(localWrapper.findAll(".block-editor-dock-group").length).toBe(2)
 
-            // When — the first pane's tab is dragged onto the second pane
+            // When — the first pane's only tab label is dragged onto the second pane
+            // (drag-start is native HTML5 dnd on the tab label itself; drop still
+            // lands on the TaskEdit pane body and bubbles up as a "tab-drop" emit).
+            // Both tabs' TaskEdit panes are always mounted (v-show toggles the
+            // active one within a group), so panes[1] is the target group's pane
+            // regardless of which tab in it is currently visible.
+            await localWrapper.find(".block-editor-dock-tab").trigger("dragstart")
             const panes = localWrapper.findAllComponents({name: "TaskEdit"})
-            await panes[0].vm.$emit("tab-drag-start")
             await panes[1].vm.$emit("tab-drop")
             await localWrapper.vm.$nextTick()
 
-            // Then — pane order follows dockTabs order, so the sides swapped
-            expect(vm.dockTabs.map(t => t.id)).toEqual(["http_task", "log_task"])
+            // Then — the emptied pane closes (VSCode editor-group behavior), and
+            // both tabs now live together in the surviving pane
+            expect(vm.dockTabs.map(t => t.id)).toEqual(["log_task", "http_task"])
+            expect(localWrapper.findAll(".block-editor-dock-group").length).toBe(1)
         })
 
-        it("only shows each pane's own tabstrip once 2+ panes are tiled side by side", async () => {
-            // Given — a single visible pane relies on the shared tabbar above it for its
-            // label (no proximity issue there); the per-pane tabstrip stays hidden
-            const localWrapper = wrapper = mount(BlockEditor, makeConfig())
-            const cards = localWrapper.findAll("[data-test='block-card']")
-            await cards[0].trigger("click")
-            await localWrapper.vm.$nextTick()
-            await cards[1].trigger("click")
-            await localWrapper.vm.$nextTick()
-            const panes = () => localWrapper.findAllComponents({name: "TaskEdit"})
-            expect(panes().every(p => p.attributes("hidetabstrip") === "true")).toBe(true)
-
-            // When — split into 2, tiling both panes at once
-            const vm = localWrapper.vm as unknown as {splitCount: number}
-            vm.splitCount = 2
-            await localWrapper.vm.$nextTick()
-
-            // Then — each tiled pane now shows its own label, next to its own content
-            expect(panes().every(p => p.attributes("hidetabstrip") === "false")).toBe(true)
-        })
     })
 
     describe("edit operation", () => {
