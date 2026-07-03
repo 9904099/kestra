@@ -12,6 +12,8 @@ const KEYMAP: BlockEditorKeyBindingLike[] = [
     {id: "clear", keys: ["Escape"]},
     {id: "help", keys: ["?"]},
     {id: "focus-panel", keys: ["Tab"]},
+    {id: "insert-after", keys: ["a"]},
+    {id: "insert-before", keys: ["Shift+a"]},
 ]
 
 function mountWithKeyboard(dispatch: (id: string, event: KeyboardEvent) => void | boolean, isOverlayOpen?: () => boolean) {
@@ -228,6 +230,32 @@ describe("useBlockEditorKeyboard", () => {
 
         // Then
         expect(event.defaultPrevented).toBe(true)
+    })
+
+    it("resolves plain 'a' to insert-after, not insert-before", () => {
+        // Given
+        const dispatch = vi.fn()
+        wrapper = mountWithKeyboard(dispatch)
+
+        // When
+        dispatchKeydown(window, {key: "a"})
+
+        // Then
+        expect(dispatch).toHaveBeenCalledWith("insert-after", expect.any(KeyboardEvent))
+    })
+
+    it("resolves Shift+a to insert-before, not insert-after", () => {
+        // Given — without shift-aware disambiguation, "a" (which doesn't request
+        // Shift) would match first and insert-before would be unreachable
+        const dispatch = vi.fn()
+        wrapper = mountWithKeyboard(dispatch)
+
+        // When
+        dispatchKeydown(window, {key: "A", shiftKey: true})
+
+        // Then
+        expect(dispatch).toHaveBeenCalledWith("insert-before", expect.any(KeyboardEvent))
+        expect(dispatch).toHaveBeenCalledTimes(1)
     })
 
     it("does not dispatch after the component using it unmounts", () => {

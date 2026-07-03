@@ -20,11 +20,15 @@ function matchesKey(event: KeyboardEvent, key: string): boolean {
     if (!needsMeta && (event.metaKey || event.ctrlKey)) return false
     if (needsAlt && !event.altKey) return false
     if (!needsAlt && event.altKey) return false
-    // Shift is checked one-way only: a binding that requires it (e.g. Meta+Shift+k)
-    // must see shiftKey held, but bindings that don't request it must NOT also reject
-    // shiftKey — many single-char bindings (e.g. "?") are themselves shift-produced
-    // characters on common layouts, and event.key already disambiguates "k" vs "K".
     if (needsShift && !event.shiftKey) return false
+    // For everything except plain letters, Shift is checked one-way: many single-char
+    // bindings (e.g. "?") are themselves shift-produced characters on common layouts,
+    // and event.key already disambiguates them from their unshifted form. Plain letters
+    // don't have that natural disambiguation ("a" vs "A" normalize the same way here),
+    // so a letter binding that doesn't request Shift must also reject it — otherwise
+    // "a" (insert-after) would swallow Shift+A (insert-before) before it's ever tried.
+    const isPlainLetter = /^[a-z]$/i.test(mainKey)
+    if (isPlainLetter && !needsShift && event.shiftKey) return false
     return event.key.toLowerCase() === mainKey.toLowerCase()
 }
 
