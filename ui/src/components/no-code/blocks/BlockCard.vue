@@ -1,17 +1,19 @@
 <template>
+    <!-- Roving tabindex: the canvas is one composite widget, so only the
+    focused card is a Tab stop — arrows move real focus between cards, Tab
+    exits to the next region. Enter/Space activation is owned by the editor's
+    global keymap (which now sees real focus), not duplicated here. -->
     <div
         class="block-card"
         :class="{'block-card--selected': selected, 'block-card--drag-over': dragOver, 'block-kbd-focused': focused}"
         role="button"
-        tabindex="0"
+        :tabindex="focused ? 0 : -1"
         :aria-pressed="selected"
         :aria-selected="focused"
         :aria-label="cardAriaLabel"
         :draggable="draggable"
         data-test="block-card"
         @click="emit('select')"
-        @keydown.enter.prevent="emit('select')"
-        @keydown.space.prevent="emit('select')"
         @dragstart="emit('drag-start', $event)"
         @dragover.prevent="emit('drag-over', $event)"
         @drop.prevent="emit('drop', $event)"
@@ -37,11 +39,15 @@
         </div>
 
         <div class="block-card-actions">
+            <!-- tabindex=-1: per-card actions are not their own Tab stops
+            (that would defeat the composite's single stop) — they stay
+            reachable via the d / Backspace shortcuts and the mouse. -->
             <KsIconButton
                 class="block-card-action"
                 :aria-label="t('block_editor.duplicate')"
                 :tooltip="`${t('block_editor.duplicate')} (d)`"
                 data-test="block-card-duplicate"
+                tabindex="-1"
                 @click.stop="emit('duplicate')"
             >
                 <ContentCopy />
@@ -52,6 +58,7 @@
                 :aria-label="t('block_editor.delete')"
                 :tooltip="`${t('block_editor.delete')} (⌫)`"
                 data-test="block-card-delete"
+                tabindex="-1"
                 @click.stop="emit('delete')"
             >
                 <DeleteOutline />

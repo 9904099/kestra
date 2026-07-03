@@ -97,6 +97,7 @@
       "app_actions": "{count} 个操作",
       "block_deleted": "已删除 {name}",
       "card_aria_label": "类型为{type}的块{id}",
+      "canvas_aria": "Flow 块画布",
       "close_all": "关闭所有标签页",
       "cluster_collapse_aria": "折叠 {id}",
       "cluster_expand_aria": "展开 {id} ({count} tasks)",

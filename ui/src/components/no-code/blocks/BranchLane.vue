@@ -66,12 +66,16 @@
                 class="branch-lane-warning"
             />
 
+            <!-- Roving tabindex: part of the canvas composite, so it's only a
+            Tab stop while it carries the keyboard focus ring ("a" covers
+            insertion from anywhere else). -->
             <button
                 class="branch-lane-add-btn"
                 type="button"
                 :data-test="`branch-lane-add-${laneName}`"
                 :data-block-id="tasks.length === 0 ? `__lane:${parentPath}` : undefined"
                 :class="{'block-kbd-focused': tasks.length === 0 && focusedId === `__lane:${parentPath}`}"
+                :tabindex="tasks.length === 0 && focusedId === `__lane:${parentPath}` ? 0 : -1"
                 :aria-label="t('block_editor.add_to_lane', {lane: laneLabel})"
                 @click="emit('add-at-path', parentPath, tasks.length - 1, $event)"
             >

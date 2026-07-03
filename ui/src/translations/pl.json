@@ -97,6 +97,7 @@
       "app_actions": "{count} akcji",
       "block_deleted": "Usunięto {name}",
       "card_aria_label": "Blok {id} typu {type}",
+      "canvas_aria": "Kanwa bloków flow",
       "close_all": "Zamknij wszystkie karty",
       "cluster_collapse_aria": "Zwiń {id}",
       "cluster_expand_aria": "Rozwiń {id} ({count} tasks)",

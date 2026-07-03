@@ -97,6 +97,7 @@
       "app_actions": "{count} actions",
       "block_deleted": "{name} supprimé",
       "card_aria_label": "Bloc {id} de type {type}",
+      "canvas_aria": "Canevas des blocs du flow",
       "close_all": "Fermer tous les onglets",
       "cluster_collapse_aria": "Réduire {id}",
       "cluster_expand_aria": "Développer {id} ({count} tasks)",

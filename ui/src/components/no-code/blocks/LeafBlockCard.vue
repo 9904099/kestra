@@ -1,17 +1,18 @@
 <template>
+    <!-- Roving tabindex: only the focused card is a Tab stop; arrows move
+    real focus and the editor's global keymap owns Enter/Space activation
+    (see BlockCard.vue for the full rationale). -->
     <div
         class="leaf-block-card"
         :class="{'leaf-block-card--selected': selected, 'leaf-block-card--drag-over': dragOver, 'block-kbd-focused': focused}"
         role="button"
-        tabindex="0"
+        :tabindex="focused ? 0 : -1"
         :aria-pressed="selected"
         :aria-selected="focused"
         :aria-label="cardAriaLabel"
         :draggable="draggable"
         data-test="block-card"
         @click="emit('select')"
-        @keydown.enter.prevent="emit('select')"
-        @keydown.space.prevent="emit('select')"
         @dragstart="emit('drag-start', $event)"
         @dragover.prevent="emit('drag-over', $event)"
         @drop.prevent="emit('drop', $event)"
@@ -42,6 +43,7 @@
                 :aria-label="t('block_editor.duplicate')"
                 :tooltip="`${t('block_editor.duplicate')} (d)`"
                 data-test="block-card-duplicate"
+                tabindex="-1"
                 @click.stop="emit('duplicate')"
             >
                 <ContentCopy />
@@ -52,6 +54,7 @@
                 :aria-label="t('block_editor.delete')"
                 :tooltip="`${t('block_editor.delete')} (⌫)`"
                 data-test="block-card-delete"
+                tabindex="-1"
                 @click.stop="emit('delete')"
             >
                 <DeleteOutline />

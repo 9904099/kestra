@@ -4,18 +4,19 @@
         :class="{'flowable-cluster--expanded': expanded}"
         :data-test="`flowable-cluster-${String(block.id ?? '')}`"
     >
+        <!-- Roving tabindex: only the focused header is a Tab stop; the
+        editor's global keymap owns Enter/Space activation (see BlockCard.vue
+        for the full rationale). -->
         <div
             class="flowable-cluster-header"
             :class="{'block-kbd-focused': focused}"
             role="button"
-            tabindex="0"
+            :tabindex="focused ? 0 : -1"
             :aria-expanded="expanded"
             :aria-selected="focused"
             :aria-label="headerAriaLabel"
             data-test="flowable-cluster-header"
             @click="toggle"
-            @keydown.enter.prevent="toggle"
-            @keydown.space.prevent="toggle"
         >
             <component
                 :is="expanded ? ChevronDown : ChevronRight"
@@ -45,6 +46,7 @@
                     :aria-label="t('block_editor.duplicate')"
                     :tooltip="`${t('block_editor.duplicate')} (d)`"
                     data-test="block-card-duplicate"
+                    tabindex="-1"
                     @click.stop="emit('duplicate', path)"
                 >
                     <ContentCopy />
@@ -55,6 +57,7 @@
                     :aria-label="t('block_editor.delete')"
                     :tooltip="`${t('block_editor.delete')} (⌫)`"
                     data-test="block-card-delete"
+                    tabindex="-1"
                     @click.stop="emit('delete', path)"
                 >
                     <DeleteOutline />

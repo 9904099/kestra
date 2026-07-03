@@ -97,6 +97,7 @@
       "app_actions": "{count}個のアクション",
       "block_deleted": "{name} を削除しました",
       "card_aria_label": "タイプ{type}のブロック{id}",
+      "canvas_aria": "Flow ブロックキャンバス",
       "close_all": "すべてのタブを閉じる",
       "cluster_collapse_aria": "{id}を折りたたむ",
       "cluster_expand_aria": "{id}を展開 ({count} tasks)",

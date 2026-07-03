@@ -1048,6 +1048,83 @@ describe("BlockEditor", () => {
         })
 
 
+        describe("native Tab harmony (roving tabindex)", () => {
+            let offsetParentSpy: ReturnType<typeof vi.spyOn>
+
+            beforeEach(() => {
+                offsetParentSpy = vi.spyOn(HTMLElement.prototype, "offsetParent", "get").mockReturnValue(document.body)
+            })
+
+            afterEach(() => {
+                offsetParentSpy.mockRestore()
+            })
+
+            it("makes only the focused card a Tab stop", async () => {
+                // Given
+                const wrapper = mount(BlockEditor, {...makeConfig(), attachTo: document.body})
+                const vm = wrapper.vm as unknown as {focusedId?: string}
+                const cardTabindexes = () => wrapper.findAll("[data-test='block-card']")
+                    .map(c => `${c.attributes("data-block-id")}:${c.attributes("tabindex")}`)
+                expect(cardTabindexes()).toEqual(["log_task:-1", "http_task:-1"])
+
+                // When
+                vm.focusedId = "http_task"
+                await wrapper.vm.$nextTick()
+
+                // Then
+                expect(cardTabindexes()).toEqual(["log_task:-1", "http_task:0"])
+                wrapper.unmount()
+            })
+
+            it("keeps the canvas container as the Tab entry point only while nothing is focused", async () => {
+                // Given
+                const wrapper = mount(BlockEditor, {...makeConfig(), attachTo: document.body})
+                const vm = wrapper.vm as unknown as {focusedId?: string}
+                const canvas = wrapper.find(".block-editor-canvas")
+                expect(canvas.attributes("tabindex")).toBe("0")
+
+                // When — the container receives Tab focus, it delegates to the first card
+                await canvas.trigger("focus")
+                await wrapper.vm.$nextTick()
+                await wrapper.vm.$nextTick()
+
+                // Then — first navigable stop (the empty Triggers sentinel here)
+                expect(vm.focusedId).toBe("__section:triggers")
+                expect(canvas.attributes("tabindex")).toBe("-1")
+                wrapper.unmount()
+            })
+
+            it("syncs the focus ring from real DOM focus (Tab or click landing on a card)", async () => {
+                // Given
+                const wrapper = mount(BlockEditor, {...makeConfig(), attachTo: document.body})
+                const vm = wrapper.vm as unknown as {focusedId?: string}
+
+                // When — real focus lands on a card, as native Tab or a click would
+                const card = wrapper.findAll("[data-test='block-card']")[1]
+                ;(card.element as HTMLElement).focus()
+                await wrapper.vm.$nextTick()
+
+                // Then — the virtual ring follows, so shortcuts act on what was reached
+                expect(vm.focusedId).toBe("http_task")
+                wrapper.unmount()
+            })
+
+            it("moves real DOM focus when navigating with the arrows", async () => {
+                // Given
+                const wrapper = mount(BlockEditor, {...makeConfig(), attachTo: document.body})
+
+                // When
+                windowKeydown({key: "ArrowDown"})
+                await wrapper.vm.$nextTick()
+                await wrapper.vm.$nextTick()
+
+                // Then — document.activeElement moved with the ring, so a
+                // follow-up native Tab continues from the focused card
+                expect(document.activeElement?.getAttribute("data-block-id")).toBe("__section:triggers")
+                wrapper.unmount()
+            })
+        })
+
         describe("dock pane navigation", () => {
             // These need real DOM attachment: BlockEditor locates the active dock pane
             // via document.querySelector("[data-dock-pane-id]") and reads
@@ -1147,9 +1224,11 @@ describe("BlockEditor", () => {
                 await wrapper.vm.$nextTick()
                 expect(document.activeElement?.getAttribute("data-test")).toBe("stub-inputs-field")
 
-                windowKeydown({key: "ArrowLeft"}) // -> back out to canvas (blurred, dock stays open)
+                windowKeydown({key: "ArrowLeft"}) // -> back out to the canvas card (dock stays open)
                 await wrapper.vm.$nextTick()
-                expect(document.activeElement).toBe(document.body)
+                // Real focus returns to the card itself (roving tabindex), so a
+                // follow-up native Tab continues from there instead of from nowhere
+                expect(document.activeElement?.getAttribute("data-block-id")).toBe("log_task")
                 expect(wrapper.find("[data-test='block-editor-task-edit']").exists()).toBe(true)
                 wrapper.unmount()
             })

@@ -97,6 +97,7 @@
       "app_actions": "{count} क्रियाएँ",
       "block_deleted": "{name} हटाया गया",
       "card_aria_label": "ब्लॉक {id} प्रकार {type}",
+      "canvas_aria": "Flow ब्लॉक कैनवास",
       "close_all": "सभी टैब बंद करें",
       "cluster_collapse_aria": "{id} संकुचित करें",
       "cluster_expand_aria": "{id} विस्तार करें ({count} tasks)",

@@ -97,6 +97,7 @@
       "app_actions": "{count} azioni",
       "block_deleted": "{name} eliminato",
       "card_aria_label": "Blocco {id} di tipo {type}",
+      "canvas_aria": "Canvas dei blocchi del flow",
       "close_all": "Chiudi tutte le schede",
       "cluster_collapse_aria": "Comprimi {id}",
       "cluster_expand_aria": "Espandi {id} ({count} tasks)",

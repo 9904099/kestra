@@ -97,6 +97,7 @@
       "app_actions": "{count} Aktionen",
       "block_deleted": "{name} gelöscht",
       "card_aria_label": "Block {id} vom Typ {type}",
+      "canvas_aria": "Canvas der Flow-Blöcke",
       "close_all": "Alle Tabs schließen",
       "cluster_collapse_aria": "{id} einklappen",
       "cluster_expand_aria": "{id} ausklappen ({count} tasks)",

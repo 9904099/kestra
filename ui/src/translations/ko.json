@@ -97,6 +97,7 @@
       "app_actions": "{count}개 작업",
       "block_deleted": "{name} 삭제됨",
       "card_aria_label": "{type} 유형의 블록 {id}",
+      "canvas_aria": "Flow 블록 캔버스",
       "close_all": "모든 탭 닫기",
       "cluster_collapse_aria": "{id} 접기",
       "cluster_expand_aria": "{id} 펼치기 ({count} tasks)",

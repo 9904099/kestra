@@ -97,6 +97,7 @@
       "app_actions": "{count} действий",
       "block_deleted": "{name} удалён",
       "card_aria_label": "Блок {id} типа {type}",
+      "canvas_aria": "Холст блоков flow",
       "close_all": "Закрыть все вкладки",
       "cluster_collapse_aria": "Свернуть {id}",
       "cluster_expand_aria": "Развернуть {id} ({count} tasks)",

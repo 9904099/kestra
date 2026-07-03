@@ -3,11 +3,21 @@
         ref="editorEl"
         class="block-editor"
         data-test="block-editor"
+        @focusin="onCanvasFocusIn"
     >
         <KsSplitter class="block-editor-split">
             <KsSplitterPanel min="18%">
                 <div class="block-editor-main">
-                    <div class="block-editor-canvas">
+                    <!-- Roving-tabindex entry point: while no card holds the
+                    keyboard focus yet, the canvas itself is the composite's
+                    single Tab stop and delegates focus to its first card. -->
+                    <div
+                        class="block-editor-canvas"
+                        :tabindex="focusedId ? -1 : 0"
+                        role="group"
+                        :aria-label="t('block_editor.canvas_aria')"
+                        @focus="onCanvasEntryFocus"
+                    >
                         <BlockSectionCard
                             name="triggers"
                             :title="t('no_code.sections.triggers')"
@@ -42,12 +52,14 @@
                                     :label="t('block_editor.trigger_noun')"
                                     :data-block-id="sectionSentinelId('triggers')"
                                     :class="{'block-kbd-focused': focusedId === sectionSentinelId('triggers')}"
+                                    :tabindex="focusedId === sectionSentinelId('triggers') ? 0 : -1"
                                     :aria-selected="focusedId === sectionSentinelId('triggers')"
                                     @add="(e) => openTaskPicker('triggers', e)"
                                 />
                                 <BlockEmptyDrop
                                     v-else
                                     variant="inline"
+                                    tabindex="-1"
                                     :label="t('block_editor.trigger_noun')"
                                     @add="(e) => openTaskPicker('triggers', e)"
                                 />
@@ -114,12 +126,14 @@
                                     :hint="t('block_editor.empty_add_hint')"
                                     :data-block-id="sectionSentinelId('tasks')"
                                     :class="{'block-kbd-focused': focusedId === sectionSentinelId('tasks')}"
+                                    :tabindex="focusedId === sectionSentinelId('tasks') ? 0 : -1"
                                     :aria-selected="focusedId === sectionSentinelId('tasks')"
                                     @add="(e) => openTaskPicker('tasks', e)"
                                 />
                                 <BlockEmptyDrop
                                     v-else
                                     variant="inline"
+                                    tabindex="-1"
                                     :label="t('block_editor.task_noun')"
                                     :hint="t('block_editor.empty_add_hint')"
                                     @add="(e) => openTaskPicker('tasks', e)"
@@ -173,12 +187,14 @@
                                     :label="t('block_editor.error_task_noun')"
                                     :data-block-id="sectionSentinelId('errors')"
                                     :class="{'block-kbd-focused': focusedId === sectionSentinelId('errors')}"
+                                    :tabindex="focusedId === sectionSentinelId('errors') ? 0 : -1"
                                     :aria-selected="focusedId === sectionSentinelId('errors')"
                                     @add="(e) => openTaskPicker('errors', e)"
                                 />
                                 <BlockEmptyDrop
                                     v-else
                                     variant="inline"
+                                    tabindex="-1"
                                     :label="t('block_editor.error_task_noun')"
                                     @add="(e) => openTaskPicker('errors', e)"
                                 />
@@ -231,12 +247,14 @@
                                     :label="t('block_editor.task_noun')"
                                     :data-block-id="sectionSentinelId('finally')"
                                     :class="{'block-kbd-focused': focusedId === sectionSentinelId('finally')}"
+                                    :tabindex="focusedId === sectionSentinelId('finally') ? 0 : -1"
                                     :aria-selected="focusedId === sectionSentinelId('finally')"
                                     @add="(e) => openTaskPicker('finally', e)"
                                 />
                                 <BlockEmptyDrop
                                     v-else
                                     variant="inline"
+                                    tabindex="-1"
                                     :label="t('block_editor.task_noun')"
                                     @add="(e) => openTaskPicker('finally', e)"
                                 />
@@ -912,7 +930,13 @@
         }
         const nextIndex = DOCK_PANE_ORDER.indexOf(current) + direction
         if (nextIndex < 0) {
-            (document.activeElement as HTMLElement | null)?.blur()
+            // Exiting the dock leftward returns real focus to the canvas card,
+            // so a follow-up Tab or arrow continues from there.
+            if (focusedId.value) {
+                focusCanvasCard(focusedId.value)
+            } else {
+                (document.activeElement as HTMLElement | null)?.blur()
+            }
             return true
         }
         if (nextIndex >= DOCK_PANE_ORDER.length) return true
@@ -1475,7 +1499,7 @@
         // Move focus onto the block that was just created so the keyboard flow
         // continues naturally (edit it, reorder it, insert after it again)
         // instead of leaving the ring on whatever was focused before insertion.
-        focusedId.value = String(block.id)
+        focusCanvasCard(String(block.id))
         taskPickerVisible.value = false
     }
 
@@ -1528,14 +1552,52 @@
         return navigableCards().find(el => el.getAttribute("data-block-id") === focusedId.value)
     }
 
+    // The element that actually holds the card's roving tabindex — the card
+    // root for leaf cards and sentinels, the header for flowable clusters.
+    function cardFocusTarget(card: HTMLElement): HTMLElement {
+        if (card.hasAttribute("tabindex") || card.tagName === "BUTTON") return card
+        return card.querySelector<HTMLElement>("[data-test='flowable-cluster-header']") ?? card
+    }
+
+    // Single entry point for moving the canvas focus: keeps the virtual ring
+    // (focusedId) and the REAL DOM focus in lockstep, so native Tab always
+    // continues from wherever arrow-key navigation left off — one focus model,
+    // not two (roving tabindex).
+    function focusCanvasCard(id: string | undefined) {
+        focusedId.value = id
+        if (!id) return
+        nextTick(() => {
+            const card = focusedCard()
+            if (!card) return
+            cardFocusTarget(card).focus({preventScroll: true})
+            card.scrollIntoView({block: "nearest"})
+        })
+    }
+
+    // The reverse sync: Tab or a click landing anywhere inside a canvas card
+    // moves the ring there, so shortcuts (a, d, Enter…) act on what the user
+    // actually reached, not on a stale virtual position.
+    function onCanvasFocusIn(event: FocusEvent) {
+        const target = event.target as HTMLElement | null
+        if (!target || target.closest(".block-editor-dock")) return
+        const id = target.closest("[data-block-id]")?.getAttribute("data-block-id")
+        if (id) focusedId.value = id
+    }
+
+    // Tab entry point while nothing is focused yet: the canvas container is
+    // the composite's single Tab stop and delegates to its first card.
+    function onCanvasEntryFocus() {
+        const first = navigableCards()[0]
+        if (first) focusCanvasCard(first.getAttribute("data-block-id") ?? undefined)
+    }
+
     function moveFocus(direction: 1 | -1) {
         const cards = navigableCards()
         if (!cards.length) return
         const ids = cards.map(el => el.getAttribute("data-block-id") ?? "")
         const current = focusedId.value ? ids.indexOf(focusedId.value) : -1
         const next = current < 0 ? (direction > 0 ? 0 : cards.length - 1) : (current + direction + cards.length) % cards.length
-        focusedId.value = ids[next] || undefined
-        cards[next].scrollIntoView({block: "nearest"})
+        focusCanvasCard(ids[next] || undefined)
     }
 
     function focusedClusterHeader(): HTMLElement | undefined {
@@ -1559,8 +1621,7 @@
             const current = focusedId.value ? cards.findIndex(el => el.getAttribute("data-block-id") === focusedId.value) : -1
             const next = cards[current + 1]
             if (card && next && current >= 0 && card.contains(next)) {
-                focusedId.value = next.getAttribute("data-block-id") ?? focusedId.value
-                next.scrollIntoView({block: "nearest"})
+                focusCanvasCard(next.getAttribute("data-block-id") ?? focusedId.value)
             }
         })
     }
@@ -1574,8 +1635,7 @@
         const card = focusedCard()
         const parent = card?.parentElement?.closest<HTMLElement>("[data-block-id]")
         if (parent) {
-            focusedId.value = parent.getAttribute("data-block-id") ?? focusedId.value
-            parent.scrollIntoView({block: "nearest"})
+            focusCanvasCard(parent.getAttribute("data-block-id") ?? focusedId.value)
         }
     }
 
@@ -1643,7 +1703,7 @@
             const index = current ? cards.indexOf(current) : -1
             const neighbor = cards.slice(index + 1).find(el => !current?.contains(el)) ?? cards[index - 1]
             actionInFocused("[data-test='block-card-delete']")
-            focusedId.value = neighbor?.getAttribute("data-block-id") ?? undefined
+            focusCanvasCard(neighbor?.getAttribute("data-block-id") ?? undefined)
         })
     }
 
@@ -1694,9 +1754,11 @@
             return
         }
         if (id === "focus-panel") {
-            // Let native Tab behavior proceed (don't preventDefault) when there is no
-            // dock panel to jump into — otherwise Tab would silently stop working
-            // everywhere else on this page (sidebar links, etc).
+            // Native Tab must keep working untouched both when there is no dock
+            // to jump into AND when focus is already inside it (tabbing between
+            // the dock's own fields) — the shortcut is only a convenience jump
+            // from outside the panel.
+            if (isFocusInsideDock()) return false
             return focusActiveDockPane()
         }
         if (id === "clear") {
@@ -1708,15 +1770,27 @@
             // handler sees the same Escape — hence the timestamp grace window instead
             // of a reactive-state check.
             if (confirmDialogOpen.value || performance.now() - lastConfirmDialogCloseAt < 100) return
-            // Escape backs out one level at a time: out of an editing field into canvas
-            // nav first (panel stays open), then a second Escape closes the panel.
+            // Escape backs out one level at a time: out of an editing field back
+            // onto the canvas card first (panel stays open), then a second
+            // Escape closes the panel. Returning real focus to the card keeps a
+            // follow-up Tab continuing from there instead of from nowhere.
             if (dockTabs.value.length > 0 && isFocusInsideDock()) {
-                (document.activeElement as HTMLElement | null)?.blur()
+                if (focusedId.value) {
+                    focusCanvasCard(focusedId.value)
+                } else {
+                    (document.activeElement as HTMLElement | null)?.blur()
+                }
                 return
             }
             if (dockTabs.value.length > 0) {
                 closeAllTabs()
                 return
+            }
+            if (focusedId.value) {
+                const card = focusedCard()
+                if (card && card.contains(document.activeElement)) {
+                    (document.activeElement as HTMLElement | null)?.blur()
+                }
             }
             focusedId.value = undefined
             return
@@ -1754,6 +1828,11 @@
                 moveSelected(direction)
             }
         } else if (id === "open") {
+            // With roving focus, Enter/Space can land on a native interactive
+            // element that isn't a canvas card (a section's Add button, a link…)
+            // — let the browser activate it instead of opening the stale ring.
+            const target = event.target as HTMLElement | null
+            if (target?.closest("button, a, [role='button']") && !target.closest("[data-block-id]")) return false
             if (focusedId.value) openFocused()
         } else if (id === "duplicate") {
             if (focusedId.value) {
@@ -2044,7 +2123,7 @@
                 run: () => {
                     commandMenuOpen.value = false
                     const list = sectionList(section)
-                    focusedId.value = list.length ? String(list[0].id ?? 0) : sectionSentinelId(section)
+                    focusCanvasCard(list.length ? String(list[0].id ?? 0) : sectionSentinelId(section))
                 },
             })
         }

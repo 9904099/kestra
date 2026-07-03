@@ -12,7 +12,9 @@ export const BLOCK_EDITOR_KEYMAP: BlockEditorKeyBinding[] = [
     {id: "move", keys: ["ArrowUp", "ArrowDown"], alt: ["k", "j"], group: "navigate", i18nKey: "block_editor.shortcuts.move_between"},
     {id: "step-into", keys: ["ArrowRight"], alt: ["l"], group: "navigate", i18nKey: "block_editor.shortcuts.step_into"},
     {id: "step-out", keys: ["ArrowLeft"], alt: ["h"], group: "navigate", i18nKey: "block_editor.shortcuts.step_out"},
-    {id: "open", keys: ["Enter"], alt: ["e"], group: "navigate", i18nKey: "block_editor.shortcuts.open"},
+    // Space mirrors the native button-activation key the cards supported when
+    // they still owned their own keydown handlers (activation now lives here).
+    {id: "open", keys: ["Enter"], alt: ["e", " "], group: "navigate", i18nKey: "block_editor.shortcuts.open"},
     {id: "focus-panel", keys: ["Tab"], group: "navigate", i18nKey: "block_editor.shortcuts.focus_panel"},
     {id: "clear", keys: ["Escape"], group: "navigate", i18nKey: "block_editor.shortcuts.clear"},
 
