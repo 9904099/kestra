@@ -134,6 +134,11 @@
     const props = defineProps<{
         block: Record<string, unknown>
         path: string
+        // Matches the data-block-id the parent renders for this same card — kept as
+        // its own prop (rather than reading the data- attribute) since this is what
+        // the keyboard-focus ring compares against, and it can differ from block.id
+        // when a sibling shares the same id (see resolveBlockDomId).
+        domId?: string
         icons?: Record<string, {icon: string; flowable: boolean}>
         selectedId?: string
         focusedId?: string
@@ -149,7 +154,7 @@
 
     const depth = computed(() => props.depth ?? 0)
 
-    const focused = computed(() => props.focusedId !== undefined && props.focusedId === String(props.block.id ?? ""))
+    const focused = computed(() => props.focusedId !== undefined && props.focusedId === (props.domId ?? String(props.block.id ?? "")))
 
     const expanded = ref(depth.value < 2)
 

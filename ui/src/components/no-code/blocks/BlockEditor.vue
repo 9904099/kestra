@@ -17,15 +17,15 @@
                             @add="(e) => openTaskPicker('triggers', e)"
                         >
                             <div class="block-section-list" data-test="block-editor-trigger-list">
-                                <template v-for="(trigger, index) in parsedTriggers" :key="String(trigger.id ?? index)">
+                                <template v-for="(trigger, index) in parsedTriggers" :key="resolveBlockDomId(parsedTriggers, index)">
                                     <BlockCard
                                         :block="trigger"
                                         :selected="activeSelectedId === String(trigger.id)"
-                                        :focused="focusedId === String(trigger.id ?? index)"
+                                        :focused="focusedId === resolveBlockDomId(parsedTriggers, index)"
                                         :draggable="true"
                                         :dragOver="triggerDragOverIndex === index"
                                         :icons="pluginsStore.icons"
-                                        :data-block-id="String(trigger.id ?? index)"
+                                        :data-block-id="resolveBlockDomId(parsedTriggers, index)"
                                         @select="selectBlock('triggers', trigger)"
                                         @delete="onDelete('triggers', trigger.id)"
                                         @duplicate="onDuplicate('triggers', trigger.id)"
@@ -34,7 +34,7 @@
                                         @drop="handleTriggerDrop($event, index)"
                                         @drag-end="handleTriggerDragEnd"
                                     />
-                                    <BlockInsertionCaret v-if="focusedId === String(trigger.id ?? index)" />
+                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(parsedTriggers, index)" />
                                 </template>
                                 <BlockEmptyDrop
                                     v-if="parsedTriggers.length === 0"
@@ -68,7 +68,7 @@
                                 data-test="block-editor-task-list"
                                 @dragend="handleTaskDragEnd"
                             >
-                                <template v-for="(task, index) in parsedTasks" :key="String(task.id ?? index)">
+                                <template v-for="(task, index) in parsedTasks" :key="resolveBlockDomId(parsedTasks, index)">
                                     <FlowableClusterCard
                                         v-if="isFlowable(task)"
                                         :block="task"
@@ -76,8 +76,9 @@
                                         :icons="pluginsStore.icons"
                                         :selectedId="activeSelectedId"
                                         :focusedId="focusedId"
+                                        :domId="resolveBlockDomId(parsedTasks, index)"
                                         :depth="0"
-                                        :data-block-id="String(task.id ?? index)"
+                                        :data-block-id="resolveBlockDomId(parsedTasks, index)"
                                         data-test="block-card"
                                         @select="openNestedEdit"
                                         @delete="onDeleteAtPath"
@@ -90,11 +91,11 @@
                                         v-else
                                         :block="task"
                                         :selected="activeSelectedId === String(task.id)"
-                                        :focused="focusedId === String(task.id ?? index)"
+                                        :focused="focusedId === resolveBlockDomId(parsedTasks, index)"
                                         :draggable="true"
                                         :dragOver="taskDragOverIndex === index"
                                         :icons="pluginsStore.icons"
-                                        :data-block-id="String(task.id ?? index)"
+                                        :data-block-id="resolveBlockDomId(parsedTasks, index)"
                                         @select="selectBlock('tasks', task)"
                                         @delete="onDelete('tasks', task.id)"
                                         @duplicate="onDuplicate('tasks', task.id)"
@@ -103,7 +104,7 @@
                                         @drop="handleTaskDrop($event, index)"
                                         @drag-end="handleTaskDragEnd"
                                     />
-                                    <BlockInsertionCaret v-if="focusedId === String(task.id ?? index)" />
+                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(parsedTasks, index)" />
                                 </template>
 
                                 <BlockEmptyDrop
@@ -136,7 +137,7 @@
                             @add="(e) => openTaskPicker('errors', e)"
                         >
                             <div class="block-section-list">
-                                <template v-for="(task, index) in flowLevelErrors" :key="String(task.id ?? index)">
+                                <template v-for="(task, index) in flowLevelErrors" :key="resolveBlockDomId(flowLevelErrors, index)">
                                     <FlowableClusterCard
                                         v-if="isFlowable(task)"
                                         :block="task"
@@ -144,8 +145,9 @@
                                         :icons="pluginsStore.icons"
                                         :selectedId="activeSelectedId"
                                         :focusedId="focusedId"
+                                        :domId="resolveBlockDomId(flowLevelErrors, index)"
                                         :depth="0"
-                                        :data-block-id="String(task.id ?? index)"
+                                        :data-block-id="resolveBlockDomId(flowLevelErrors, index)"
                                         data-test="block-card"
                                         @select="openNestedEdit"
                                         @delete="onDeleteAtPath"
@@ -156,14 +158,14 @@
                                         v-else
                                         :block="task"
                                         :selected="activeSelectedId === String(task.id)"
-                                        :focused="focusedId === String(task.id ?? index)"
+                                        :focused="focusedId === resolveBlockDomId(flowLevelErrors, index)"
                                         :icons="pluginsStore.icons"
-                                        :data-block-id="String(task.id ?? index)"
+                                        :data-block-id="resolveBlockDomId(flowLevelErrors, index)"
                                         @select="selectBlock('errors', task)"
                                         @delete="onDelete('errors', task.id)"
                                         @duplicate="onDuplicate('errors', task.id)"
                                     />
-                                    <BlockInsertionCaret v-if="focusedId === String(task.id ?? index)" />
+                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelErrors, index)" />
                                 </template>
                                 <BlockEmptyDrop
                                     v-if="flowLevelErrors.length === 0"
@@ -193,7 +195,7 @@
                             @add="(e) => openTaskPicker('finally', e)"
                         >
                             <div class="block-section-list">
-                                <template v-for="(task, index) in flowLevelFinally" :key="String(task.id ?? index)">
+                                <template v-for="(task, index) in flowLevelFinally" :key="resolveBlockDomId(flowLevelFinally, index)">
                                     <FlowableClusterCard
                                         v-if="isFlowable(task)"
                                         :block="task"
@@ -201,8 +203,9 @@
                                         :icons="pluginsStore.icons"
                                         :selectedId="activeSelectedId"
                                         :focusedId="focusedId"
+                                        :domId="resolveBlockDomId(flowLevelFinally, index)"
                                         :depth="0"
-                                        :data-block-id="String(task.id ?? index)"
+                                        :data-block-id="resolveBlockDomId(flowLevelFinally, index)"
                                         data-test="block-card"
                                         @select="openNestedEdit"
                                         @delete="onDeleteAtPath"
@@ -213,14 +216,14 @@
                                         v-else
                                         :block="task"
                                         :selected="activeSelectedId === String(task.id)"
-                                        :focused="focusedId === String(task.id ?? index)"
+                                        :focused="focusedId === resolveBlockDomId(flowLevelFinally, index)"
                                         :icons="pluginsStore.icons"
-                                        :data-block-id="String(task.id ?? index)"
+                                        :data-block-id="resolveBlockDomId(flowLevelFinally, index)"
                                         @select="selectBlock('finally', task)"
                                         @delete="onDelete('finally', task.id)"
                                         @duplicate="onDuplicate('finally', task.id)"
                                     />
-                                    <BlockInsertionCaret v-if="focusedId === String(task.id ?? index)" />
+                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelFinally, index)" />
                                 </template>
                                 <BlockEmptyDrop
                                     v-if="flowLevelFinally.length === 0"
@@ -567,6 +570,7 @@
         isFlowableType,
         moveBlockAtPath,
         reorderAtPath,
+        resolveBlockDomId,
         updateBlock,
         updateBlockAtPath,
         type BlockSection,

@@ -35,6 +35,21 @@ export interface BlockRef {
     id: string
 }
 
+// Used as data-block-id for the keyboard-focus ring — normally just the task's
+// own id, matching every other place that keys off it (insertTask, moveFocus,
+// etc.). Two sibling tasks can share a user-typed id though (e.g. mid-rename),
+// which would make both light up together since the reactive comparison is
+// per-card, not list-aware — so only a genuine duplicate gets its index
+// appended, disambiguating it while leaving the common (unique-id) case,
+// and every id-based write-site, untouched.
+export function resolveBlockDomId(items: Record<string, unknown>[], index: number): string {
+    const item = items[index]
+    if (item?.id == null) return String(index)
+    const id = String(item.id)
+    const firstIndex = items.findIndex(other => other?.id != null && String(other.id) === id)
+    return firstIndex === index ? id : `${id}#${index}`
+}
+
 export function addBlock(source: string, section: BlockSection, block: Record<string, unknown>, afterId?: string): string {
     const refPath = afterId !== undefined
         ? (() => {

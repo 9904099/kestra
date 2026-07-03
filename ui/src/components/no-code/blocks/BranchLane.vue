@@ -20,7 +20,7 @@
 
         <div class="branch-lane-body" :style="indentStyle">
             <template v-if="tasks.length > 0">
-                <template v-for="(task, index) in tasks" :key="String(task.id ?? index)">
+                <template v-for="(task, index) in tasks" :key="resolveBlockDomId(tasks, index)">
                     <FlowableClusterCard
                         v-if="isFlowable(task)"
                         :block="task"
@@ -29,7 +29,8 @@
                         :depth="depth + 1"
                         :selectedId="selectedId"
                         :focusedId="focusedId"
-                        :data-block-id="String(task.id ?? index)"
+                        :domId="resolveBlockDomId(tasks, index)"
+                        :data-block-id="resolveBlockDomId(tasks, index)"
                         @select="(p) => emit('select', p)"
                         @delete="(p) => emit('delete', p)"
                         @duplicate="(p) => emit('duplicate', p)"
@@ -41,10 +42,10 @@
                         :icons="icons"
                         :path="`${parentPath}[${index}]`"
                         :selected="selectedId === String(task.id)"
-                        :focused="focusedId !== undefined && focusedId === String(task.id)"
+                        :focused="focusedId !== undefined && focusedId === resolveBlockDomId(tasks, index)"
                         :draggable="true"
                         :dragOver="dragOverIndex === index"
-                        :data-block-id="String(task.id ?? index)"
+                        :data-block-id="resolveBlockDomId(tasks, index)"
                         :data-test="`nested-block-card`"
                         @select="emit('select', `${parentPath}[${index}]`)"
                         @delete="emit('delete', `${parentPath}[${index}]`)"
@@ -54,7 +55,7 @@
                         @drop="handleDrop($event, index)"
                         @drag-end="handleDragEnd"
                     />
-                    <BlockInsertionCaret v-if="focusedId !== undefined && focusedId === String(task.id)" />
+                    <BlockInsertionCaret v-if="focusedId !== undefined && focusedId === resolveBlockDomId(tasks, index)" />
                 </template>
             </template>
 
@@ -94,7 +95,7 @@
 
     import {KsTag, KsAlert} from "@kestra-io/design-system"
 
-    import {isFlowableType} from "../../../utils/flowableBlockOps"
+    import {isFlowableType, resolveBlockDomId} from "../../../utils/flowableBlockOps"
     import {useDragAndDrop} from "../../../composables/useDragAndDrop"
     import BlockInsertionCaret from "./BlockInsertionCaret.vue"
 

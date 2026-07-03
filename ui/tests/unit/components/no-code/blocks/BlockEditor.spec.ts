@@ -71,6 +71,18 @@ triggers:
 
 const EMPTY_YAML = "id: my_flow\nnamespace: company.team"
 
+const YAML_WITH_DUPLICATE_IDS = `
+id: my_flow
+namespace: company.team
+tasks:
+  - id: dup_task
+    type: io.kestra.plugin.core.log.Log
+    message: first
+  - id: dup_task
+    type: io.kestra.plugin.core.log.Log
+    message: second
+`.trim()
+
 // --- Shared reactive state for store mock ---
 
 const mockFlowYaml = ref(SIMPLE_YAML)
@@ -425,6 +437,41 @@ describe("BlockEditor", () => {
             expect(cluster.exists()).toBe(true)
             expect(cluster.find("[data-test='branch-lane-cases.prod']").exists()).toBe(true)
             expect(cluster.find("[data-test='branch-lane-cases.dev']").exists()).toBe(true)
+        })
+    })
+
+    describe("duplicate task ids", () => {
+        it("gives sibling tasks that share an id distinct data-block-id values", () => {
+            // Given
+            mockFlowYaml.value = YAML_WITH_DUPLICATE_IDS
+
+            // When
+            wrapper = mount(BlockEditor, makeConfig())
+
+            // Then
+            const cards = wrapper.findAll("[data-test='block-card']")
+            expect(cards).toHaveLength(2)
+            const domIds = cards.map(c => c.attributes("data-block-id"))
+            expect(new Set(domIds).size).toBe(2)
+        })
+
+        it("only rings the specific card that is focused, not every card sharing its id", async () => {
+            // Given — regression: the ring used to compare by raw task.id, so focusing
+            // one of two same-id siblings lit up both at once
+            mockFlowYaml.value = YAML_WITH_DUPLICATE_IDS
+            wrapper = mount(BlockEditor, makeConfig())
+            const cards = wrapper.findAll("[data-test='block-card']")
+            const secondDomId = cards[1].attributes("data-block-id")
+
+            // When
+            const vm = wrapper.vm as unknown as {focusedId?: string}
+            vm.focusedId = secondDomId
+            await wrapper.vm.$nextTick()
+
+            // Then
+            const refreshed = wrapper.findAll("[data-test='block-card']")
+            expect(refreshed[0].classes()).not.toContain("block-kbd-focused")
+            expect(refreshed[1].classes()).toContain("block-kbd-focused")
         })
     })
 
