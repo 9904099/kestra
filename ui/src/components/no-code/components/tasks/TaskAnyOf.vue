@@ -11,6 +11,12 @@
         :modelValue="model"
         @update:model-value="onInput"
     />
+    <TaskString
+        v-else-if="singleStringSchema"
+        :schema="singleStringSchema"
+        :modelValue="model"
+        @update:model-value="onInput"
+    />
     <template v-else>
         <KsFormItem :class="{'anyof-switch': !isSelectingPlugins}">
             <KsSelect
@@ -121,7 +127,7 @@
 
     const schemas = computed(() => {
         if (!props.schema?.anyOf || !Array.isArray(props.schema.anyOf)) return []
-        return props.schema.anyOf.map((schema: Schema) => {
+        const mapped = props.schema.anyOf.map((schema: Schema) => {
             if (schema.allOf && Array.isArray(schema.allOf)) {
                 if (schema.allOf.length === 2 && schema.allOf[0].$ref && !schema.allOf[1].$ref) {
                     return {
@@ -132,6 +138,18 @@
             }
             return schema
         })
+        const seen = new Set<string>()
+        return mapped.filter((schema: Schema) => {
+            const key = JSON.stringify(schema)
+            if (seen.has(key)) return false
+            seen.add(key)
+            return true
+        })
+    })
+
+    const singleStringSchema = computed<Schema | null>(() => {
+        const list = schemas.value
+        return list.length === 1 && list[0].type === "string" && !list[0].properties ? list[0] : null
     })
 
     const durationSchema = computed<Schema | null>(() => {
