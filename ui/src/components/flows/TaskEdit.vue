@@ -126,19 +126,22 @@
                 @toggle="outputCollapsed = !outputCollapsed"
             />
 
-            <div v-if="docOpen" class="task-edit-col task-edit-col-doc" data-test="task-edit-doc-panel">
-                <div class="task-edit-doc-head">
-                    <span class="task-edit-doc-title">{{ $t("documentation.documentation") }}</span>
-                    <KsIconButton :aria-label="$t('close')" :tooltip="$t('close')" @click="docOpen = false">
-                        <Close />
-                    </KsIconButton>
-                </div>
-                <div class="task-edit-doc-body">
-                    <KsMarkdown v-if="pluginMarkdown" :content="pluginMarkdown" />
-                    <p v-else class="task-edit-doc-empty">{{ $t("block_editor.no_documentation") }}</p>
-                </div>
-            </div>
         </div>
+
+        <KsDrawer
+            v-if="docOpen"
+            v-model="docOpen"
+            direction="rtl"
+            resizable
+            size="sm"
+            :title="$t('documentation.documentation')"
+            data-test="task-edit-doc-panel"
+        >
+            <div class="task-edit-doc-body">
+                <KsMarkdown v-if="pluginMarkdown" :content="pluginMarkdown" />
+                <p v-else class="task-edit-doc-empty">{{ $t("block_editor.no_documentation") }}</p>
+            </div>
+        </KsDrawer>
 
         <div v-ks-loading="isLoading" class="task-edit-panel-footer">
             <div class="task-edit-validation-status" role="status" aria-live="polite">
@@ -160,7 +163,7 @@
 <script setup lang="ts">
     import {ref, computed, watch, onMounted} from "vue"
     import {useI18n} from "vue-i18n"
-    import {SECTIONS, KsTaskIcon, KsIconButton, KsMarkdown} from "@kestra-io/design-system"
+    import {SECTIONS, KsTaskIcon, KsIconButton, KsMarkdown, KsDrawer} from "@kestra-io/design-system"
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
     import CodeTags from "vue-material-design-icons/CodeTags.vue"
     import ContentSave from "vue-material-design-icons/ContentSave.vue"
@@ -505,11 +508,6 @@
         flex-direction: column;
     }
 
-    .task-edit-col-doc {
-        flex: 0 0 320px;
-        border-left: 1px solid var(--ks-border-subtle);
-    }
-
     @mixin task-edit-stacked {
         flex-direction: column;
         overflow-y: auto;
@@ -540,29 +538,6 @@
     @container (max-width: 760px) {
         .task-edit-panel-body {
             @include task-edit-stacked;
-
-            .task-edit-col-doc {
-                border-bottom: none;
-            }
-        }
-    }
-
-    @container (max-width: 1160px) {
-        .task-edit-panel-body:has(.task-edit-col-doc) {
-            @include task-edit-stacked;
-
-            .task-edit-col-doc {
-                order: 0;
-            }
-
-            .task-edit-col-inputs {
-                order: 1;
-            }
-
-            .task-edit-col-output {
-                order: 2;
-                border-bottom: none;
-            }
         }
     }
 
@@ -580,31 +555,7 @@
         padding: var(--ks-spacing-5) var(--ks-spacing-5) var(--ks-spacing-6);
     }
 
-    .task-edit-col-doc {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        min-height: 0;
-        background: var(--ks-bg-base);
-    }
-
-    .task-edit-doc-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-shrink: 0;
-        padding: var(--ks-spacing-2) var(--ks-spacing-2) var(--ks-spacing-2) var(--ks-spacing-4);
-        border-bottom: 1px solid var(--ks-border-subtle);
-    }
-
-    .task-edit-doc-title {
-        font-size: var(--ks-font-size-sm);
-        font-weight: 600;
-        color: var(--ks-text-primary);
-    }
-
     .task-edit-doc-body {
-        flex: 1;
         min-height: 0;
         overflow-y: auto;
         padding: var(--ks-spacing-4) var(--ks-spacing-5);
