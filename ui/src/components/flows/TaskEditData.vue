@@ -58,8 +58,10 @@
                         :key="chip.expr"
                         class="task-edit-data-chip"
                         type="button"
+                        draggable="true"
                         :title="chip.expr"
                         @click="copy(chip.expr)"
+                        @dragstart="onDragStart($event, chip.expr)"
                     >
                         <span class="task-edit-data-chip-label">{{ chip.label }}</span>
                         <span class="task-edit-data-chip-action">{{ copied === chip.expr ? t("copied") : insertHint }}</span>
@@ -129,6 +131,11 @@
         if (collapsed.value.has(key)) collapsed.value.delete(key)
         else collapsed.value.add(key)
         collapsed.value = new Set(collapsed.value)
+    }
+
+    function onDragStart(event: DragEvent, expr: string) {
+        event.dataTransfer?.setData("text/plain", expr)
+        if (event.dataTransfer) event.dataTransfer.effectAllowed = "copy"
     }
 
     let copiedTimer: ReturnType<typeof setTimeout> | undefined
