@@ -36,7 +36,9 @@
                     <span class="trigger-name">{{ trigger.name }}</span>
                     <span v-if="trigger.description" class="trigger-desc">{{ trigger.description }}</span>
                 </div>
-                <KsIcon v-if="recipe.otherTriggerType === trigger.type" name="check" class="check-icon" />
+                <KsIcon v-if="recipe.otherTriggerType === trigger.type" class="check-icon">
+                    <Check />
+                </KsIcon>
             </div>
         </div>
     </div>
@@ -48,6 +50,7 @@
     import {usePluginsStore} from "../../../../stores/plugins"
     import type {TriggerPluginDto} from "../../../../stores/plugins"
     import type {RecipeState} from "../../../../composables/useFlowRecipe"
+    import Check from "vue-material-design-icons/Check.vue"
 
     const props = defineProps<{
         recipe: RecipeState

@@ -180,6 +180,28 @@ describe("FlowRecipe", () => {
         expect(cards.length).toBe(5)
     })
 
+    test("renders a real icon for every trigger-type card", async () => {
+        // Regression: ISSUE-001 — KsIcon has no `name` prop, so `<KsIcon
+        // :name="card.icon" />` silently rendered an empty icon for every
+        // trigger-type card. Found by /qa on 2026-07-03.
+        // Report: .gstack/qa-reports/qa-report-localhost-2026-07-03.md
+        const wrapper = mount(FlowRecipe, {
+            ...globalConfig,
+            global: {
+                ...globalConfig.global,
+                stubs: {...globalConfig.global.stubs, KsIcon: {template: "<span><slot /></span>"}},
+            },
+        })
+        await new Promise(r => setTimeout(r, 0))
+
+        const icons = wrapper.findAll(".trigger-card-icon svg")
+        expect(icons.length).toBe(5)
+
+        // Same bug, same fix, in the notify-channel grid rendered alongside it.
+        const channelIcons = wrapper.findAll(".icon-wrap svg")
+        expect(channelIcons.length).toBe(3)
+    })
+
     test("emits submit with yaml when form is valid and create is clicked", async () => {
         // Given
         const wrapper = mount(FlowRecipe, {

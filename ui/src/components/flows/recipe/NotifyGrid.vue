@@ -19,7 +19,9 @@
         >
             <div class="card-header">
                 <div class="icon-wrap">
-                    <KsIcon :name="channel.icon" class="channel-icon" />
+                    <KsIcon class="channel-icon">
+                        <component :is="channel.icon" />
+                    </KsIcon>
                 </div>
                 <KsCheckbox
                     :modelValue="recipe.notify[channel.key as keyof typeof recipe.notify]"
@@ -64,6 +66,10 @@
     import {useI18n} from "vue-i18n"
     import type {RecipeState} from "../../../composables/useFlowRecipe"
 
+    import Slack from "vue-material-design-icons/Slack.vue"
+    import MicrosoftTeams from "vue-material-design-icons/MicrosoftTeams.vue"
+    import EmailOutline from "vue-material-design-icons/EmailOutline.vue"
+
     const props = defineProps<{
         recipe: RecipeState
         channelAvailability: {slack: boolean; teams: boolean; email: boolean}
@@ -77,19 +83,19 @@
             key: "slack",
             label: "Slack",
             sub: t("recipe.notify.slack_sub"),
-            icon: "slack",
+            icon: Slack,
         },
         {
             key: "teams",
             label: "Microsoft Teams",
             sub: t("recipe.notify.teams_sub"),
-            icon: "microsoft-teams",
+            icon: MicrosoftTeams,
         },
         {
             key: "email",
             label: t("recipe.notify.email_label"),
             sub: t("recipe.notify.email_sub"),
-            icon: "email-outline",
+            icon: EmailOutline,
         },
     ]
 </script>

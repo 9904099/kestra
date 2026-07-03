@@ -25,7 +25,9 @@
                         @keydown.space.prevent="!card.disabled && selectTrigger(card.type)"
                     >
                         <div class="trigger-card-icon">
-                            <KsIcon :name="card.icon" />
+                            <KsIcon>
+                                <component :is="card.icon" />
+                            </KsIcon>
                         </div>
                         <div class="trigger-card-body">
                             <KsText class="trigger-card-title">{{ card.title }}</KsText>
@@ -33,7 +35,9 @@
                         </div>
                         <div class="trigger-card-right">
                             <KsTag v-if="card.disabled" size="small" class="ee-badge">EE</KsTag>
-                            <KsIcon v-else-if="recipe.triggerType === card.type" name="check-circle" class="check-icon" />
+                            <KsIcon v-else-if="recipe.triggerType === card.type" class="check-icon">
+                                <CheckCircle />
+                            </KsIcon>
                         </div>
                     </div>
                 </div>
@@ -111,6 +115,13 @@
     import NotifyGrid from "./NotifyGrid.vue"
     import RecipeSummary from "./RecipeSummary.vue"
 
+    import LightningBolt from "vue-material-design-icons/LightningBolt.vue"
+    import ClockOutline from "vue-material-design-icons/ClockOutline.vue"
+    import FolderMultipleOutline from "vue-material-design-icons/FolderMultipleOutline.vue"
+    import Webhook from "vue-material-design-icons/Webhook.vue"
+    import DotsHorizontal from "vue-material-design-icons/DotsHorizontal.vue"
+    import CheckCircle from "vue-material-design-icons/CheckCircle.vue"
+
     const props = withDefaults(defineProps<{
         namespace?: string
     }>(), {
@@ -156,7 +167,7 @@
         {
             key: "execution",
             type: "execution" as TriggerType,
-            icon: "lightning-bolt",
+            icon: LightningBolt,
             title: t("recipe.trigger.execution_title"),
             sub: t("recipe.trigger.execution_sub"),
             disabled: false,
@@ -164,7 +175,7 @@
         {
             key: "schedule",
             type: "schedule" as TriggerType,
-            icon: "clock-outline",
+            icon: ClockOutline,
             title: t("recipe.trigger.schedule_title"),
             sub: t("recipe.trigger.schedule_sub"),
             disabled: false,
@@ -172,7 +183,7 @@
         {
             key: "case",
             type: "other" as TriggerType,
-            icon: "folder-multiple-outline",
+            icon: FolderMultipleOutline,
             title: t("recipe.trigger.case_title"),
             sub: t("recipe.trigger.case_sub"),
             disabled: true,
@@ -180,7 +191,7 @@
         {
             key: "webhook",
             type: "webhook" as TriggerType,
-            icon: "webhook",
+            icon: Webhook,
             title: t("recipe.trigger.webhook_title"),
             sub: t("recipe.trigger.webhook_sub"),
             disabled: false,
@@ -188,7 +199,7 @@
         {
             key: "other",
             type: "other" as TriggerType,
-            icon: "dots-horizontal",
+            icon: DotsHorizontal,
             title: t("recipe.trigger.other_title"),
             sub: t("recipe.trigger.other_sub"),
             disabled: false,
