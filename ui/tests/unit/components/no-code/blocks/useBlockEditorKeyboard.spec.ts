@@ -7,7 +7,7 @@ import {useBlockEditorKeyboard, type BlockEditorKeyBindingLike} from "../../../.
 const KEYMAP: BlockEditorKeyBindingLike[] = [
     {id: "move", keys: ["ArrowDown"], alt: ["j"]},
     {id: "delete", keys: ["Backspace", "Delete"]},
-    {id: "command-menu", keys: ["Meta+Shift+k", "Control+Shift+k"]},
+    {id: "command-menu", keys: ["Meta+Shift+p", "Control+Shift+p"]},
     {id: "save", keys: ["Meta+s", "Control+s"]},
     {id: "clear", keys: ["Escape"]},
     {id: "help", keys: ["?"]},
@@ -177,7 +177,7 @@ describe("useBlockEditorKeyboard", () => {
         wrapper = mountWithKeyboard(dispatch, () => true)
 
         // When
-        dispatchKeydown(window, {key: "k", metaKey: true, shiftKey: true})
+        dispatchKeydown(window, {key: "p", metaKey: true, shiftKey: true})
 
         // Then
         expect(dispatch).toHaveBeenCalledWith("command-menu", expect.any(KeyboardEvent))

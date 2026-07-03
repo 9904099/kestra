@@ -81,9 +81,10 @@ describe("keymap", () => {
         expect(byId.get("insert-after")?.keys).toEqual(["a"])
         expect(byId.get("insert-before")?.keys).toEqual(["Shift+a"])
         expect(byId.get("quick-insert")?.keys).toEqual(["/"])
-        // Not Meta+k: that's already the app-wide "Jump to" global search (GlobalSearch.vue),
-        // which explicitly excludes Shift — Meta+Shift+k is what's free for this scoped menu.
-        expect(byId.get("command-menu")?.keys).toEqual(["Meta+Shift+k", "Control+Shift+k"])
+        // Not Meta+k: that's already the app-wide "Jump to" global search (GlobalSearch.vue).
+        // Not Meta+Shift+k either: it collides with shortcuts in common companion apps
+        // (e.g. Notion) — Meta+Shift+p matches the conventional "command palette" binding.
+        expect(byId.get("command-menu")?.keys).toEqual(["Meta+Shift+p", "Control+Shift+p"])
         expect(byId.get("duplicate")?.keys).toEqual(["d"])
         expect(byId.get("delete")?.keys).toEqual(["Backspace", "Delete"])
         expect(byId.get("reorder")?.keys).toEqual(["Alt+ArrowUp", "Alt+ArrowDown"])

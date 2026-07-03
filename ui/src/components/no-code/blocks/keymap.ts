@@ -19,9 +19,11 @@ export const BLOCK_EDITOR_KEYMAP: BlockEditorKeyBinding[] = [
     {id: "insert-after", keys: ["a"], alt: ["n"], group: "insert", i18nKey: "block_editor.shortcuts.add_after"},
     {id: "insert-before", keys: ["Shift+a"], alt: ["Shift+n"], group: "insert", i18nKey: "block_editor.shortcuts.add_before"},
     {id: "quick-insert", keys: ["/"], group: "insert", i18nKey: "block_editor.shortcuts.add_task"},
-    // Meta+K alone is already the app-wide "Jump to" global search (see GlobalSearch.vue),
-    // which only fires when Shift is NOT held — Meta+Shift+K is free for this scoped menu.
-    {id: "command-menu", keys: ["Meta+Shift+k", "Control+Shift+k"], group: "insert", i18nKey: "block_editor.shortcuts.command_palette"},
+    // Meta+K alone is already the app-wide "Jump to" global search (see GlobalSearch.vue).
+    // Meta+Shift+K was tried first but collides with shortcuts in common companion apps
+    // (e.g. Notion) that can fire even while this tab has focus — Meta+Shift+P (the
+    // conventional "command palette" binding in VS Code, Slack, etc.) is free instead.
+    {id: "command-menu", keys: ["Meta+Shift+p", "Control+Shift+p"], group: "insert", i18nKey: "block_editor.shortcuts.command_palette"},
 
     {id: "duplicate", keys: ["d"], group: "edit", i18nKey: "block_editor.duplicate"},
     {id: "delete", keys: ["Backspace", "Delete"], group: "edit", i18nKey: "block_editor.delete"},
