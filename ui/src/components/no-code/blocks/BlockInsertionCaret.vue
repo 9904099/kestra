@@ -56,17 +56,18 @@
         align-items: center;
         gap: var(--ks-spacing-1);
         font-size: var(--ks-font-size-xs);
-        font-weight: 600;
-        color: var(--ks-bg-base);
-        background: var(--ks-text-link);
+        font-weight: 500;
+        color: var(--ks-text-link);
+        background: var(--ks-bg-elevated);
+        border: 1px solid var(--ks-border-subtle);
         border-radius: var(--ks-radius-lg);
         padding: 1px var(--ks-spacing-2);
     }
 
     .block-insertion-caret-tag kbd {
         font-family: var(--ks-font-family-mono);
-        color: var(--ks-bg-base);
-        background: color-mix(in srgb, var(--ks-bg-base) 25%, transparent);
+        color: var(--ks-text-link);
+        background: var(--ks-bg-tag);
         border-radius: var(--ks-radius-sm);
         padding: 0 var(--ks-spacing-1);
     }

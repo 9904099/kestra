@@ -13,6 +13,7 @@
                     single Tab stop and delegates focus to its first card. -->
                     <div
                         class="block-editor-canvas"
+                        data-test="block-editor-canvas"
                         :tabindex="focusedId ? -1 : 0"
                         role="group"
                         :aria-label="t('block_editor.canvas_aria')"
@@ -270,37 +271,7 @@
 
             <KsSplitterPanel v-if="dockTabs.length" size="72%" min="40%">
                 <div class="block-editor-dock">
-                    <!-- When 2+ panes are tiled, each visible pane already shows
-                    its own label (law of proximity), so the shared tabbar only
-                    lists the backgrounded tabs — the same name never twice. -->
-                    <div class="block-editor-dock-tabbar" role="tablist" :aria-label="t('block_editor.open_details')">
-                        <div
-                            v-for="tab in tabbarTabs"
-                            :key="tab.id"
-                            role="tab"
-                            tabindex="0"
-                            class="block-editor-dock-tab"
-                            :class="{
-                                'block-editor-dock-tab--active': activeSelectedId === tab.id,
-                                'block-editor-dock-tab--tiled': tiledIds.has(tab.id) && activeSelectedId !== tab.id,
-                            }"
-                            :aria-selected="activeSelectedId === tab.id"
-                            :data-test="`block-editor-dock-tab-${tab.id}`"
-                            @click="activateTab(tab.id)"
-                            @keydown.enter="activateTab(tab.id)"
-                            @keydown.space.prevent="activateTab(tab.id)"
-                        >
-                            <KsTaskIcon class="block-editor-dock-tab-ico" :cls="String(tab.data.type ?? '')" :icons="pluginsStore.icons" :onlyIcon="true" />
-                            <span class="block-editor-dock-tab-id">{{ tab.id }}</span>
-                            <KsIconButton
-                                class="block-editor-dock-tab-close"
-                                :aria-label="t('close')"
-                                :data-test="`block-editor-dock-tab-close-${tab.id}`"
-                                @click.stop="closeTab(tab.id)"
-                            >
-                                <Close />
-                            </KsIconButton>
-                        </div>
+                    <div class="block-editor-dock-toolbar">
                         <span class="block-editor-dock-tabbar-spacer" />
                         <div
                             v-if="dockTabs.length > 1"
@@ -346,37 +317,80 @@
                         </KsIconButton>
                     </div>
 
+                    <!-- Each pane owns its own tab strip (VSCode editor groups) —
+                    tabs never live in a shared bar, so opening a block always lands
+                    in the pane that's currently focused, and dragging a tab across
+                    strips actually re-parents it into that pane. -->
                     <div class="block-editor-dock-body">
-                        <!-- With a single pane visible, the tabbar above already labels it,
-                        so each pane's own tabstrip stays hidden. Once split view tiles 2+
-                        panes side by side, the tabbar is no longer next to the content it
-                        describes — showing each pane's own label keeps the name next to its
-                        own section (law of proximity) instead of only at the top of the dock. -->
-                        <TaskEdit
-                            v-for="tab in dockTabs"
-                            v-show="tiledIds.has(tab.id)"
-                            :key="tab.id"
-                            class="block-editor-dock-pane"
-                            :class="{'block-editor-dock-pane--active': activeSelectedId === tab.id && tiledIds.size > 1}"
-                            :data-dock-pane-id="tab.id"
-                            :task="tab.data"
-                            :section="tab.section"
-                            :flowId="flowId"
-                            :namespace="namespace"
-                            :isHidden="true"
-                            presentation="panel"
-                            :hideTabstrip="tiledIds.size <= 1"
-                            v-model:inputsCollapsed="tab.inputsCollapsed"
-                            v-model:outputCollapsed="tab.outputCollapsed"
-                            v-model:docOpen="tab.docOpen"
-                            data-test="block-editor-task-edit"
-                            @mousedown="focusPane(tab.id)"
-                            @focusin="focusPane(tab.id)"
-                            @update:task="(content) => onTaskEdited(tab, content)"
-                            @close="closeTab(tab.id)"
-                            @tab-drag-start="dockDragTabId = tab.id"
-                            @tab-drop="onPaneTabDrop(tab.id)"
-                        />
+                        <div
+                            v-for="group in dockGroups"
+                            :key="group.id"
+                            class="block-editor-dock-group"
+                            :class="{'block-editor-dock-group--active': group === activeGroup && dockGroups.length > 1}"
+                            :data-test="`block-editor-dock-group-${group.id}`"
+                        >
+                            <TransitionGroup
+                                tag="div"
+                                name="dock-tab"
+                                class="block-editor-dock-tabbar"
+                                role="tablist"
+                                :aria-label="t('block_editor.open_details')"
+                            >
+                                <div
+                                    v-for="tab in group.tabs"
+                                    :key="tab.id"
+                                    role="tab"
+                                    tabindex="0"
+                                    draggable="true"
+                                    class="block-editor-dock-tab"
+                                    :class="{'block-editor-dock-tab--active': group.activeTabId === tab.id}"
+                                    :aria-selected="group.activeTabId === tab.id"
+                                    :data-test="`block-editor-dock-tab-${tab.id}`"
+                                    @click="activateTab(tab.id)"
+                                    @keydown.enter="activateTab(tab.id)"
+                                    @keydown.space.prevent="activateTab(tab.id)"
+                                    @dragstart="onTabDragStart(tab.id)"
+                                    @dragend="onTabDragEnd"
+                                    @dragover.prevent
+                                    @drop.prevent="onTabDropOnTab(group.id, tab.id)"
+                                >
+                                    <KsTaskIcon class="block-editor-dock-tab-ico" :cls="String(tab.data.type ?? '')" :icons="pluginsStore.icons" :onlyIcon="true" />
+                                    <span class="block-editor-dock-tab-id">{{ tab.id }}</span>
+                                    <KsIconButton
+                                        class="block-editor-dock-tab-close"
+                                        :aria-label="t('close')"
+                                        :data-test="`block-editor-dock-tab-close-${tab.id}`"
+                                        @click.stop="closeTab(tab.id)"
+                                    >
+                                        <Close />
+                                    </KsIconButton>
+                                </div>
+                            </TransitionGroup>
+
+                            <TaskEdit
+                                v-for="tab in group.tabs"
+                                v-show="group.activeTabId === tab.id"
+                                :key="tab.id"
+                                class="block-editor-dock-pane"
+                                :data-dock-pane-id="tab.id"
+                                :task="tab.data"
+                                :section="tab.section"
+                                :flowId="flowId"
+                                :namespace="namespace"
+                                :isHidden="true"
+                                presentation="panel"
+                                :hideTabstrip="true"
+                                v-model:inputsCollapsed="tab.inputsCollapsed"
+                                v-model:outputCollapsed="tab.outputCollapsed"
+                                v-model:docOpen="tab.docOpen"
+                                data-test="block-editor-task-edit"
+                                @mousedown="focusPane(tab.id)"
+                                @focusin="focusPane(tab.id)"
+                                @update:task="(content) => onTaskEdited(tab, content)"
+                                @close="closeTab(tab.id)"
+                                @tab-drop="onTabDropOnGroup(group.id)"
+                            />
+                        </div>
                     </div>
                 </div>
             </KsSplitterPanel>
@@ -785,42 +799,107 @@
         outputCollapsed?: boolean
     }
 
-    const dockTabs = ref<EditingBlock[]>([])
-    const activeTab = computed(() => dockTabs.value.find(tab => tab.id === activeSelectedId.value))
+    // VSCode-style editor groups: each pane owns its own ordered tab list and
+    // its own active tab, instead of every open block sharing one flat list.
+    interface DockGroup {
+        id: string
+        tabs: EditingBlock[]
+        activeTabId?: string
+    }
 
-    const splitCount = ref(1)
+    const dockGroups = ref<DockGroup[]>([])
+    let groupSeq = 0
+    const newGroupId = () => `dock-group-${++groupSeq}`
+
+    function findGroupOf(id: string | undefined): DockGroup | undefined {
+        if (!id) return undefined
+        return dockGroups.value.find(group => group.tabs.some(tab => tab.id === id))
+    }
+
+    // Flat read-only view for callers that only care "is anything open" or
+    // "find this tab" — writes always go through a specific group's tabs[].
+    const dockTabs = computed<EditingBlock[]>(() => dockGroups.value.flatMap(group => group.tabs))
+    const activeTab = computed(() => dockTabs.value.find(tab => tab.id === activeSelectedId.value))
+    const activeGroup = computed(() => findGroupOf(activeSelectedId.value) ?? dockGroups.value[0])
+
     const activationOrder = ref<string[]>([])
 
     function touchActivation(id: string) {
         activationOrder.value = [id, ...activationOrder.value.filter(other => other !== id)]
     }
 
-    const tiledIds = computed<Set<string>>(() => {
-        const max = Math.min(splitCount.value, dockTabs.value.length)
-        return new Set(activationOrder.value.slice(0, max))
+    // "Split into N" redeals the N most-recently-active tabs one per pane, and
+    // parks anything else as a background tab in the most recent pane's own
+    // strip — same recency rule the old flat tabbar used, just materialized
+    // into real per-pane groups instead of a shared list.
+    const splitCount = computed({
+        get: () => dockGroups.value.length || 1,
+        set: (target: number) => setSplitCount(target),
     })
 
-    // Tabs listed in the shared tabbar: everything at split 1 (panes hide their
-    // own label then), only the non-tiled ones once 2+ panes each show theirs.
-    const tabbarTabs = computed(() => tiledIds.value.size > 1
-        ? dockTabs.value.filter(tab => !tiledIds.value.has(tab.id))
-        : dockTabs.value)
+    function setSplitCount(target: number) {
+        target = Math.max(1, Math.min(3, target, dockTabs.value.length || 1))
+        if (target === dockGroups.value.length) return
+        const ranked = [...dockTabs.value].sort((a, b) =>
+            activationOrder.value.indexOf(a.id) - activationOrder.value.indexOf(b.id))
+        const anchors = ranked.slice(0, target)
+        const rest = ranked.slice(target)
+        const groups: DockGroup[] = anchors.map(tab => ({id: newGroupId(), tabs: [tab], activeTabId: tab.id}))
+        if (rest.length && groups.length) groups[0].tabs.push(...rest)
+        dockGroups.value = groups
+    }
 
-    // Pane order follows dockTabs order, so swapping two entries swaps which
-    // side each tiled pane renders on — that's what dragging one pane's tab
-    // label onto another pane does.
     const dockDragTabId = ref<string>()
 
-    function onPaneTabDrop(targetId: string) {
-        const sourceId = dockDragTabId.value
+    function onTabDragStart(id: string) {
+        dockDragTabId.value = id
+    }
+
+    function onTabDragEnd() {
         dockDragTabId.value = undefined
-        if (!sourceId || sourceId === targetId) return
-        const tabs = [...dockTabs.value]
-        const from = tabs.findIndex(tab => tab.id === sourceId)
-        const to = tabs.findIndex(tab => tab.id === targetId)
-        if (from < 0 || to < 0) return
-        ;[tabs[from], tabs[to]] = [tabs[to], tabs[from]]
-        dockTabs.value = tabs
+    }
+
+    // Moves a tab into targetGroupId, inserted right before beforeId (or at the
+    // end when omitted). Reordering within a group and re-parenting into a
+    // different one both flow through here — the source group collapses if it
+    // ends up empty, mirroring VSCode closing an emptied editor group.
+    function moveTabTo(sourceId: string, targetGroupId: string, beforeId?: string) {
+        const sourceGroup = findGroupOf(sourceId)
+        const targetGroup = dockGroups.value.find(group => group.id === targetGroupId)
+        if (!sourceGroup || !targetGroup) return
+        const fromIndex = sourceGroup.tabs.findIndex(tab => tab.id === sourceId)
+        if (fromIndex < 0) return
+        const sameGroup = sourceGroup === targetGroup
+
+        const [tab] = sourceGroup.tabs.splice(fromIndex, 1)
+        let insertAt = beforeId ? targetGroup.tabs.findIndex(t => t.id === beforeId) : targetGroup.tabs.length
+        if (insertAt < 0) insertAt = targetGroup.tabs.length
+        targetGroup.tabs.splice(insertAt, 0, tab)
+
+        if (sameGroup) return
+
+        if (sourceGroup.activeTabId === sourceId) {
+            sourceGroup.activeTabId = sourceGroup.tabs[Math.max(0, fromIndex - 1)]?.id ?? sourceGroup.tabs[0]?.id
+        }
+        targetGroup.activeTabId = tab.id
+        if (sourceGroup.tabs.length === 0) {
+            dockGroups.value = dockGroups.value.filter(group => group !== sourceGroup)
+        }
+        if (activeSelectedId.value === tab.id) touchActivation(tab.id)
+    }
+
+    function onTabDropOnTab(groupId: string, targetTabId: string) {
+        const sourceId = dockDragTabId.value
+        onTabDragEnd()
+        if (!sourceId || sourceId === targetTabId) return
+        moveTabTo(sourceId, groupId, targetTabId)
+    }
+
+    function onTabDropOnGroup(groupId: string) {
+        const sourceId = dockDragTabId.value
+        onTabDragEnd()
+        if (!sourceId) return
+        moveTabTo(sourceId, groupId)
     }
 
 
@@ -832,24 +911,39 @@
     }))
 
     function openTab(tab: EditingBlock) {
-        const existing = dockTabs.value.find(t => t.id === tab.id)
-        if (existing) {
+        const existingGroup = findGroupOf(tab.id)
+        if (existingGroup) {
+            const existing = existingGroup.tabs.find(t => t.id === tab.id)!
             existing.section = tab.section
             existing.data = tab.data
             existing.path = tab.path
-        } else {
-            dockTabs.value = [...dockTabs.value, {
-                ...tab,
-                docOpen: tab.docOpen ?? false,
-                inputsCollapsed: tab.inputsCollapsed ?? false,
-                outputCollapsed: tab.outputCollapsed ?? false,
-            }]
+            existingGroup.activeTabId = tab.id
+            activeSelectedId.value = tab.id
+            touchActivation(tab.id)
+            return
         }
+        // Not open anywhere yet: it always joins the currently focused pane —
+        // never a separate, disconnected tab list — so reopening a block while
+        // split never "just adds it to the top" outside the panes in view.
+        let group = activeGroup.value
+        if (!group) {
+            group = {id: newGroupId(), tabs: []}
+            dockGroups.value = [group]
+        }
+        group.tabs = [...group.tabs, {
+            ...tab,
+            docOpen: tab.docOpen ?? false,
+            inputsCollapsed: tab.inputsCollapsed ?? false,
+            outputCollapsed: tab.outputCollapsed ?? false,
+        }]
+        group.activeTabId = tab.id
         activeSelectedId.value = tab.id
         touchActivation(tab.id)
     }
 
     function activateTab(id: string) {
+        const group = findGroupOf(id)
+        if (group) group.activeTabId = id
         activeSelectedId.value = id
         touchActivation(id)
     }
@@ -863,8 +957,15 @@
     })
 
     function closeTab(id: string) {
-        if (!dockTabs.value.some(tab => tab.id === id)) return
-        dockTabs.value = dockTabs.value.filter(tab => tab.id !== id)
+        const group = findGroupOf(id)
+        if (!group) return
+        const index = group.tabs.findIndex(tab => tab.id === id)
+        group.tabs = group.tabs.filter(tab => tab.id !== id)
+        if (group.tabs.length === 0) {
+            dockGroups.value = dockGroups.value.filter(g => g !== group)
+        } else if (group.activeTabId === id) {
+            group.activeTabId = group.tabs[Math.max(0, index - 1)]?.id
+        }
         activationOrder.value = activationOrder.value.filter(other => other !== id)
         if (activeSelectedId.value === id) {
             activeSelectedId.value = activationOrder.value[0]
@@ -872,7 +973,7 @@
     }
 
     function closeAllTabs() {
-        dockTabs.value = []
+        dockGroups.value = []
         activationOrder.value = []
         activeSelectedId.value = undefined
     }
@@ -1265,6 +1366,10 @@
         const lane = parentPath.split(".").pop() ?? ""
         if (lane === "errors") return "errors"
         if (lane === "finally") return "finally"
+        // Without this, pressing "a" on a focused trigger anchored the picker on
+        // path "triggers[i]" but offered TASK types — inserting a task into the
+        // triggers array and producing an invalid flow.
+        if (lane === "triggers") return "triggers"
         return "tasks"
     }
 
@@ -1775,9 +1880,12 @@
     }
 
     function dispatchBlockEditorAction(id: string, event: KeyboardEvent) {
-        // "save" is intentionally a no-op here: NoCode.vue's useKeyboardSave()
-        // already owns the global Cmd/Ctrl+S handler. It stays in the keymap
-        // only so the help overlay and footer hints can show it.
+        // NoCode.vue's useKeyboardSave() is NOT mounted on this page, so the
+        // footer's advertised Cmd/Ctrl+S has to be honored here.
+        if (id === "save") {
+            flowStore.save?.()
+            return
+        }
         if (id === "undo") {
             performUndoIfAvailable()
             return
@@ -1835,14 +1943,11 @@
         if (isAnyOverlayOpen()) return
 
         if (id === "quick-insert") {
-            // Anchor on whatever is already canvas-focused, same as "a" — otherwise this
-            // always opens the Tasks-section picker regardless of scroll position, which
-            // looks like it opened "at the top of the screen" when focus is further down.
-            if (focusedId.value) {
-                addAfterFocused()
-            } else {
-                openTaskPicker("tasks")
-            }
+            // Mirrors the "Add task" button it's advertised on ("or press / to
+            // search tasks") exactly: always appends to the end of the
+            // top-level tasks list, regardless of what's focused. "a" is the
+            // one that stays anchored to the focused block.
+            openTaskPicker("tasks")
         } else if (id === "move") {
             if (isFocusInsideDock()) {
                 moveDockPaneFocus(event.key === "ArrowDown" ? 1 : -1)
@@ -2201,15 +2306,43 @@
         min-height: 0;
         display: flex;
         flex-direction: column;
+        gap: var(--ks-spacing-2);
         padding: var(--ks-spacing-4);
     }
 
+    .block-editor-dock-toolbar {
+        display: flex;
+        align-items: stretch;
+        gap: var(--ks-spacing-1);
+        flex-shrink: 0;
+    }
+
     .block-editor-dock-tabbar {
+        position: relative;
         display: flex;
         align-items: stretch;
         gap: var(--ks-spacing-1);
         flex-shrink: 0;
         overflow-x: auto;
+    }
+
+    .dock-tab-move {
+        transition: transform 0.18s ease;
+    }
+
+    .dock-tab-enter-active,
+    .dock-tab-leave-active {
+        transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .dock-tab-enter-from,
+    .dock-tab-leave-to {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+
+    .dock-tab-leave-active {
+        position: absolute;
     }
 
     .block-editor-dock-tab {
@@ -2222,7 +2355,7 @@
         border: 1px solid var(--ks-border-subtle);
         border-bottom: none;
         border-radius: var(--ks-radius-base) var(--ks-radius-base) 0 0;
-        cursor: pointer;
+        cursor: grab;
         color: var(--ks-text-secondary);
         transition: background-color 0.12s, color 0.12s;
     }
@@ -2241,11 +2374,6 @@
         background: var(--ks-bg-surface);
         color: var(--ks-text-primary);
         box-shadow: inset 0 2px 0 var(--ks-text-link);
-    }
-
-    .block-editor-dock-tab--tiled {
-        background: var(--ks-bg-surface);
-        color: var(--ks-text-primary);
     }
 
     .block-editor-dock-split {
@@ -2338,15 +2466,24 @@
         gap: var(--ks-spacing-3);
     }
 
+    .block-editor-dock-group {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: var(--ks-spacing-1);
+    }
+
+    .block-editor-dock-group--active .block-editor-dock-pane {
+        box-shadow: 0 0 0 1px var(--ks-text-link);
+        border-radius: var(--ks-radius-lg);
+    }
+
     .block-editor-dock-pane {
         flex: 1;
         min-width: 0;
         min-height: 0;
-    }
-
-    .block-editor-dock-pane--active {
-        box-shadow: 0 0 0 1px var(--ks-text-link);
-        border-radius: var(--ks-radius-lg);
     }
 
     .block-editor-canvas {
