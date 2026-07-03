@@ -1694,7 +1694,14 @@
         if (isAnyOverlayOpen()) return
 
         if (id === "quick-insert") {
-            openTaskPicker("tasks")
+            // Anchor on whatever is already canvas-focused, same as "a" — otherwise this
+            // always opens the Tasks-section picker regardless of scroll position, which
+            // looks like it opened "at the top of the screen" when focus is further down.
+            if (focusedId.value) {
+                addAfterFocused()
+            } else {
+                openTaskPicker("tasks")
+            }
         } else if (id === "move") {
             if (isFocusInsideDock()) {
                 moveDockPaneFocus(event.key === "ArrowDown" ? 1 : -1)
