@@ -766,10 +766,16 @@
 
     function focusActiveDockPane(): boolean {
         const pane = activeDockPaneEl()
-        const focusable = pane?.querySelector<HTMLElement>(
-            "input:not([disabled]), textarea:not([disabled]), select:not([disabled]), " +
-                "[contenteditable=\"true\"], button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])",
+        if (!pane) return false
+        // querySelector on a comma-separated list returns the first DOM-order match
+        // across ALL of them, not the first-listed selector's match — so a toolbar
+        // button ahead of the form in the DOM would win over an actual field. Query
+        // editable fields first and only fall back to generic focusables (buttons,
+        // tabindex) when the pane has none, so Tab lands somewhere worth editing.
+        const field = pane.querySelector<HTMLElement>(
+            "input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [contenteditable=\"true\"]",
         )
+        const focusable = field ?? pane.querySelector<HTMLElement>("button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])")
         if (!focusable) return false
         focusable.focus()
         return true
