@@ -1592,7 +1592,12 @@
         } else if (id === "step-out") {
             stepOut()
         } else if (id === "reorder") {
-            moveSelected(event.key === "ArrowDown" ? "down" : "up")
+            const direction = event.key === "ArrowDown" ? "down" : "up"
+            if (focusedId.value) {
+                moveFocused(direction)
+            } else if (activeSelectedId.value) {
+                moveSelected(direction)
+            }
         } else if (id === "open") {
             if (focusedId.value) openFocused()
         } else if (id === "duplicate") {
@@ -1645,6 +1650,17 @@
         } else {
             onDuplicate(tab.section, tab.id)
         }
+    }
+
+    function moveFocused(direction: "up" | "down") {
+        const path = focusedBlockPath()
+        if (!path) return
+        const newYaml = moveBlockAtPath(flowYaml.value, path, direction)
+        if (newYaml === flowYaml.value) return
+        applyYaml(newYaml)
+        // focusedId tracks the block by id, not by position, so the ring already
+        // follows it after the reorder — just keep it scrolled into view.
+        nextTick(() => focusedCard()?.scrollIntoView({block: "nearest"}))
     }
 
     function moveSelected(direction: "up" | "down") {

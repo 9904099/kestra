@@ -934,6 +934,29 @@ describe("BlockEditor", () => {
             expect(parsed.tasks[1].id).toBe("log_task")
         })
 
+        it("Alt+ArrowDown reorders the canvas-focused task without opening it in the dock", async () => {
+            // Given — j/k canvas focus only (regression: reorder previously only acted
+            // on a block already open in the dock, so navigating with the keyboard and
+            // pressing Alt+ArrowDown right away silently did nothing).
+            const offsetParentSpy = vi.spyOn(HTMLElement.prototype, "offsetParent", "get").mockReturnValue(document.body)
+            const wrapper = mountBlockEditor()
+            windowKeydown({key: "ArrowDown"}) // focus the empty Triggers section
+            await wrapper.vm.$nextTick()
+            windowKeydown({key: "ArrowDown"}) // focus log_task
+            await wrapper.vm.$nextTick()
+
+            // When
+            windowKeydown({key: "ArrowDown", altKey: true})
+            await wrapper.vm.$nextTick()
+
+            // Then
+            const {flowYamlUtils} = await import("@kestra-io/topology")
+            const parsed = flowYamlUtils.parse(mockFlowYaml.value)
+            expect(parsed.tasks[0].id).toBe("http_task")
+            expect(parsed.tasks[1].id).toBe("log_task")
+            offsetParentSpy.mockRestore()
+        })
+
         it("two consecutive Alt+ArrowDown moves a nested block twice (same block, not different ones)", async () => {
             // Given — YAML_WITH_FLOWABLE has if_block with nested_a in then[0] and nested_b in else[0]
             // We need a then lane with at least 3 tasks so we can verify two moves from index 0
