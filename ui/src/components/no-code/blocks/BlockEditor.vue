@@ -935,26 +935,35 @@
         activeTab.value?.docOpen ?? false,
     ].join("|"))
 
+    // Debounced: dockStateKey can change several times in a single burst (opening
+    // a tab, then immediately toggling collapse, etc.), and each change used to
+    // fire its own router.replace() — a rapid string of navigations racing each
+    // other. Coalescing to the LAST state in the burst keeps the URL in sync with
+    // one navigation instead of N.
+    let dockUrlSyncTimer: ReturnType<typeof setTimeout> | undefined
     watch(dockStateKey, () => {
         if (restoringDock) return
-        const query: LocationQueryRaw = {...route.query}
-        const tabs = dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(",")
-        if (tabs) query.tabs = tabs
-        else delete query.tabs
-        if (activeSelectedId.value) query.tab = activeSelectedId.value
-        else delete query.tab
-        if (tabs && splitCount.value > 1) query.cols = String(splitCount.value)
-        else delete query.cols
-        const active = activeTab.value
-        const collapsed = [
-            active?.inputsCollapsed ? "inputs" : "",
-            active?.outputCollapsed ? "output" : "",
-        ].filter(Boolean).join(",")
-        if (tabs && collapsed) query.collapsed = collapsed
-        else delete query.collapsed
-        if (tabs && active?.docOpen) query.doc = "1"
-        else delete query.doc
-        router.replace({query}).catch(() => {})
+        clearTimeout(dockUrlSyncTimer)
+        dockUrlSyncTimer = setTimeout(() => {
+            const query: LocationQueryRaw = {...route.query}
+            const tabs = dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(",")
+            if (tabs) query.tabs = tabs
+            else delete query.tabs
+            if (activeSelectedId.value) query.tab = activeSelectedId.value
+            else delete query.tab
+            if (tabs && splitCount.value > 1) query.cols = String(splitCount.value)
+            else delete query.cols
+            const active = activeTab.value
+            const collapsed = [
+                active?.inputsCollapsed ? "inputs" : "",
+                active?.outputCollapsed ? "output" : "",
+            ].filter(Boolean).join(",")
+            if (tabs && collapsed) query.collapsed = collapsed
+            else delete query.collapsed
+            if (tabs && active?.docOpen) query.doc = "1"
+            else delete query.doc
+            router.replace({query}).catch(() => {})
+        }, 300)
     })
 
     const dockRestored = ref(false)
