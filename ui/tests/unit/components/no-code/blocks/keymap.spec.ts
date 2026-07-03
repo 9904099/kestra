@@ -79,6 +79,7 @@ describe("keymap", () => {
         expect(byId.get("focus-panel")?.keys).toEqual(["Tab"])
         expect(byId.get("clear")?.keys).toEqual(["Escape"])
         expect(byId.get("insert-after")?.keys).toEqual(["a"])
+        expect(byId.get("insert-before")?.keys).toEqual(["Shift+a"])
         expect(byId.get("quick-insert")?.keys).toEqual(["/"])
         // Not Meta+k: that's already the app-wide "Jump to" global search (GlobalSearch.vue),
         // which explicitly excludes Shift — Meta+Shift+k is what's free for this scoped menu.

@@ -113,6 +113,7 @@
         "group_insert": "插入",
         "insert_after": "在{name}之后插入task",
         "insert_at_end": "在Tasks末尾插入task",
+        "insert_before": "在{name}之前插入task",
         "insert_in_section": "在{section}中插入task",
         "no_match": "无匹配项",
         "open": "打开{name}",
@@ -180,6 +181,7 @@
       "search_task_placeholder": "搜索task类型...",
       "shortcuts": {
         "add_after": "在所选内容之后插入区块",
+        "add_before": "在所选内容之前插入区块",
         "add_task": "在光标处快速插入",
         "clear": "关闭 / 清除选择",
         "collapse_expand": "折叠 / 展开",

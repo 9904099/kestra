@@ -113,6 +113,7 @@
         "group_insert": "Вставить",
         "insert_after": "Вставить task после {name}",
         "insert_at_end": "Вставить task в конец Tasks",
+        "insert_before": "Вставить task перед {name}",
         "insert_in_section": "Вставить task в {section}",
         "no_match": "Нет совпадений",
         "open": "Открыть {name}",
@@ -180,6 +181,7 @@
       "search_task_placeholder": "Поиск типов task...",
       "shortcuts": {
         "add_after": "Вставить блок после выделения",
+        "add_before": "Вставить блок перед выделением",
         "add_task": "Быстрая вставка в позиции курсора",
         "clear": "Закрыть / снять выделение",
         "collapse_expand": "Свернуть / развернуть",

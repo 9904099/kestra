@@ -113,6 +113,7 @@
         "group_insert": "Wstaw",
         "insert_after": "Wstaw task po {name}",
         "insert_at_end": "Wstaw task na końcu Tasks",
+        "insert_before": "Wstaw task przed {name}",
         "insert_in_section": "Wstaw task w {section}",
         "no_match": "Brak wyników",
         "open": "Otwórz {name}",
@@ -180,6 +181,7 @@
       "search_task_placeholder": "Szukaj typów task...",
       "shortcuts": {
         "add_after": "Wstaw blok po zaznaczeniu",
+        "add_before": "Wstaw blok przed zaznaczeniem",
         "add_task": "Szybkie wstawianie w miejscu kursora",
         "clear": "Zamknij / wyczyść zaznaczenie",
         "collapse_expand": "Zwiń / rozwiń",

@@ -113,6 +113,7 @@
         "group_insert": "Insert",
         "insert_after": "Insert task after {name}",
         "insert_at_end": "Insert task at end of Tasks",
+        "insert_before": "Insert task before {name}",
         "insert_in_section": "Insert task in {section}",
         "no_match": "No match",
         "open": "Open {name}",
@@ -180,6 +181,7 @@
       "search_task_placeholder": "Search or describe a task…",
       "shortcuts": {
         "add_after": "Insert a block after selection",
+        "add_before": "Insert a block before selection",
         "add_task": "Quick insert at cursor",
         "clear": "Close / clear selection",
         "collapse_expand": "Collapse / expand",

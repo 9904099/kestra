@@ -113,6 +113,7 @@
         "group_insert": "Inserir",
         "insert_after": "Inserir task depois de {name}",
         "insert_at_end": "Inserir task no final de Tasks",
+        "insert_before": "Inserir task antes de {name}",
         "insert_in_section": "Inserir task em {section}",
         "no_match": "Sem correspondências",
         "open": "Abrir {name}",
@@ -180,6 +181,7 @@
       "search_task_placeholder": "Pesquisar tipos de task...",
       "shortcuts": {
         "add_after": "Inserir um bloco após a seleção",
+        "add_before": "Inserir um bloco antes da seleção",
         "add_task": "Inserção rápida no cursor",
         "clear": "Fechar / limpar seleção",
         "collapse_expand": "Recolher / expandir",

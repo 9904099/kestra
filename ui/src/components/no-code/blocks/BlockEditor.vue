@@ -1002,6 +1002,7 @@
     const taskPickerSection = ref<BlockSection>("tasks")
     const taskPickerParentPath = ref<string | undefined>(undefined)
     const taskPickerAfterIndex = ref<number | undefined>(undefined)
+    const taskPickerPosition = ref<"before" | "after">("after")
     const pluginsLoading = ref(false)
     const pickerFocusedIndex = ref(-1)
 
@@ -1075,6 +1076,7 @@
         taskPickerSection.value = section
         taskPickerParentPath.value = undefined
         taskPickerAfterIndex.value = undefined
+        taskPickerPosition.value = "after"
         resetPickerView()
         taskPickerVisible.value = true
         ensurePluginData()
@@ -1088,11 +1090,17 @@
         return "tasks"
     }
 
-    function openTaskPickerAtPath(parentPath: string, afterIndex: number, evt?: Event) {
+    function openTaskPickerAtPath(
+        parentPath: string,
+        refIndex: number,
+        evt?: Event,
+        position: "before" | "after" = "after",
+    ) {
         anchorFrom(evt)
         taskPickerSection.value = sectionFromParentPath(parentPath)
         taskPickerParentPath.value = parentPath
-        taskPickerAfterIndex.value = afterIndex >= 0 ? afterIndex : undefined
+        taskPickerAfterIndex.value = refIndex >= 0 ? refIndex : undefined
+        taskPickerPosition.value = position
         resetPickerView()
         taskPickerVisible.value = true
         ensurePluginData()
@@ -1126,6 +1134,29 @@
             return
         }
         openTaskPickerAtPath(match[1], parseInt(match[2], 10))
+    }
+
+    function openTaskPickerAnchoredBeforeFocused() {
+        const sentinelSection = sectionFromSentinel(focusedId.value)
+        if (sentinelSection) {
+            openTaskPicker(sentinelSection)
+            return
+        }
+        const path = focusedBlockPath()
+        if (!path) {
+            openTaskPicker("tasks")
+            return
+        }
+        const match = path.match(/^(.*)\[(\d+)\]$/)
+        if (!match) {
+            openTaskPicker("tasks")
+            return
+        }
+        // Anchor on the focused block's own index with position "before" — an
+        // undefined ref (what index - 1 would produce for the first item) resolves
+        // to "the last item" in insertBlockWithPath, not "the first", so a real
+        // ref + explicit "before" is required to land ahead of index 0.
+        openTaskPickerAtPath(match[1], parseInt(match[2], 10), undefined, "before")
     }
 
     const pickerStyle = computed(() => {
@@ -1301,7 +1332,7 @@
         const block = buildMinimalTask(fqcn, collectAllIds(flowYaml.value))
 
         if (taskPickerParentPath.value !== undefined) {
-            applyYaml(addBlockAtPath(flowYaml.value, taskPickerParentPath.value, block, taskPickerAfterIndex.value))
+            applyYaml(addBlockAtPath(flowYaml.value, taskPickerParentPath.value, block, taskPickerAfterIndex.value, taskPickerPosition.value))
         } else {
             const section = taskPickerSection.value
             const list = sectionList(section)
@@ -1476,6 +1507,10 @@
         openTaskPickerAnchoredAfterFocused()
     }
 
+    function addBeforeFocused() {
+        openTaskPickerAnchoredBeforeFocused()
+    }
+
     function isAnyOverlayOpen(): boolean {
         return shortcutsOpen.value || taskPickerVisible.value || commandMenuOpen.value || confirmDialogOpen.value
     }
@@ -1574,6 +1609,8 @@
             }
         } else if (id === "insert-after") {
             addAfterFocused()
+        } else if (id === "insert-before") {
+            addBeforeFocused()
         }
     }
 
@@ -1748,6 +1785,20 @@
                 addAfterFocused()
             },
         })
+
+        if (focusedId.value && !focusedSentinelSection) {
+            items.push({
+                id: "insert-before",
+                group: t("block_editor.command_menu.group_insert"),
+                title: t("block_editor.command_menu.insert_before", {name: focusedBlockDisplayName()}),
+                icon: PlusCircleOutline,
+                shortcut: "⇧A",
+                run: () => {
+                    commandMenuOpen.value = false
+                    addBeforeFocused()
+                },
+            })
+        }
 
         if (focusedId.value && !focusedSentinelSection) {
             const name = focusedBlockDisplayName()

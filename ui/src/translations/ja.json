@@ -113,6 +113,7 @@
         "group_insert": "挿入",
         "insert_after": "{name}の後にtaskを挿入",
         "insert_at_end": "Tasksの末尾にtaskを挿入",
+        "insert_before": "{name}の前にtaskを挿入",
         "insert_in_section": "{section}にtaskを挿入",
         "no_match": "一致なし",
         "open": "{name}を開く",
@@ -180,6 +181,7 @@
       "search_task_placeholder": "taskタイプを検索...",
       "shortcuts": {
         "add_after": "選択の後にブロックを挿入",
+        "add_before": "選択の前にブロックを挿入",
         "add_task": "カーソル位置にクイック挿入",
         "clear": "閉じる / 選択解除",
         "collapse_expand": "折りたたみ / 展開",

@@ -17,6 +17,7 @@ export const BLOCK_EDITOR_KEYMAP: BlockEditorKeyBinding[] = [
     {id: "clear", keys: ["Escape"], group: "navigate", i18nKey: "block_editor.shortcuts.clear"},
 
     {id: "insert-after", keys: ["a"], alt: ["n"], group: "insert", i18nKey: "block_editor.shortcuts.add_after"},
+    {id: "insert-before", keys: ["Shift+a"], alt: ["Shift+n"], group: "insert", i18nKey: "block_editor.shortcuts.add_before"},
     {id: "quick-insert", keys: ["/"], group: "insert", i18nKey: "block_editor.shortcuts.add_task"},
     // Meta+K alone is already the app-wide "Jump to" global search (see GlobalSearch.vue),
     // which only fires when Shift is NOT held — Meta+Shift+K is free for this scoped menu.

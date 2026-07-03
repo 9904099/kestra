@@ -113,6 +113,7 @@
         "group_insert": "जोड़ें",
         "insert_after": "{name} के बाद task जोड़ें",
         "insert_at_end": "Tasks के अंत में task जोड़ें",
+        "insert_before": "{name} से पहले task जोड़ें",
         "insert_in_section": "{section} में task जोड़ें",
         "no_match": "कोई मेल नहीं",
         "open": "{name} खोलें",
@@ -180,6 +181,7 @@
       "search_task_placeholder": "task प्रकार खोजें...",
       "shortcuts": {
         "add_after": "चयन के बाद एक ब्लॉक जोड़ें",
+        "add_before": "चयन से पहले एक ब्लॉक जोड़ें",
         "add_task": "कर्सर पर त्वरित जोड़",
         "clear": "बंद करें / चयन हटाएं",
         "collapse_expand": "संक्षिप्त / विस्तृत करें",

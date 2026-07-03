@@ -113,6 +113,7 @@
         "group_insert": "Einfügen",
         "insert_after": "Task nach {name} einfügen",
         "insert_at_end": "Task am Ende von Tasks einfügen",
+        "insert_before": "Task vor {name} einfügen",
         "insert_in_section": "Task in {section} einfügen",
         "no_match": "Keine Treffer",
         "open": "{name} öffnen",
@@ -180,6 +181,7 @@
       "search_task_placeholder": "Aufgabentypen suchen...",
       "shortcuts": {
         "add_after": "Block nach Auswahl einfügen",
+        "add_before": "Block vor Auswahl einfügen",
         "add_task": "Schnelles Einfügen an der Cursorposition",
         "clear": "Schließen / Auswahl aufheben",
         "collapse_expand": "Ein-/Ausklappen",

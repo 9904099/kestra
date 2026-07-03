@@ -58,14 +58,15 @@ export function addBlockAtPath(
     source: string,
     parentPath: string,
     block: Record<string, unknown>,
-    afterIndex?: number,
+    refIndex?: number,
+    position: "before" | "after" = "after",
 ): string {
     return flowYamlUtils.insertBlockWithPath({
         source,
         parentPath,
         newBlock: flowYamlUtils.stringify(block),
-        refPath: afterIndex,
-        position: "after",
+        refPath: refIndex,
+        position,
     })
 }
 
