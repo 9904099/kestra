@@ -1028,6 +1028,25 @@ describe("BlockEditor", () => {
             expect(confirmMock).not.toHaveBeenCalled()
         })
 
+        it("moves focus to the next block after deleting the focused one", async () => {
+            // Given — regression: focus used to be cleared entirely, so the next
+            // ArrowDown restarted navigation from the very top of the canvas
+            const offsetParentSpy = vi.spyOn(HTMLElement.prototype, "offsetParent", "get").mockReturnValue(document.body)
+            const wrapper = mountBlockEditor()
+            const vm = wrapper.vm as unknown as {focusedId?: string}
+            vm.focusedId = "log_task"
+            await wrapper.vm.$nextTick()
+
+            // When
+            windowKeydown({key: "Backspace"})
+            await flushPromises()
+            await wrapper.vm.$nextTick()
+
+            // Then — log_task is gone and its next sibling took the focus ring
+            expect(vm.focusedId).toBe("http_task")
+            offsetParentSpy.mockRestore()
+        })
+
 
         describe("dock pane navigation", () => {
             // These need real DOM attachment: BlockEditor locates the active dock pane

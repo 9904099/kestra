@@ -1633,8 +1633,17 @@
         const name = focusedBlockDisplayName()
         const isFlowableBlock = focusedBlockIsFlowable()
         confirmDelete(name, isFlowableBlock, () => {
+            // Hand focus to a neighbor before the card disappears, so keyboard
+            // navigation continues from the deletion point instead of resetting
+            // to the top of the canvas. A flowable's children sit between it and
+            // its true next sibling in DOM order and disappear with it — skip
+            // anything the deleted card contains.
+            const cards = navigableCards()
+            const current = cards.find(el => el.getAttribute("data-block-id") === focusedId.value)
+            const index = current ? cards.indexOf(current) : -1
+            const neighbor = cards.slice(index + 1).find(el => !current?.contains(el)) ?? cards[index - 1]
             actionInFocused("[data-test='block-card-delete']")
-            focusedId.value = undefined
+            focusedId.value = neighbor?.getAttribute("data-block-id") ?? undefined
         })
     }
 
