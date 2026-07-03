@@ -270,9 +270,12 @@
 
             <KsSplitterPanel v-if="dockTabs.length" size="72%" min="40%">
                 <div class="block-editor-dock">
+                    <!-- When 2+ panes are tiled, each visible pane already shows
+                    its own label (law of proximity), so the shared tabbar only
+                    lists the backgrounded tabs — the same name never twice. -->
                     <div class="block-editor-dock-tabbar" role="tablist" :aria-label="t('block_editor.open_details')">
                         <div
-                            v-for="tab in dockTabs"
+                            v-for="tab in tabbarTabs"
                             :key="tab.id"
                             role="tab"
                             tabindex="0"
@@ -794,6 +797,12 @@
         const max = Math.min(splitCount.value, dockTabs.value.length)
         return new Set(activationOrder.value.slice(0, max))
     })
+
+    // Tabs listed in the shared tabbar: everything at split 1 (panes hide their
+    // own label then), only the non-tiled ones once 2+ panes each show theirs.
+    const tabbarTabs = computed(() => tiledIds.value.size > 1
+        ? dockTabs.value.filter(tab => !tiledIds.value.has(tab.id))
+        : dockTabs.value)
 
 
     provide(BLOCK_SCHEMA_PATH_INJECTION_KEY, computed(() => {

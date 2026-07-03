@@ -587,6 +587,28 @@ describe("BlockEditor", () => {
             expect(shownCount()).toBe(2)
         })
 
+        it("drops tiled tabs from the shared tabbar (each pane already shows its own label)", async () => {
+            // Given — two tabs open, both tiled at split 2
+            const localWrapper = wrapper = mount(BlockEditor, makeConfig())
+            const cards = localWrapper.findAll("[data-test='block-card']")
+            await cards[0].trigger("click")
+            await localWrapper.vm.$nextTick()
+            await cards[1].trigger("click")
+            await localWrapper.vm.$nextTick()
+            const topTabIds = () => localWrapper.findAll(".block-editor-dock-tabbar [role='tab']")
+                .map(tab => tab.attributes("data-test"))
+            expect(topTabIds()).toEqual(["block-editor-dock-tab-log_task", "block-editor-dock-tab-http_task"])
+
+            // When
+            const vm = localWrapper.vm as unknown as {splitCount: number}
+            vm.splitCount = 2
+            await localWrapper.vm.$nextTick()
+
+            // Then — both names now live on their own pane, so the shared bar
+            // lists nothing instead of repeating them
+            expect(topTabIds()).toEqual([])
+        })
+
         it("only shows each pane's own tabstrip once 2+ panes are tiled side by side", async () => {
             // Given — a single visible pane relies on the shared tabbar above it for its
             // label (no proximity issue there); the per-pane tabstrip stays hidden
