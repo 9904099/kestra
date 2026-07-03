@@ -136,18 +136,20 @@ vi.mock("../../../../../src/components/no-code/blocks/FlowableClusterCard.vue", 
             path: {type: String, required: true},
             icons: Object,
             selectedId: String,
+            focusedId: String,
             depth: Number,
         },
         emits: ["select", "delete", "duplicate", "add-at-path"],
         template: `
             <div data-test="flowable-cluster-card" :data-block-id="block.id">
+                <div data-test="flowable-cluster-header" aria-expanded="true" :class="{'block-kbd-focused': focusedId === block.id}" />
                 <span data-test="block-card-id">{{ block.id }}</span>
                 <span data-test="block-card-type">{{ String(block.type).split('.').pop() }}</span>
                 <div v-if="block.then" data-test="branch-lane-then">
-                    <span v-for="t in block.then" :key="t.id" data-test="nested-block-card">{{ t.id }}</span>
+                    <span v-for="t in block.then" :key="t.id" :data-block-id="t.id" :class="{'block-kbd-focused': focusedId === t.id}" data-test="nested-block-card">{{ t.id }}</span>
                 </div>
                 <div v-if="block.else" data-test="branch-lane-else">
-                    <span v-for="t in block.else" :key="t.id" data-test="nested-block-card">{{ t.id }}</span>
+                    <span v-for="t in block.else" :key="t.id" :data-block-id="t.id" :class="{'block-kbd-focused': focusedId === t.id}" data-test="nested-block-card">{{ t.id }}</span>
                 </div>
                 <div v-if="block.cases && block.cases.prod" data-test="branch-lane-cases.prod">
                     <span v-for="t in block.cases.prod" :key="t.id">{{ t.id }}</span>
@@ -837,6 +839,35 @@ describe("BlockEditor", () => {
             const {flowYamlUtils} = await import("@kestra-io/topology")
             const parsed = flowYamlUtils.parse(mockFlowYaml.value)
             expect(parsed.tasks).toHaveLength(2)
+        })
+
+        it("ArrowRight steps focus from a flowable group into its first nested task", async () => {
+            // Given — YAML_WITH_FLOWABLE: leaf (index 0), if_block (index 1) with then[nested_a].
+            // navigableCards() filters on offsetParent !== null to skip hidden cards, but
+            // jsdom never computes real layout so offsetParent is always null — stub it so
+            // the filter behaves like a real browser for this test.
+            const offsetParentSpy = vi.spyOn(HTMLElement.prototype, "offsetParent", "get").mockReturnValue(document.body)
+            mockFlowYaml.value = YAML_WITH_FLOWABLE
+            const wrapper = mountBlockEditor()
+            await flushPromises()
+            await wrapper.vm.$nextTick()
+            windowKeydown({key: "ArrowDown"}) // focus leaf
+            await wrapper.vm.$nextTick()
+            windowKeydown({key: "ArrowDown"}) // focus if_block
+            await wrapper.vm.$nextTick()
+
+            // When
+            windowKeydown({key: "ArrowRight"})
+            await flushPromises()
+            await wrapper.vm.$nextTick()
+
+            // Then — focus landed on the nested task inside the group, not a sibling at
+            // the top level (regression: nested cards used to have no data-block-id at
+            // all, so the DOM lookup silently found nothing and step-into no-opped)
+            const nested = wrapper.find("[data-block-id='nested_a']")
+            expect(nested.exists()).toBe(true)
+            expect(nested.classes()).toContain("block-kbd-focused")
+            offsetParentSpy.mockRestore()
         })
 
         it("does not fire Delete when the event target is an input", async () => {
