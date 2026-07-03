@@ -846,6 +846,77 @@
         return Boolean(dock)
     }
 
+    type DockPane = "inputs" | "form" | "output"
+    const DOCK_PANE_ORDER: DockPane[] = ["inputs", "form", "output"]
+    const DOCK_PANE_SELECTOR: Record<DockPane, string> = {
+        inputs: ".task-edit-col-inputs",
+        form: ".task-edit-col-params",
+        output: ".task-edit-col-output",
+    }
+
+    function dockPaneColumnEl(pane: DockPane): HTMLElement | undefined {
+        return activeDockPaneEl()?.querySelector<HTMLElement>(DOCK_PANE_SELECTOR[pane]) ?? undefined
+    }
+
+    function dockPaneFocusableFields(pane: DockPane): HTMLElement[] {
+        const col = dockPaneColumnEl(pane)
+        if (!col) return []
+        return [...col.querySelectorAll<HTMLElement>(
+            "input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [contenteditable=\"true\"], button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])",
+        )].filter(el => el.offsetParent !== null)
+    }
+
+    // Which of the three TaskEdit columns currently owns real DOM focus — undefined
+    // when focus is inside the dock but on chrome that isn't one of the three panes
+    // (e.g. the tabstrip's close button), or not inside the dock at all.
+    function currentDockPane(): DockPane | undefined {
+        const active = document.activeElement
+        if (!active) return undefined
+        return DOCK_PANE_ORDER.find(pane => active.closest(DOCK_PANE_SELECTOR[pane]))
+    }
+
+    function focusFirstFieldOfPane(pane: DockPane): boolean {
+        const target = dockPaneFocusableFields(pane)[0] ?? dockPaneColumnEl(pane)
+        if (!target) return false
+        if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1")
+        target.focus()
+        return true
+    }
+
+    // ArrowRight/ArrowLeft cycle Inputs -> Form -> Output when a dock tab is open —
+    // entry requires canvas focus to already be on the block that's open (so a
+    // canvas-only ArrowRight elsewhere keeps doing its normal step-into). Reaching
+    // past either end blurs back out to canvas-level (dock stays open).
+    function advanceDockPane(direction: 1 | -1): boolean {
+        if (!dockTabs.value.length) return false
+        const current = currentDockPane()
+        if (!current) {
+            if (direction < 0 || !focusedId.value || focusedId.value !== activeSelectedId.value) return false
+            return focusFirstFieldOfPane(DOCK_PANE_ORDER[0])
+        }
+        const nextIndex = DOCK_PANE_ORDER.indexOf(current) + direction
+        if (nextIndex < 0) {
+            (document.activeElement as HTMLElement | null)?.blur()
+            return true
+        }
+        if (nextIndex >= DOCK_PANE_ORDER.length) return true
+        return focusFirstFieldOfPane(DOCK_PANE_ORDER[nextIndex])
+    }
+
+    // ArrowUp/ArrowDown move real focus between a pane's own fields once inside the
+    // dock — absorbed even when nothing resolves, so canvas j/k never fires by
+    // accident while the user is navigating a form.
+    function moveDockPaneFocus(direction: 1 | -1) {
+        const pane = currentDockPane()
+        if (!pane) return
+        const fields = dockPaneFocusableFields(pane)
+        if (!fields.length) return
+        const index = fields.indexOf(document.activeElement as HTMLElement)
+        const nextIndex = index === -1 ? 0 : index + direction
+        if (nextIndex < 0 || nextIndex >= fields.length) return
+        fields[nextIndex].focus()
+    }
+
     const route = useRoute()
     const router = useRouter()
     const DOCK_SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally"]
@@ -1621,11 +1692,15 @@
         if (id === "quick-insert") {
             openTaskPicker("tasks")
         } else if (id === "move") {
-            moveFocus(event.key === "ArrowDown" || event.key === "j" ? 1 : -1)
+            if (isFocusInsideDock()) {
+                moveDockPaneFocus(event.key === "ArrowDown" ? 1 : -1)
+            } else {
+                moveFocus(event.key === "ArrowDown" || event.key === "j" ? 1 : -1)
+            }
         } else if (id === "step-into") {
-            stepInto()
+            if (!advanceDockPane(1)) stepInto()
         } else if (id === "step-out") {
-            stepOut()
+            if (!advanceDockPane(-1)) stepOut()
         } else if (id === "reorder") {
             const direction = event.key === "ArrowDown" ? "down" : "up"
             if (focusedId.value) {
@@ -1799,6 +1874,8 @@
             return [
                 {id: "close", keys: ["Escape"], i18nKey: "block_editor.footer.close_panel"},
                 {id: "move", keys: keysFor("move"), i18nKey: "block_editor.shortcuts.move_between"},
+                {id: "step-into", keys: keysFor("step-into"), i18nKey: "block_editor.shortcuts.step_into"},
+                {id: "step-out", keys: keysFor("step-out"), i18nKey: "block_editor.shortcuts.step_out"},
                 {id: "insert", keys: keysFor("insert-after"), i18nKey: "block_editor.shortcuts.add_after"},
             ]
         }

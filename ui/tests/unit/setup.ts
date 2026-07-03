@@ -55,3 +55,10 @@ if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
         dispatchEvent: () => false,
     })
 }
+// jsdom doesn't implement CSS.escape (used by BlockEditor's data-dock-pane-id lookups)
+if (typeof globalThis.CSS === "undefined" || typeof globalThis.CSS.escape !== "function") {
+    (globalThis as any).CSS = {
+        ...(globalThis as any).CSS,
+        escape: (value: string) => String(value).replace(/([!"#$%&'()*+,./:;<=>?@[\]^`{|}~])/g, "\\$1"),
+    }
+}

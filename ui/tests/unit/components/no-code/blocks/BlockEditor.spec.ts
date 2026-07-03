@@ -177,6 +177,11 @@ vi.mock("../../../../../src/components/no-code/blocks/BranchLane.vue", () => ({
 // TaskEdit stub: expose({open}) references taskEditOpenSpy, but vi.mock factories
 // are hoisted before const declarations. Work around by NOT using expose/spy —
 // instead verify rendering and state changes from the parent vm.
+// The stub carries a minimal version of TaskEdit's real "panel" layout (three
+// columns: inputs / params(form) / output, each with a focusable field) so
+// tests can exercise BlockEditor's dock-pane keyboard navigation (which
+// queries .task-edit-col-inputs/-params/-output by real DOM structure)
+// against something more realistic than a bare div.
 vi.mock("../../../../../src/components/flows/TaskEdit.vue", () => ({
     default: {
         name: "TaskEdit",
@@ -186,7 +191,21 @@ vi.mock("../../../../../src/components/flows/TaskEdit.vue", () => ({
         setup(_: unknown, {expose}: {expose: (o: Record<string, unknown>) => void}) {
             expose({open: () => undefined})
         },
-        template: "<div data-test='block-editor-task-edit' />",
+        template: `
+            <div data-test='block-editor-task-edit' v-bind="$attrs">
+                <div class="task-edit-col-inputs">
+                    <input data-test="stub-inputs-field" />
+                </div>
+                <div class="task-edit-col-params">
+                    <button data-test="stub-doc-toggle">Documentation</button>
+                    <input data-test="stub-form-field-1" />
+                    <input data-test="stub-form-field-2" />
+                </div>
+                <div class="task-edit-col-output">
+                    <button data-test="stub-output-chip">chip</button>
+                </div>
+            </div>
+        `,
     },
 }))
 
@@ -912,6 +931,145 @@ describe("BlockEditor", () => {
             // Then
             expect(vm.taskPickerVisible).toBe(true)
             expect(vm.taskPickerParentPath).toBe("tasks[1].errors")
+        })
+
+        describe("dock pane navigation", () => {
+            // These need real DOM attachment: BlockEditor locates the active dock pane
+            // via document.querySelector("[data-dock-pane-id]") and reads
+            // document.activeElement, neither of which see a detached VTU tree. The
+            // offsetParent stub is needed because jsdom never computes real layout, so
+            // it would otherwise always report null and hide every stub field.
+            let offsetParentSpy: ReturnType<typeof vi.spyOn>
+
+            beforeEach(() => {
+                offsetParentSpy = vi.spyOn(HTMLElement.prototype, "offsetParent", "get").mockReturnValue(document.body)
+            })
+
+            afterEach(() => {
+                offsetParentSpy.mockRestore()
+            })
+
+            async function mountWithOpenDock() {
+                const wrapper = mount(BlockEditor, {...makeConfig(), attachTo: document.body})
+                await wrapper.find("[data-test='block-card']").trigger("click")
+                await wrapper.vm.$nextTick()
+                const vm = wrapper.vm as unknown as {focusedId?: string}
+                // A real keyboard flow (j/k then Enter) leaves focusedId pointing at the
+                // block that was just opened — set it directly here to reproduce that.
+                vm.focusedId = "log_task"
+                await wrapper.vm.$nextTick()
+                return wrapper
+            }
+
+            it("ArrowRight enters the dock's Inputs pane when canvas focus matches the open tab", async () => {
+                // Given
+                const wrapper = await mountWithOpenDock()
+
+                // When
+                windowKeydown({key: "ArrowRight"})
+                await wrapper.vm.$nextTick()
+
+                // Then
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-inputs-field")
+                wrapper.unmount()
+            })
+
+            it("does not enter the dock when canvas focus is on a different block than the open tab", async () => {
+                // Given — dock open for log_task, but canvas focus is elsewhere
+                const wrapper = await mountWithOpenDock()
+                const vm = wrapper.vm as unknown as {focusedId?: string}
+                vm.focusedId = "http_task"
+                await wrapper.vm.$nextTick()
+
+                // When
+                windowKeydown({key: "ArrowRight"})
+                await wrapper.vm.$nextTick()
+
+                // Then — falls through to ordinary canvas step-into instead (a no-op here,
+                // since neither task is a flowable group)
+                expect(document.activeElement?.getAttribute("data-test")).not.toBe("stub-inputs-field")
+                wrapper.unmount()
+            })
+
+            it("cycles Inputs -> Form -> Output on repeated ArrowRight, and stays on Output past the end", async () => {
+                // Given
+                const wrapper = await mountWithOpenDock()
+
+                // When/Then
+                windowKeydown({key: "ArrowRight"}) // -> Inputs
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-inputs-field")
+
+                windowKeydown({key: "ArrowRight"}) // -> Form (first focusable: the doc toggle)
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-doc-toggle")
+
+                windowKeydown({key: "ArrowRight"}) // -> Output
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-output-chip")
+
+                windowKeydown({key: "ArrowRight"}) // already at Output — absorbed, no-op
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-output-chip")
+                wrapper.unmount()
+            })
+
+            it("cycles back Output -> Form -> Inputs -> canvas on repeated ArrowLeft", async () => {
+                // Given — walk in to Output first
+                const wrapper = await mountWithOpenDock()
+                windowKeydown({key: "ArrowRight"})
+                windowKeydown({key: "ArrowRight"})
+                windowKeydown({key: "ArrowRight"})
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-output-chip")
+
+                // When/Then
+                windowKeydown({key: "ArrowLeft"}) // -> Form
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-doc-toggle")
+
+                windowKeydown({key: "ArrowLeft"}) // -> Inputs
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-inputs-field")
+
+                windowKeydown({key: "ArrowLeft"}) // -> back out to canvas (blurred, dock stays open)
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement).toBe(document.body)
+                expect(wrapper.find("[data-test='block-editor-task-edit']").exists()).toBe(true)
+                wrapper.unmount()
+            })
+
+            it("ArrowDown/ArrowUp move real focus between fields inside the active pane", async () => {
+                // Given — land in the Form pane, on its first focusable field
+                const wrapper = await mountWithOpenDock()
+                windowKeydown({key: "ArrowRight"})
+                windowKeydown({key: "ArrowRight"})
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-doc-toggle")
+
+                // When
+                windowKeydown({key: "ArrowDown"})
+                await wrapper.vm.$nextTick()
+
+                // Then
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-form-field-1")
+
+                // When
+                windowKeydown({key: "ArrowDown"})
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-form-field-2")
+
+                // When — already at the last field, ArrowDown is absorbed (clamped, not wrapped)
+                windowKeydown({key: "ArrowDown"})
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-form-field-2")
+
+                // When
+                windowKeydown({key: "ArrowUp"})
+                await wrapper.vm.$nextTick()
+                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-form-field-1")
+                wrapper.unmount()
+            })
         })
 
         it("does not fire Delete when the event target is an input", async () => {
