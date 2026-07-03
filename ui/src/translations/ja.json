@@ -113,6 +113,7 @@
         "group_insert": "挿入",
         "insert_after": "{name}の後にtaskを挿入",
         "insert_at_end": "Tasksの末尾にtaskを挿入",
+        "insert_in_section": "{section}にtaskを挿入",
         "no_match": "一致なし",
         "open": "{name}を開く",
         "save": "flowを保存",

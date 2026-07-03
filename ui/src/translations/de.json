@@ -113,6 +113,7 @@
         "group_insert": "Einfügen",
         "insert_after": "Task nach {name} einfügen",
         "insert_at_end": "Task am Ende von Tasks einfügen",
+        "insert_in_section": "Task in {section} einfügen",
         "no_match": "Keine Treffer",
         "open": "{name} öffnen",
         "save": "Flow speichern",

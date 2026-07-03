@@ -40,6 +40,9 @@
                                     v-if="parsedTriggers.length === 0"
                                     variant="empty"
                                     :label="t('block_editor.trigger_noun')"
+                                    :data-block-id="sectionSentinelId('triggers')"
+                                    :class="{'block-kbd-focused': focusedId === sectionSentinelId('triggers')}"
+                                    :aria-selected="focusedId === sectionSentinelId('triggers')"
                                     @add="(e) => openTaskPicker('triggers', e)"
                                 />
                                 <BlockEmptyDrop
@@ -108,6 +111,9 @@
                                     variant="empty"
                                     :label="t('block_editor.task_noun')"
                                     :hint="t('block_editor.empty_add_hint')"
+                                    :data-block-id="sectionSentinelId('tasks')"
+                                    :class="{'block-kbd-focused': focusedId === sectionSentinelId('tasks')}"
+                                    :aria-selected="focusedId === sectionSentinelId('tasks')"
                                     @add="(e) => openTaskPicker('tasks', e)"
                                 />
                                 <BlockEmptyDrop
@@ -163,6 +169,9 @@
                                     v-if="flowLevelErrors.length === 0"
                                     variant="empty"
                                     :label="t('block_editor.error_task_noun')"
+                                    :data-block-id="sectionSentinelId('errors')"
+                                    :class="{'block-kbd-focused': focusedId === sectionSentinelId('errors')}"
+                                    :aria-selected="focusedId === sectionSentinelId('errors')"
                                     @add="(e) => openTaskPicker('errors', e)"
                                 />
                                 <BlockEmptyDrop
@@ -217,6 +226,9 @@
                                     v-if="flowLevelFinally.length === 0"
                                     variant="empty"
                                     :label="t('block_editor.task_noun')"
+                                    :data-block-id="sectionSentinelId('finally')"
+                                    :class="{'block-kbd-focused': focusedId === sectionSentinelId('finally')}"
+                                    :aria-selected="focusedId === sectionSentinelId('finally')"
                                     @add="(e) => openTaskPicker('finally', e)"
                                 />
                                 <BlockEmptyDrop
@@ -624,6 +636,28 @@
         if (section === "errors") return flowLevelErrors.value
         if (section === "finally") return flowLevelFinally.value
         return parsedTasks.value
+    }
+
+    function sectionDisplayLabel(section: BlockSection): string {
+        if (section === "triggers") return t("no_code.sections.triggers")
+        if (section === "errors") return t("block_editor.lane_errors")
+        if (section === "finally") return t("block_editor.lane_finally")
+        return t("no_code.sections.tasks")
+    }
+
+    // An empty section has no task to anchor focus on, so it renders its
+    // BlockEmptyDrop placeholder with this sentinel as its data-block-id —
+    // keyboard nav (j/k, "Go to X") can then land on it like any other card,
+    // and "a"/Enter there opens the picker for that section instead of acting
+    // on a real block.
+    function sectionSentinelId(section: BlockSection): string {
+        return `__section:${section}`
+    }
+
+    function sectionFromSentinel(id: string | undefined): BlockSection | undefined {
+        if (!id?.startsWith("__section:")) return undefined
+        const section = id.slice("__section:".length) as BlockSection
+        return DOCK_SECTIONS.includes(section) ? section : undefined
     }
 
     const NESTED_BLOCK_KEYS = ["tasks", "then", "else", "finally", "errors", "defaults"]
@@ -1076,6 +1110,11 @@
     }
 
     function openTaskPickerAnchoredAfterFocused() {
+        const sentinelSection = sectionFromSentinel(focusedId.value)
+        if (sentinelSection) {
+            openTaskPicker(sentinelSection)
+            return
+        }
         const path = focusedBlockPath()
         if (!path) {
             openTaskPicker("tasks")
@@ -1210,13 +1249,7 @@
         return []
     })
 
-    const sectionLabel = computed(() => {
-        const section = taskPickerSection.value
-        if (section === "triggers") return t("no_code.sections.triggers")
-        if (section === "errors") return t("block_editor.lane_errors")
-        if (section === "finally") return t("block_editor.lane_finally")
-        return t("no_code.sections.tasks")
-    })
+    const sectionLabel = computed(() => sectionDisplayLabel(taskPickerSection.value))
 
     function setPickerTab(tab: PickerTab) {
         pickerTab.value = tab
@@ -1639,6 +1672,8 @@
         if (commandMenuOpen.value) return t("block_editor.footer.command_menu")
         if (taskPickerVisible.value) return t("block_editor.footer.inserting")
         if (dockTabs.value.length) return t("block_editor.footer.editing")
+        const sentinelSection = sectionFromSentinel(focusedId.value)
+        if (sentinelSection) return t("block_editor.footer.selected", {name: sectionDisplayLabel(sentinelSection)})
         if (focusedId.value) return t("block_editor.footer.selected", {name: focusedBlockDisplayName()})
         return t("block_editor.footer.canvas")
     })
@@ -1682,17 +1717,22 @@
         ]
     })
 
-    const commandMenuContextLabel = computed(() =>
-        focusedId.value
+    const commandMenuContextLabel = computed(() => {
+        const sentinelSection = sectionFromSentinel(focusedId.value)
+        if (sentinelSection) return t("block_editor.command_menu.context_selected", {name: sectionDisplayLabel(sentinelSection)})
+        return focusedId.value
             ? t("block_editor.command_menu.context_selected", {name: focusedBlockDisplayName()})
-            : t("block_editor.command_menu.context_flow"),
-    )
+            : t("block_editor.command_menu.context_flow")
+    })
 
     const commandMenuItems = computed<BlockCommandMenuItem[]>(() => {
         const items: BlockCommandMenuItem[] = []
-        const insertLabel = focusedId.value
-            ? t("block_editor.command_menu.insert_after", {name: focusedBlockDisplayName()})
-            : t("block_editor.command_menu.insert_at_end")
+        const focusedSentinelSection = sectionFromSentinel(focusedId.value)
+        const insertLabel = focusedSentinelSection
+            ? t("block_editor.command_menu.insert_in_section", {section: sectionDisplayLabel(focusedSentinelSection)})
+            : focusedId.value
+                ? t("block_editor.command_menu.insert_after", {name: focusedBlockDisplayName()})
+                : t("block_editor.command_menu.insert_at_end")
         items.push({
             id: "insert",
             group: t("block_editor.command_menu.group_insert"),
@@ -1705,7 +1745,7 @@
             },
         })
 
-        if (focusedId.value) {
+        if (focusedId.value && !focusedSentinelSection) {
             const name = focusedBlockDisplayName()
             items.push({
                 id: "open",
@@ -1757,7 +1797,7 @@
                 run: () => {
                     commandMenuOpen.value = false
                     const list = sectionList(section)
-                    if (list.length) focusedId.value = String(list[0].id ?? 0)
+                    focusedId.value = list.length ? String(list[0].id ?? 0) : sectionSentinelId(section)
                 },
             })
         }

@@ -851,6 +851,10 @@ describe("BlockEditor", () => {
             const wrapper = mountBlockEditor()
             await flushPromises()
             await wrapper.vm.$nextTick()
+            // Triggers has no items in this fixture, so its empty-section sentinel is the
+            // first navigable stop, ahead of the real task cards.
+            windowKeydown({key: "ArrowDown"}) // focus the empty Triggers section
+            await wrapper.vm.$nextTick()
             windowKeydown({key: "ArrowDown"}) // focus leaf
             await wrapper.vm.$nextTick()
             windowKeydown({key: "ArrowDown"}) // focus if_block

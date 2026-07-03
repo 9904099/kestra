@@ -113,6 +113,7 @@
         "group_insert": "Inserisci",
         "insert_after": "Inserisci task dopo {name}",
         "insert_at_end": "Inserisci task alla fine di Tasks",
+        "insert_in_section": "Inserisci task in {section}",
         "no_match": "Nessun risultato",
         "open": "Apri {name}",
         "save": "Salva il flow",

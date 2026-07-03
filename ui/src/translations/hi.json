@@ -113,6 +113,7 @@
         "group_insert": "जोड़ें",
         "insert_after": "{name} के बाद task जोड़ें",
         "insert_at_end": "Tasks के अंत में task जोड़ें",
+        "insert_in_section": "{section} में task जोड़ें",
         "no_match": "कोई मेल नहीं",
         "open": "{name} खोलें",
         "save": "Flow सहेजें",
