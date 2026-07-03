@@ -660,6 +660,31 @@
         return DOCK_SECTIONS.includes(section) ? section : undefined
     }
 
+    // Same idea as the section sentinel, but for an empty lane INSIDE a
+    // flowable block (e.g. a Sequential task's own, currently-empty "errors"
+    // lane) — that lane doesn't map to a fixed BlockSection, so it carries
+    // its own parent path instead (see BranchLane.vue's data-block-id).
+    function parentPathFromLaneSentinel(id: string | undefined): string | undefined {
+        if (!id?.startsWith("__lane:")) return undefined
+        return id.slice("__lane:".length)
+    }
+
+    // Mirrors BranchLane.vue's own laneLabel computed, but derived from a
+    // parent path (e.g. "tasks[0].errors" or "tasks[0].cases.foo") since the
+    // lane sentinel only carries the path, not the lane name directly.
+    function laneDisplayLabelFromPath(parentPath: string): string {
+        const casesMatch = parentPath.match(/\.cases\.([^.]+)$/)
+        if (casesMatch) return t("block_editor.lane_case", {key: casesMatch[1]})
+        const laneName = parentPath.slice(parentPath.lastIndexOf(".") + 1)
+        if (laneName === "then") return t("block_editor.lane_then")
+        if (laneName === "else") return t("block_editor.lane_else")
+        if (laneName === "errors") return t("block_editor.lane_errors")
+        if (laneName === "finally") return t("block_editor.lane_finally")
+        if (laneName === "defaults") return t("block_editor.lane_defaults")
+        if (laneName === "tasks") return t("block_editor.lane_tasks")
+        return laneName.toUpperCase()
+    }
+
     const NESTED_BLOCK_KEYS = ["tasks", "then", "else", "finally", "errors", "defaults"]
 
     function findNestedPath(items: Record<string, unknown>[], id: string, prefix: string): string | undefined {
@@ -1123,6 +1148,11 @@
             openTaskPicker(sentinelSection)
             return
         }
+        const laneParentPath = parentPathFromLaneSentinel(focusedId.value)
+        if (laneParentPath) {
+            openTaskPickerAtPath(laneParentPath, -1)
+            return
+        }
         const path = focusedBlockPath()
         if (!path) {
             openTaskPicker("tasks")
@@ -1140,6 +1170,11 @@
         const sentinelSection = sectionFromSentinel(focusedId.value)
         if (sentinelSection) {
             openTaskPicker(sentinelSection)
+            return
+        }
+        const laneParentPath = parentPathFromLaneSentinel(focusedId.value)
+        if (laneParentPath) {
+            openTaskPickerAtPath(laneParentPath, -1)
             return
         }
         const path = focusedBlockPath()
@@ -1731,6 +1766,8 @@
         if (dockTabs.value.length) return t("block_editor.footer.editing")
         const sentinelSection = sectionFromSentinel(focusedId.value)
         if (sentinelSection) return t("block_editor.footer.selected", {name: sectionDisplayLabel(sentinelSection)})
+        const laneParentPath = parentPathFromLaneSentinel(focusedId.value)
+        if (laneParentPath) return t("block_editor.footer.selected", {name: laneDisplayLabelFromPath(laneParentPath)})
         if (focusedId.value) return t("block_editor.footer.selected", {name: focusedBlockDisplayName()})
         return t("block_editor.footer.canvas")
     })
@@ -1768,7 +1805,9 @@
         // A real block (not an empty section's sentinel) additionally supports
         // inserting before it and reordering it — surface those here too, since
         // they were previously only discoverable through the "?" help overlay.
-        const isRealBlockFocused = Boolean(focusedId.value) && !sectionFromSentinel(focusedId.value)
+        const isRealBlockFocused = Boolean(focusedId.value)
+            && !sectionFromSentinel(focusedId.value)
+            && !parentPathFromLaneSentinel(focusedId.value)
         return [
             {id: "move", keys: keysFor("move"), i18nKey: "block_editor.shortcuts.move_between"},
             {id: "open", keys: keysFor("open"), i18nKey: "block_editor.shortcuts.open"},
@@ -1787,6 +1826,8 @@
     const commandMenuContextLabel = computed(() => {
         const sentinelSection = sectionFromSentinel(focusedId.value)
         if (sentinelSection) return t("block_editor.command_menu.context_selected", {name: sectionDisplayLabel(sentinelSection)})
+        const laneParentPath = parentPathFromLaneSentinel(focusedId.value)
+        if (laneParentPath) return t("block_editor.command_menu.context_selected", {name: laneDisplayLabelFromPath(laneParentPath)})
         return focusedId.value
             ? t("block_editor.command_menu.context_selected", {name: focusedBlockDisplayName()})
             : t("block_editor.command_menu.context_flow")
@@ -1795,11 +1836,14 @@
     const commandMenuItems = computed<BlockCommandMenuItem[]>(() => {
         const items: BlockCommandMenuItem[] = []
         const focusedSentinelSection = sectionFromSentinel(focusedId.value)
+        const focusedLaneSentinel = parentPathFromLaneSentinel(focusedId.value)
         const insertLabel = focusedSentinelSection
             ? t("block_editor.command_menu.insert_in_section", {section: sectionDisplayLabel(focusedSentinelSection)})
-            : focusedId.value
-                ? t("block_editor.command_menu.insert_after", {name: focusedBlockDisplayName()})
-                : t("block_editor.command_menu.insert_at_end")
+            : focusedLaneSentinel
+                ? t("block_editor.command_menu.insert_in_section", {section: laneDisplayLabelFromPath(focusedLaneSentinel)})
+                : focusedId.value
+                    ? t("block_editor.command_menu.insert_after", {name: focusedBlockDisplayName()})
+                    : t("block_editor.command_menu.insert_at_end")
         items.push({
             id: "insert",
             group: t("block_editor.command_menu.group_insert"),
@@ -1812,7 +1856,7 @@
             },
         })
 
-        if (focusedId.value && !focusedSentinelSection) {
+        if (focusedId.value && !focusedSentinelSection && !focusedLaneSentinel) {
             items.push({
                 id: "insert-before",
                 group: t("block_editor.command_menu.group_insert"),
@@ -1826,7 +1870,7 @@
             })
         }
 
-        if (focusedId.value && !focusedSentinelSection) {
+        if (focusedId.value && !focusedSentinelSection && !focusedLaneSentinel) {
             const name = focusedBlockDisplayName()
             items.push({
                 id: "open",

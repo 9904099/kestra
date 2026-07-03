@@ -874,6 +874,46 @@ describe("BlockEditor", () => {
             offsetParentSpy.mockRestore()
         })
 
+        it("inserts into a flowable block's own empty errors lane when its sentinel is focused", async () => {
+            // Given — if_block (per FLOWABLE_SUFFIX_MAP) also has its own "errors"/"finally"
+            // lanes alongside then/else; BranchLane renders those as an always-present
+            // sentinel (__lane:<path>) when empty (regression: that lane had no sentinel at
+            // all, so it was unreachable via keyboard and had no way to insert a first
+            // error/finally task). FlowableClusterCard/BranchLane are hand-rolled stubs in
+            // this file that don't model that sentinel, so focusedId is set directly here to
+            // exercise BlockEditor's own lane-sentinel handling in isolation.
+            mockFlowYaml.value = YAML_WITH_FLOWABLE
+            const wrapper = mountBlockEditor()
+            await flushPromises()
+            const vm = wrapper.vm as unknown as {
+                focusedId?: string
+                taskPickerVisible: boolean
+                taskPickerParentPath?: string
+                commandMenuItems: Array<{id: string; title: string}>
+            }
+
+            // When
+            vm.focusedId = "__lane:tasks[1].errors"
+            await wrapper.vm.$nextTick()
+
+            // Then — a lane sentinel is not a real block, so Open/Duplicate/Delete/insert-before
+            // stay hidden — same contract as a top-level empty section
+            const itemIds = vm.commandMenuItems.map(i => i.id)
+            expect(itemIds).toContain("insert")
+            expect(itemIds).not.toContain("insert-before")
+            expect(itemIds).not.toContain("open")
+            expect(itemIds).not.toContain("duplicate")
+            expect(itemIds).not.toContain("delete")
+
+            // When — "a" opens the picker anchored on that lane, not the top-level Errors section
+            windowKeydown({key: "a"})
+            await wrapper.vm.$nextTick()
+
+            // Then
+            expect(vm.taskPickerVisible).toBe(true)
+            expect(vm.taskPickerParentPath).toBe("tasks[1].errors")
+        })
+
         it("does not fire Delete when the event target is an input", async () => {
             // Given
             const wrapper = mountBlockEditor()

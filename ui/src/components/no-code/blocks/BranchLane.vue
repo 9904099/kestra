@@ -69,6 +69,8 @@
                 class="branch-lane-add-btn"
                 type="button"
                 :data-test="`branch-lane-add-${laneName}`"
+                :data-block-id="tasks.length === 0 ? `__lane:${parentPath}` : undefined"
+                :class="{'block-kbd-focused': tasks.length === 0 && focusedId === `__lane:${parentPath}`}"
                 :aria-label="t('block_editor.add_to_lane', {lane: laneLabel})"
                 @click="emit('add-at-path', parentPath, tasks.length - 1, $event)"
             >
@@ -263,6 +265,14 @@
             outline: 2px solid var(--ks-border-focus);
             outline-offset: 1px;
         }
+    }
+
+    // Reactive canvas-focus ring for an empty lane's sentinel (see the
+    // __lane: prefix used for data-block-id above) — mirrors the ring every
+    // real block card already has.
+    .branch-lane-add-btn.block-kbd-focused {
+        border-color: var(--ks-border-focus);
+        box-shadow: 0 0 0 2px var(--ks-border-focus);
     }
 
     .branch-lane-add-icon {
