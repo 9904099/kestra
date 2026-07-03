@@ -1765,10 +1765,20 @@
                 {id: "insert", keys: keysFor("insert-after"), i18nKey: "block_editor.shortcuts.add_after"},
             ]
         }
+        // A real block (not an empty section's sentinel) additionally supports
+        // inserting before it and reordering it — surface those here too, since
+        // they were previously only discoverable through the "?" help overlay.
+        const isRealBlockFocused = Boolean(focusedId.value) && !sectionFromSentinel(focusedId.value)
         return [
             {id: "move", keys: keysFor("move"), i18nKey: "block_editor.shortcuts.move_between"},
             {id: "open", keys: keysFor("open"), i18nKey: "block_editor.shortcuts.open"},
             {id: "insert", keys: keysFor("insert-after"), i18nKey: "block_editor.shortcuts.add_after"},
+            ...(isRealBlockFocused
+                ? [
+                    {id: "insert-before", keys: keysFor("insert-before"), i18nKey: "block_editor.shortcuts.add_before"},
+                    {id: "reorder", keys: keysFor("reorder"), i18nKey: "block_editor.shortcuts.reorder"},
+                ]
+                : []),
             {id: "command-menu", keys: keysFor("command-menu"), i18nKey: "block_editor.shortcuts.command_palette"},
             {id: "help", keys: keysFor("help"), i18nKey: "block_editor.shortcuts.toggle"},
         ]
