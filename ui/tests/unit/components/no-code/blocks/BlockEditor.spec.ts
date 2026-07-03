@@ -609,6 +609,29 @@ describe("BlockEditor", () => {
             expect(topTabIds()).toEqual([])
         })
 
+        it("swaps two tiled panes when one pane's tab is dropped onto the other", async () => {
+            // Given — two tabs tiled side by side
+            const localWrapper = wrapper = mount(BlockEditor, makeConfig())
+            const cards = localWrapper.findAll("[data-test='block-card']")
+            await cards[0].trigger("click")
+            await localWrapper.vm.$nextTick()
+            await cards[1].trigger("click")
+            await localWrapper.vm.$nextTick()
+            const vm = localWrapper.vm as unknown as {splitCount: number; dockTabs: Array<{id: string}>}
+            vm.splitCount = 2
+            await localWrapper.vm.$nextTick()
+            expect(vm.dockTabs.map(t => t.id)).toEqual(["log_task", "http_task"])
+
+            // When — the first pane's tab is dragged onto the second pane
+            const panes = localWrapper.findAllComponents({name: "TaskEdit"})
+            await panes[0].vm.$emit("tab-drag-start")
+            await panes[1].vm.$emit("tab-drop")
+            await localWrapper.vm.$nextTick()
+
+            // Then — pane order follows dockTabs order, so the sides swapped
+            expect(vm.dockTabs.map(t => t.id)).toEqual(["http_task", "log_task"])
+        })
+
         it("only shows each pane's own tabstrip once 2+ panes are tiled side by side", async () => {
             // Given — a single visible pane relies on the shared tabbar above it for its
             // label (no proximity issue there); the per-pane tabstrip stays hidden

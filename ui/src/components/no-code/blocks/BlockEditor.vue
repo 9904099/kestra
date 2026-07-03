@@ -374,6 +374,8 @@
                             @focusin="focusPane(tab.id)"
                             @update:task="(content) => onTaskEdited(tab, content)"
                             @close="closeTab(tab.id)"
+                            @tab-drag-start="dockDragTabId = tab.id"
+                            @tab-drop="onPaneTabDrop(tab.id)"
                         />
                     </div>
                 </div>
@@ -803,6 +805,23 @@
     const tabbarTabs = computed(() => tiledIds.value.size > 1
         ? dockTabs.value.filter(tab => !tiledIds.value.has(tab.id))
         : dockTabs.value)
+
+    // Pane order follows dockTabs order, so swapping two entries swaps which
+    // side each tiled pane renders on — that's what dragging one pane's tab
+    // label onto another pane does.
+    const dockDragTabId = ref<string>()
+
+    function onPaneTabDrop(targetId: string) {
+        const sourceId = dockDragTabId.value
+        dockDragTabId.value = undefined
+        if (!sourceId || sourceId === targetId) return
+        const tabs = [...dockTabs.value]
+        const from = tabs.findIndex(tab => tab.id === sourceId)
+        const to = tabs.findIndex(tab => tab.id === targetId)
+        if (from < 0 || to < 0) return
+        ;[tabs[from], tabs[to]] = [tabs[to], tabs[from]]
+        dockTabs.value = tabs
+    }
 
 
     provide(BLOCK_SCHEMA_PATH_INJECTION_KEY, computed(() => {

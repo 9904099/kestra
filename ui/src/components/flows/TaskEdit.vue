@@ -58,9 +58,18 @@
         v-else-if="isModalOpen"
         class="task-edit-panel"
         data-test="task-edit-panel"
+        @dragover.prevent
+        @drop="emit('tab-drop')"
     >
         <div v-if="!hideTabstrip" class="task-edit-tabstrip">
-            <div class="task-edit-tab">
+            <!-- Draggable so tiled panes can be swapped side-to-side by
+            dropping this label onto another pane. -->
+            <div
+                class="task-edit-tab"
+                draggable="true"
+                data-test="task-edit-tab"
+                @dragstart="onTabDragStart"
+            >
                 <KsTaskIcon class="task-edit-tab-ico" :cls="taskType" :icons="pluginsStore.icons" :onlyIcon="true" />
                 <span class="task-edit-tab-id">{{ taskId || task?.id || $t("add task") }}</span>
                 <KsIconButton
@@ -218,7 +227,16 @@
     const emit = defineEmits<{
         "update:task": [value: string];
         "close": [];
+        "tab-drag-start": [];
+        "tab-drop": [];
     }>()
+
+    function onTabDragStart(event: DragEvent) {
+        // Both are required for the browser to actually start a native drag.
+        event.dataTransfer?.setData("text/plain", "dock-pane-tab")
+        if (event.dataTransfer) event.dataTransfer.effectAllowed = "move"
+        emit("tab-drag-start")
+    }
 
     const pluginsStore = usePluginsStore()
     const {t} = useI18n()
