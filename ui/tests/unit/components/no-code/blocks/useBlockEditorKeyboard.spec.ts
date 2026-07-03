@@ -11,9 +11,10 @@ const KEYMAP: BlockEditorKeyBindingLike[] = [
     {id: "save", keys: ["Meta+s", "Control+s"]},
     {id: "clear", keys: ["Escape"]},
     {id: "help", keys: ["?"]},
+    {id: "focus-panel", keys: ["Tab"]},
 ]
 
-function mountWithKeyboard(dispatch: (id: string, event: KeyboardEvent) => void, isOverlayOpen?: () => boolean) {
+function mountWithKeyboard(dispatch: (id: string, event: KeyboardEvent) => void | boolean, isOverlayOpen?: () => boolean) {
     const Comp = defineComponent({
         setup() {
             useBlockEditorKeyboard({keymap: KEYMAP, dispatch, isOverlayOpen})
@@ -202,6 +203,31 @@ describe("useBlockEditorKeyboard", () => {
 
         // Then
         expect(dispatch).toHaveBeenCalledWith("help", expect.any(KeyboardEvent))
+    })
+
+    it("does not preventDefault when dispatch reports it did not handle the key", () => {
+        // Given — e.g. Tab pressed with no dock panel open to focus into
+        const dispatch = vi.fn().mockReturnValue(false)
+        wrapper = mountWithKeyboard(dispatch)
+
+        // When
+        const event = dispatchKeydown(window, {key: "Tab"})
+
+        // Then — native Tab behavior is left alone
+        expect(dispatch).toHaveBeenCalledWith("focus-panel", expect.any(KeyboardEvent))
+        expect(event.defaultPrevented).toBe(false)
+    })
+
+    it("still preventDefaults when dispatch handles the key", () => {
+        // Given — e.g. Tab pressed while a dock panel is open
+        const dispatch = vi.fn().mockReturnValue(true)
+        wrapper = mountWithKeyboard(dispatch)
+
+        // When
+        const event = dispatchKeydown(window, {key: "Tab"})
+
+        // Then
+        expect(event.defaultPrevented).toBe(true)
     })
 
     it("does not dispatch after the component using it unmounts", () => {
