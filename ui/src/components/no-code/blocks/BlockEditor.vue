@@ -1626,6 +1626,10 @@
 
     function requestDeleteFocused() {
         if (!focusedId.value) return
+        // Sentinels (empty sections/lanes) aren't real blocks — there is nothing
+        // to delete, and the confirm dialog would leak the internal __section:/
+        // __lane: id as the block "name".
+        if (sectionFromSentinel(focusedId.value) || parentPathFromLaneSentinel(focusedId.value)) return
         const name = focusedBlockDisplayName()
         const isFlowableBlock = focusedBlockIsFlowable()
         confirmDelete(name, isFlowableBlock, () => {

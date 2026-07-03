@@ -1005,6 +1005,29 @@ describe("BlockEditor", () => {
             expect(vm.taskPickerParentPath).toBe("tasks[1].errors")
         })
 
+        it("ignores Delete on an empty-section sentinel instead of opening a confirm dialog", async () => {
+            // Given — regression: the confirm dialog used to open with the internal
+            // sentinel id leaked as the block name ("Delete __section:errors?")
+            const wrapper = mountBlockEditor()
+            const vm = wrapper.vm as unknown as {focusedId?: string}
+            vm.focusedId = "__section:errors"
+            await wrapper.vm.$nextTick()
+
+            // When
+            windowKeydown({key: "Backspace"})
+            await flushPromises()
+
+            // Then
+            expect(confirmMock).not.toHaveBeenCalled()
+
+            // And the same for a lane sentinel
+            vm.focusedId = "__lane:tasks[0].errors"
+            await wrapper.vm.$nextTick()
+            windowKeydown({key: "Delete"})
+            await flushPromises()
+            expect(confirmMock).not.toHaveBeenCalled()
+        })
+
 
         describe("dock pane navigation", () => {
             // These need real DOM attachment: BlockEditor locates the active dock pane
