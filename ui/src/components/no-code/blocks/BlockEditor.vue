@@ -371,6 +371,7 @@
                                 v-for="tab in group.tabs"
                                 v-show="group.activeTabId === tab.id"
                                 :key="tab.id"
+                                :ref="(el) => setTaskEditRef(tab.id, el)"
                                 class="block-editor-dock-pane"
                                 :data-dock-pane-id="tab.id"
                                 :task="tab.data"
@@ -765,6 +766,18 @@
     }
 
     const editorEl = ref<HTMLElement>()
+
+    // Every mounted dock pane, keyed by tab id — flushed before a save so a
+    // debounced edit typed just before Cmd/Ctrl+S is never silently dropped.
+    const taskEditRefs = new Map<string, InstanceType<typeof TaskEdit>>()
+    function setTaskEditRef(id: string, el: unknown) {
+        if (el) taskEditRefs.set(id, el as InstanceType<typeof TaskEdit>)
+        else taskEditRefs.delete(id)
+    }
+    function saveFlowWithPendingEdits() {
+        taskEditRefs.forEach(pane => pane.flushPendingEdit())
+        flowStore.save?.()
+    }
     const focusedId = ref<string | undefined>()
     const shortcutsOpen = ref(false)
     const commandMenuOpen = ref(false)
@@ -1883,7 +1896,7 @@
         // NoCode.vue's useKeyboardSave() is NOT mounted on this page, so the
         // footer's advertised Cmd/Ctrl+S has to be honored here.
         if (id === "save") {
-            flowStore.save?.()
+            saveFlowWithPendingEdits()
             return
         }
         if (id === "undo") {
@@ -2274,7 +2287,7 @@
             shortcut: "⌘S",
             run: () => {
                 commandMenuOpen.value = false
-                flowStore.save()
+                saveFlowWithPendingEdits()
             },
         })
 

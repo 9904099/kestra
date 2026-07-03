@@ -74,4 +74,30 @@ describe("TaskEdit", () => {
         // Then
         expect(wrapper.emitted("close")).toBeTruthy()
     })
+
+    it("flushPendingEdit emits an edit immediately instead of waiting out the debounce", async () => {
+        // Regression: typing then immediately pressing Cmd/Ctrl+S raced the
+        // 500ms input debounce, silently saving the flow without the last
+        // edit. The parent now calls the exposed flushPendingEdit() before
+        // saving so a pending edit is never dropped.
+        vi.useFakeTimers()
+        const wrapper = mountTaskEdit()
+        await wrapper.vm.$nextTick()
+
+        const panes = wrapper.findComponent({name: "TaskEditPanes"})
+        panes.vm.$emit("input", "id: verify_backups\ntype: io.kestra.plugin.core.log.Log\nmessage: edited")
+
+        // Then — nothing emitted yet, the debounce hasn't fired
+        expect(wrapper.emitted("update:task")).toBeFalsy()
+
+        // When
+        ;(wrapper.vm as unknown as {flushPendingEdit: () => void}).flushPendingEdit()
+
+        // Then — the edit is committed right away, not after the 500ms timer
+        const emitted = wrapper.emitted("update:task")
+        expect(emitted).toBeTruthy()
+        expect(emitted![0][0]).toContain("message: edited")
+
+        vi.useRealTimers()
+    })
 })

@@ -396,26 +396,36 @@
         }
     }
 
+    const commitEdit = () => {
+        if (lastValidatedValue.value !== taskYaml.value) {
+            lastValidatedValue.value = taskYaml.value
+            flowStore.validateTask({
+                task: taskYaml.value,
+                section: props.section,
+            })
+        }
+        if (props.presentation === "panel") {
+            emit("update:task", taskYaml.value)
+            taskBaseline.value = taskYaml.value
+        }
+    }
+
     const onInput = (value?: string | Record<string, any>) => {
         if (timer.value) {
             clearTimeout(timer.value)
         }
 
         taskYaml.value = typeof value === "string" ? value : YAML_UTILS.stringify(value ?? "")
+        timer.value = setTimeout(commitEdit, 500) as any
+    }
 
-        timer.value = setTimeout(() => {
-            if (lastValidatedValue.value !== taskYaml.value) {
-                lastValidatedValue.value = taskYaml.value
-                flowStore.validateTask({
-                    task: taskYaml.value,
-                    section: props.section,
-                })
-            }
-            if (props.presentation === "panel") {
-                emit("update:task", taskYaml.value)
-                taskBaseline.value = taskYaml.value
-            }
-        }, 500) as any
+    // Called before a save so a pending debounced edit is never silently
+    // dropped by a Cmd/Ctrl+S pressed right after typing.
+    const flushPendingEdit = () => {
+        if (!timer.value) return
+        clearTimeout(timer.value)
+        timer.value = undefined
+        commitEdit()
     }
 
     watch(() => props.task, async (newTask) => {
@@ -448,7 +458,7 @@
         if (props.presentation === "panel") onShow()
     })
 
-    defineExpose({open: onShow})
+    defineExpose({open: onShow, flushPendingEdit})
 </script>
 
 <style scoped lang="scss">
