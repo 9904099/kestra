@@ -1,10 +1,11 @@
 <template>
     <div
         class="block-card"
-        :class="{'block-card--selected': selected, 'block-card--drag-over': dragOver}"
+        :class="{'block-card--selected': selected, 'block-card--drag-over': dragOver, 'block-kbd-focused': focused}"
         role="button"
         tabindex="0"
         :aria-pressed="selected"
+        :aria-selected="focused"
         :aria-label="cardAriaLabel"
         :draggable="draggable"
         data-test="block-card"
@@ -73,6 +74,7 @@
     const props = defineProps<{
         block: Record<string, unknown>
         selected?: boolean
+        focused?: boolean
         draggable?: boolean
         dragOver?: boolean
         icons?: Record<string, {icon: string; flowable: boolean}>

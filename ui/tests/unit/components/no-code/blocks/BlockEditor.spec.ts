@@ -1,6 +1,6 @@
-import {describe, it, expect, vi, beforeEach} from "vitest"
+import {describe, it, expect, vi, beforeEach, afterEach} from "vitest"
 import {ref} from "vue"
-import {mount} from "@vue/test-utils"
+import {mount, flushPromises} from "@vue/test-utils"
 import {createI18n} from "vue-i18n"
 import {createPinia} from "pinia"
 
@@ -114,11 +114,14 @@ vi.mock("../../../../../src/stores/plugins", () => ({
     }),
 }))
 
+const confirmMock = vi.fn().mockResolvedValue(undefined)
+
 vi.mock("@kestra-io/design-system", async (importOriginal) => {
     const actual = await importOriginal<typeof import("@kestra-io/design-system")>()
     return {
         ...actual,
         KsTaskIcon: {template: "<span data-test='task-icon' />"},
+        KsMessageBox: {confirm: (...args: unknown[]) => confirmMock(...args)},
     }
 })
 
@@ -197,6 +200,11 @@ const messages = {
             cluster_collapse_aria: "Collapse {id}",
             cluster_expand_aria: "Expand {id} ({count} tasks)",
             collapsed_summary: "{count} tasks",
+            confirm_delete: {
+                message: "This removes {name} from the flow.",
+                message_group: "This removes the group {name} and everything inside it.",
+                title: "Delete {name}?",
+            },
             delete: "Delete",
             depth_pill: "Depth {depth}",
             duplicate: "Duplicate",
@@ -227,6 +235,7 @@ const messages = {
             sections: {tasks: "Tasks", triggers: "Triggers"},
         },
         add: "Add",
+        cancel: "Cancel",
         copy: "Copy",
         delete: "Delete",
     },
@@ -264,9 +273,19 @@ const makeConfig = () => ({
 // --- Tests ---
 
 describe("BlockEditor", () => {
+    // Shared across tests so afterEach can always unmount the last mounted
+    // instance — required because the keyboard composable listens on window,
+    // and a leaked instance would keep reacting to later tests' key events.
+    let wrapper: ReturnType<typeof mount> | undefined
+
     beforeEach(() => {
         mockFlowYaml.value = SIMPLE_YAML
         mockOnEdit.mockClear()
+    })
+
+    afterEach(() => {
+        wrapper?.unmount()
+        wrapper = undefined
     })
 
     describe("rendering blocks from YAML", () => {
@@ -274,7 +293,7 @@ describe("BlockEditor", () => {
             // Given
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then
             const cards = wrapper.findAll("[data-test='block-card']")
@@ -285,7 +304,7 @@ describe("BlockEditor", () => {
             // Given
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then
             const ids = wrapper.findAll("[data-test='block-card-id']").map(el => el.text())
@@ -297,7 +316,7 @@ describe("BlockEditor", () => {
             // Given
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then
             const types = wrapper.findAll("[data-test='block-card-type']").map(el => el.text())
@@ -310,7 +329,7 @@ describe("BlockEditor", () => {
             mockFlowYaml.value = YAML_WITH_TRIGGERS
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then
             const triggerList = wrapper.find("[data-test='block-editor-trigger-list']")
@@ -324,7 +343,7 @@ describe("BlockEditor", () => {
             mockFlowYaml.value = EMPTY_YAML
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then
             expect(wrapper.findAll("[data-test^='block-section-']").length).toBe(4)
@@ -337,7 +356,7 @@ describe("BlockEditor", () => {
             mockFlowYaml.value = YAML_WITH_FLOWABLE
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then
             const clusters = wrapper.findAll("[data-test='flowable-cluster-card']")
@@ -351,7 +370,7 @@ describe("BlockEditor", () => {
             mockFlowYaml.value = YAML_WITH_FLOWABLE
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then
             const leafCards = wrapper.findAll("[data-test='block-card']")
@@ -364,7 +383,7 @@ describe("BlockEditor", () => {
             mockFlowYaml.value = YAML_WITH_FLOWABLE
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then — stub renders lane divs keyed by lane name
             const cluster = wrapper.find("[data-test='flowable-cluster-card']")
@@ -378,7 +397,7 @@ describe("BlockEditor", () => {
             mockFlowYaml.value = YAML_WITH_SWITCH
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then
             const cluster = wrapper.find("[data-test='flowable-cluster-card']")
@@ -391,7 +410,7 @@ describe("BlockEditor", () => {
     describe("block selection", () => {
         it("selects a block when clicked", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const firstCard = wrapper.find("[data-test='block-card']")
 
             // When
@@ -403,7 +422,7 @@ describe("BlockEditor", () => {
 
         it("keeps a block selected when its card is clicked again", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const firstCard = wrapper.find("[data-test='block-card']")
             await firstCard.trigger("click")
             await wrapper.vm.$nextTick()
@@ -418,7 +437,7 @@ describe("BlockEditor", () => {
 
         it("deselects a block when its dock tab is closed", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
 
@@ -433,7 +452,7 @@ describe("BlockEditor", () => {
 
         it("mounts TaskEdit when a leaf block is clicked", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const firstCard = wrapper.find("[data-test='block-card']")
 
             // When
@@ -446,7 +465,7 @@ describe("BlockEditor", () => {
 
         it("passes the correct section and task data to TaskEdit", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // When
             await wrapper.find("[data-test='block-card']").trigger("click")
@@ -461,7 +480,7 @@ describe("BlockEditor", () => {
 
         it("opens a second tab when another block is clicked, keeping both open", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const cards = wrapper.findAll("[data-test='block-card']")
 
             // When — open two different blocks
@@ -477,20 +496,20 @@ describe("BlockEditor", () => {
 
         it("shows two panes side by side when split view is set to 2", async () => {
             // Given — two tabs open (only the active one is visible at split 1)
-            const wrapper = mount(BlockEditor, makeConfig())
-            const cards = wrapper.findAll("[data-test='block-card']")
+            const localWrapper = wrapper = mount(BlockEditor, makeConfig())
+            const cards = localWrapper.findAll("[data-test='block-card']")
             await cards[0].trigger("click")
-            await wrapper.vm.$nextTick()
+            await localWrapper.vm.$nextTick()
             await cards[1].trigger("click")
-            await wrapper.vm.$nextTick()
-            const shownCount = () => wrapper.findAllComponents({name: "TaskEdit"})
+            await localWrapper.vm.$nextTick()
+            const shownCount = () => localWrapper.findAllComponents({name: "TaskEdit"})
                 .filter(p => (p.element as HTMLElement).style.display !== "none").length
             expect(shownCount()).toBe(1)
 
             // When — split into 2
-            const vm = wrapper.vm as unknown as {splitCount: number}
+            const vm = localWrapper.vm as unknown as {splitCount: number}
             vm.splitCount = 2
-            await wrapper.vm.$nextTick()
+            await localWrapper.vm.$nextTick()
 
             // Then — both panes are shown side by side
             expect(shownCount()).toBe(2)
@@ -500,7 +519,7 @@ describe("BlockEditor", () => {
     describe("edit operation", () => {
         it("writes the updated YAML back to the store when TaskEdit emits update:task", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
             await wrapper.vm.$nextTick()
@@ -521,7 +540,7 @@ describe("BlockEditor", () => {
 
         it("closes the tab and deselects the block after a successful edit", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
             await wrapper.vm.$nextTick()
@@ -541,7 +560,7 @@ describe("BlockEditor", () => {
     describe("delete operation", () => {
         it("removes a leaf task from the store when delete is clicked", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const deleteBtns = wrapper.findAll("[data-test='block-card-delete']")
 
             // When
@@ -557,7 +576,7 @@ describe("BlockEditor", () => {
         it("deletes a nested block when FlowableClusterCard emits delete with a path", async () => {
             // Given
             mockFlowYaml.value = YAML_WITH_FLOWABLE
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const cluster = wrapper.findComponent({name: "FlowableClusterCard"})
 
             // When
@@ -576,7 +595,7 @@ describe("BlockEditor", () => {
     describe("duplicate operation", () => {
         it("adds a copy of a leaf task when duplicate is clicked", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const duplicateBtns = wrapper.findAll("[data-test='block-card-duplicate']")
 
             // When
@@ -595,7 +614,7 @@ describe("BlockEditor", () => {
         it("duplicates a nested block when FlowableClusterCard emits duplicate with a path", async () => {
             // Given
             mockFlowYaml.value = YAML_WITH_FLOWABLE
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const cluster = wrapper.findComponent({name: "FlowableClusterCard"})
 
             // When
@@ -615,7 +634,7 @@ describe("BlockEditor", () => {
             // Given
 
             // When
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
 
             // Then
             expect(wrapper.find("[data-test='block-editor-add-task']").exists()).toBe(true)
@@ -624,7 +643,7 @@ describe("BlockEditor", () => {
         it("inserts a nested task when FlowableClusterCard requests add-at-path then user calls insertTask", async () => {
             // Given
             mockFlowYaml.value = YAML_WITH_FLOWABLE
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const cluster = wrapper.findComponent({name: "FlowableClusterCard"})
 
             // When — cluster signals insert into then lane
@@ -643,7 +662,7 @@ describe("BlockEditor", () => {
 
         it("populates the picker list from pluginsStore plugin data", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const vm = wrapper.vm as unknown as {
                 filteredCommonTypes: Array<{fqcn: string; label: string; group: string}>
             }
@@ -660,7 +679,7 @@ describe("BlockEditor", () => {
             vi.useFakeTimers()
             try {
                 // Given
-                const wrapper = mount(BlockEditor, makeConfig())
+                wrapper = mount(BlockEditor, makeConfig())
                 const vm = wrapper.vm as unknown as {
                     taskPickerSearch: string
                     filteredCommonTypes: Array<{fqcn: string; label: string; group: string}>
@@ -685,7 +704,7 @@ describe("BlockEditor", () => {
     describe("drag-to-reorder", () => {
         it("reorders tasks when a drag sequence completes on the top-level task list", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const cards = wrapper.findAll("[data-test='block-card']")
             expect(cards).toHaveLength(2)
 
@@ -705,7 +724,7 @@ describe("BlockEditor", () => {
         it("clears selection when a nested-child edit is open and the parent task is drag-reordered", async () => {
             // Given — flow with leaf at tasks[0], flowable at tasks[1]; nested child open via path tasks[1].then[0]
             mockFlowYaml.value = YAML_WITH_FLOWABLE
-            const wrapper = mount(BlockEditor, makeConfig())
+            wrapper = mount(BlockEditor, makeConfig())
             const cluster = wrapper.findComponent({name: "FlowableClusterCard"})
 
             // Select a nested child inside tasks[1]
@@ -715,12 +734,12 @@ describe("BlockEditor", () => {
 
             const vm = wrapper.vm as unknown as {
                 activeTab: {path?: string} | undefined
-                selectedId: string | undefined
+                activeSelectedId: string | undefined
                 handleTaskDragStart: (event: DragEvent, index: number) => void
                 handleTaskDrop: (event: DragEvent, index: number) => void
             }
             expect(vm.activeTab?.path).toBe("tasks[1].then[0]")
-            expect(vm.selectedId).toBe("nested_a")
+            expect(vm.activeSelectedId).toBe("nested_a")
 
             // When — prime drag from tasks[0], then drop on tasks[1]
             // This shifts the flowable from [1] to [0], making tasks[1].then[0] stale
@@ -730,13 +749,13 @@ describe("BlockEditor", () => {
             await wrapper.vm.$nextTick()
 
             // Then — stale path is detected, the tab is closed and selection cleared
-            expect(vm.selectedId).toBeUndefined()
+            expect(vm.activeSelectedId).toBeUndefined()
             expect(vm.activeTab).toBeUndefined()
         })
 
         it("emits update:selectedId when selectedId changes via v-model", async () => {
             // Given
-            const wrapper = mount(BlockEditor, {
+            wrapper = mount(BlockEditor, {
                 ...makeConfig(),
                 props: {selectedId: undefined},
             })
@@ -753,14 +772,47 @@ describe("BlockEditor", () => {
     })
 
     describe("keyboard shortcuts", () => {
-        it("Delete key removes the selected leaf task", async () => {
+        function windowKeydown(options: KeyboardEventInit) {
+            window.dispatchEvent(new KeyboardEvent("keydown", {bubbles: true, cancelable: true, ...options}))
+        }
+
+        function mountBlockEditor() {
+            wrapper = mount(BlockEditor, makeConfig())
+            return wrapper
+        }
+
+        beforeEach(() => {
+            confirmMock.mockClear()
+            confirmMock.mockResolvedValue(undefined)
+        })
+
+        it("Delete key removes the selected leaf task after confirmation", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            const wrapper = mountBlockEditor()
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
 
             // When
-            await wrapper.trigger("keydown", {key: "Delete"})
+            windowKeydown({key: "Delete"})
+            await flushPromises()
+            await wrapper.vm.$nextTick()
+
+            // Then
+            expect(confirmMock).toHaveBeenCalledTimes(1)
+            const {flowYamlUtils} = await import("@kestra-io/topology")
+            const parsed = flowYamlUtils.parse(mockFlowYaml.value)
+            expect(parsed.tasks).toHaveLength(1)
+        })
+
+        it("Backspace key removes the selected leaf task after confirmation", async () => {
+            // Given
+            const wrapper = mountBlockEditor()
+            await wrapper.find("[data-test='block-card']").trigger("click")
+            await wrapper.vm.$nextTick()
+
+            // When
+            windowKeydown({key: "Backspace"})
+            await flushPromises()
             await wrapper.vm.$nextTick()
 
             // Then
@@ -769,51 +821,56 @@ describe("BlockEditor", () => {
             expect(parsed.tasks).toHaveLength(1)
         })
 
-        it("Backspace key removes the selected leaf task", async () => {
+        it("does not delete when the confirmation is cancelled", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            confirmMock.mockRejectedValue(new Error("cancel"))
+            const wrapper = mountBlockEditor()
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
 
             // When
-            await wrapper.trigger("keydown", {key: "Backspace"})
+            windowKeydown({key: "Delete"})
+            await flushPromises()
             await wrapper.vm.$nextTick()
 
             // Then
             const {flowYamlUtils} = await import("@kestra-io/topology")
             const parsed = flowYamlUtils.parse(mockFlowYaml.value)
-            expect(parsed.tasks).toHaveLength(1)
+            expect(parsed.tasks).toHaveLength(2)
         })
 
         it("does not fire Delete when the event target is an input", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            const wrapper = mountBlockEditor()
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
             const originalLength = 2
+            const inputEl = document.createElement("input")
+            document.body.appendChild(inputEl)
 
             // When — simulate event from an input element
-            const inputEl = document.createElement("input")
-            const event = new KeyboardEvent("keydown", {key: "Delete", bubbles: true})
+            const event = new KeyboardEvent("keydown", {key: "Delete", bubbles: true, cancelable: true})
             Object.defineProperty(event, "target", {value: inputEl})
-            const editorEl = wrapper.element as HTMLElement
-            editorEl.dispatchEvent(event)
+            window.dispatchEvent(event)
+            await flushPromises()
             await wrapper.vm.$nextTick()
+            document.body.removeChild(inputEl)
 
             // Then — no deletion
+            expect(confirmMock).not.toHaveBeenCalled()
             const {flowYamlUtils} = await import("@kestra-io/topology")
             const parsed = flowYamlUtils.parse(mockFlowYaml.value)
             expect(parsed.tasks).toHaveLength(originalLength)
         })
 
-        it("Alt+ArrowDown reorders the first task to second position", async () => {
+        it("Alt+ArrowDown reorders the selected task to the second position", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            const wrapper = mountBlockEditor()
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
 
             // When
-            await wrapper.trigger("keydown", {key: "ArrowDown", altKey: true})
+            windowKeydown({key: "ArrowDown", altKey: true})
             await wrapper.vm.$nextTick()
 
             // Then
@@ -824,15 +881,15 @@ describe("BlockEditor", () => {
             expect(parsed.tasks[1].id).toBe("log_task")
         })
 
-        it("Alt+ArrowUp reorders the second task to first position", async () => {
+        it("Alt+ArrowUp reorders the selected task to the first position", async () => {
             // Given
-            const wrapper = mount(BlockEditor, makeConfig())
+            const wrapper = mountBlockEditor()
             const cards = wrapper.findAll("[data-test='block-card']")
             await cards[1].trigger("click")
             await wrapper.vm.$nextTick()
 
             // When
-            await wrapper.trigger("keydown", {key: "ArrowUp", altKey: true})
+            windowKeydown({key: "ArrowUp", altKey: true})
             await wrapper.vm.$nextTick()
 
             // Then
@@ -860,7 +917,7 @@ tasks:
       - id: then_c
         type: io.kestra.plugin.core.log.Log
 `.trim()
-            const wrapper = mount(BlockEditor, makeConfig())
+            const wrapper = mountBlockEditor()
             const cluster = wrapper.findComponent({name: "FlowableClusterCard"})
 
             // Simulate selecting then_a (index 0 in then lane) via openNestedEdit path
@@ -869,11 +926,11 @@ tasks:
             await wrapper.vm.$nextTick()
 
             // When — first move: then_a goes from [0] to [1]
-            await wrapper.trigger("keydown", {key: "ArrowDown", altKey: true})
+            windowKeydown({key: "ArrowDown", altKey: true})
             await wrapper.vm.$nextTick()
 
             // When — second consecutive move: then_a should go from [1] to [2]
-            await wrapper.trigger("keydown", {key: "ArrowDown", altKey: true})
+            windowKeydown({key: "ArrowDown", altKey: true})
             await wrapper.vm.$nextTick()
 
             // Then — then_a has moved twice and is now at index 2

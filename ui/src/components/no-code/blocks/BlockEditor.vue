@@ -3,8 +3,6 @@
         ref="editorEl"
         class="block-editor"
         data-test="block-editor"
-        tabindex="-1"
-        @keydown="onEditorKeydown"
     >
         <KsSplitter class="block-editor-split">
             <KsSplitterPanel min="18%">
@@ -19,23 +17,25 @@
                             @add="(e) => openTaskPicker('triggers', e)"
                         >
                             <div class="block-section-list" data-test="block-editor-trigger-list">
-                                <BlockCard
-                                    v-for="(trigger, index) in parsedTriggers"
-                                    :key="String(trigger.id ?? index)"
-                                    :block="trigger"
-                                    :selected="selectedId === String(trigger.id)"
-                                    :draggable="true"
-                                    :dragOver="triggerDragOverIndex === index"
-                                    :icons="pluginsStore.icons"
-                                    :data-block-id="String(trigger.id ?? index)"
-                                    @select="selectBlock('triggers', trigger)"
-                                    @delete="onDelete('triggers', trigger.id)"
-                                    @duplicate="onDuplicate('triggers', trigger.id)"
-                                    @drag-start="handleTriggerDragStart($event, index)"
-                                    @drag-over="handleTriggerDragOver($event, index)"
-                                    @drop="handleTriggerDrop($event, index)"
-                                    @drag-end="handleTriggerDragEnd"
-                                />
+                                <template v-for="(trigger, index) in parsedTriggers" :key="String(trigger.id ?? index)">
+                                    <BlockCard
+                                        :block="trigger"
+                                        :selected="activeSelectedId === String(trigger.id)"
+                                        :focused="focusedId === String(trigger.id ?? index)"
+                                        :draggable="true"
+                                        :dragOver="triggerDragOverIndex === index"
+                                        :icons="pluginsStore.icons"
+                                        :data-block-id="String(trigger.id ?? index)"
+                                        @select="selectBlock('triggers', trigger)"
+                                        @delete="onDelete('triggers', trigger.id)"
+                                        @duplicate="onDuplicate('triggers', trigger.id)"
+                                        @drag-start="handleTriggerDragStart($event, index)"
+                                        @drag-over="handleTriggerDragOver($event, index)"
+                                        @drop="handleTriggerDrop($event, index)"
+                                        @drag-end="handleTriggerDragEnd"
+                                    />
+                                    <BlockInsertionCaret v-if="focusedId === String(trigger.id ?? index)" />
+                                </template>
                                 <BlockEmptyDrop
                                     v-if="parsedTriggers.length === 0"
                                     variant="empty"
@@ -71,7 +71,8 @@
                                         :block="task"
                                         :path="`tasks[${index}]`"
                                         :icons="pluginsStore.icons"
-                                        :selectedId="selectedId"
+                                        :selectedId="activeSelectedId"
+                                        :focusedId="focusedId"
                                         :depth="0"
                                         :data-block-id="String(task.id ?? index)"
                                         data-test="block-card"
@@ -85,7 +86,8 @@
                                     <BlockCard
                                         v-else
                                         :block="task"
-                                        :selected="selectedId === String(task.id)"
+                                        :selected="activeSelectedId === String(task.id)"
+                                        :focused="focusedId === String(task.id ?? index)"
                                         :draggable="true"
                                         :dragOver="taskDragOverIndex === index"
                                         :icons="pluginsStore.icons"
@@ -98,6 +100,7 @@
                                         @drop="handleTaskDrop($event, index)"
                                         @drag-end="handleTaskDragEnd"
                                     />
+                                    <BlockInsertionCaret v-if="focusedId === String(task.id ?? index)" />
                                 </template>
 
                                 <BlockEmptyDrop
@@ -133,7 +136,8 @@
                                         :block="task"
                                         :path="`errors[${index}]`"
                                         :icons="pluginsStore.icons"
-                                        :selectedId="selectedId"
+                                        :selectedId="activeSelectedId"
+                                        :focusedId="focusedId"
                                         :depth="0"
                                         :data-block-id="String(task.id ?? index)"
                                         data-test="block-card"
@@ -145,13 +149,15 @@
                                     <BlockCard
                                         v-else
                                         :block="task"
-                                        :selected="selectedId === String(task.id)"
+                                        :selected="activeSelectedId === String(task.id)"
+                                        :focused="focusedId === String(task.id ?? index)"
                                         :icons="pluginsStore.icons"
                                         :data-block-id="String(task.id ?? index)"
                                         @select="selectBlock('errors', task)"
                                         @delete="onDelete('errors', task.id)"
                                         @duplicate="onDuplicate('errors', task.id)"
                                     />
+                                    <BlockInsertionCaret v-if="focusedId === String(task.id ?? index)" />
                                 </template>
                                 <BlockEmptyDrop
                                     v-if="flowLevelErrors.length === 0"
@@ -184,7 +190,8 @@
                                         :block="task"
                                         :path="`finally[${index}]`"
                                         :icons="pluginsStore.icons"
-                                        :selectedId="selectedId"
+                                        :selectedId="activeSelectedId"
+                                        :focusedId="focusedId"
                                         :depth="0"
                                         :data-block-id="String(task.id ?? index)"
                                         data-test="block-card"
@@ -196,13 +203,15 @@
                                     <BlockCard
                                         v-else
                                         :block="task"
-                                        :selected="selectedId === String(task.id)"
+                                        :selected="activeSelectedId === String(task.id)"
+                                        :focused="focusedId === String(task.id ?? index)"
                                         :icons="pluginsStore.icons"
                                         :data-block-id="String(task.id ?? index)"
                                         @select="selectBlock('finally', task)"
                                         @delete="onDelete('finally', task.id)"
                                         @duplicate="onDuplicate('finally', task.id)"
                                     />
+                                    <BlockInsertionCaret v-if="focusedId === String(task.id ?? index)" />
                                 </template>
                                 <BlockEmptyDrop
                                     v-if="flowLevelFinally.length === 0"
@@ -232,10 +241,10 @@
                             tabindex="0"
                             class="block-editor-dock-tab"
                             :class="{
-                                'block-editor-dock-tab--active': selectedId === tab.id,
-                                'block-editor-dock-tab--tiled': tiledIds.has(tab.id) && selectedId !== tab.id,
+                                'block-editor-dock-tab--active': activeSelectedId === tab.id,
+                                'block-editor-dock-tab--tiled': tiledIds.has(tab.id) && activeSelectedId !== tab.id,
                             }"
-                            :aria-selected="selectedId === tab.id"
+                            :aria-selected="activeSelectedId === tab.id"
                             :data-test="`block-editor-dock-tab-${tab.id}`"
                             @click="activateTab(tab.id)"
                             @keydown.enter="activateTab(tab.id)"
@@ -303,7 +312,8 @@
                             v-show="tiledIds.has(tab.id)"
                             :key="tab.id"
                             class="block-editor-dock-pane"
-                            :class="{'block-editor-dock-pane--active': selectedId === tab.id && tiledIds.size > 1}"
+                            :class="{'block-editor-dock-pane--active': activeSelectedId === tab.id && tiledIds.size > 1}"
+                            :data-dock-pane-id="tab.id"
                             :task="tab.data"
                             :section="tab.section"
                             :flowId="flowId"
@@ -342,13 +352,13 @@
                     <p class="block-editor-picker-context">{{ t('block_editor.inserting_into', {section: sectionLabel}) }}</p>
 
                     <KsInput
+                        ref="pickerSearchInput"
                         v-model="taskPickerSearch"
                         :placeholder="t('block_editor.search_task_placeholder')"
                         :aria-label="t('block_editor.search_task_placeholder')"
                         aria-controls="block-editor-picker-listbox"
                         :aria-activedescendant="pickerFocusedIndex >= 0 ? `block-editor-picker-option-${pickerFocusedIndex}` : undefined"
                         clearable
-                        autofocus
                         data-test="block-editor-picker-search"
                     />
 
@@ -447,54 +457,17 @@
 
         <KsDialog v-model="shortcutsOpen" :title="t('block_editor.shortcuts.title')" data-test="block-editor-shortcuts">
             <div class="block-editor-shortcuts">
-                <div class="block-editor-shortcuts-col">
-                    <span class="block-editor-shortcuts-heading">{{ t('block_editor.shortcuts.group_navigate') }}</span>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>j</kbd><kbd>↓</kbd><kbd>k</kbd><kbd>↑</kbd></span>
-                        <span>{{ t('block_editor.shortcuts.move_between') }}</span>
-                    </div>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>↵</kbd><kbd>e</kbd></span>
-                        <span>{{ t('block_editor.shortcuts.open') }}</span>
-                    </div>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>/</kbd></span>
-                        <span>{{ t('block_editor.shortcuts.add_task') }}</span>
-                    </div>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>⌘K</kbd></span>
-                        <span>{{ t('block_editor.shortcuts.command_palette') }}</span>
-                    </div>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>⌘[</kbd><kbd>⌘]</kbd></span>
-                        <span>{{ t('block_editor.shortcuts.switch_tab') }}</span>
-                    </div>
-                </div>
-                <div class="block-editor-shortcuts-col">
-                    <span class="block-editor-shortcuts-heading">{{ t('block_editor.shortcuts.group_edit') }}</span>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>d</kbd></span>
-                        <span>{{ t('block_editor.duplicate') }}</span>
-                    </div>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>⌫</kbd></span>
-                        <span>{{ t('block_editor.delete') }}</span>
-                    </div>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>a</kbd><kbd>+</kbd></span>
-                        <span>{{ t('block_editor.shortcuts.add_after') }}</span>
-                    </div>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>⌥↑</kbd><kbd>⌥↓</kbd></span>
-                        <span>{{ t('block_editor.shortcuts.reorder') }}</span>
-                    </div>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>␣</kbd><kbd>←</kbd><kbd>→</kbd></span>
-                        <span>{{ t('block_editor.shortcuts.collapse_expand') }}</span>
-                    </div>
-                    <div class="block-editor-shortcut">
-                        <span class="block-editor-shortcut-keys"><kbd>?</kbd></span>
-                        <span>{{ t('block_editor.shortcuts.toggle') }}</span>
+                <div v-for="group in shortcutGroups" :key="group.group" class="block-editor-shortcuts-col">
+                    <span class="block-editor-shortcuts-heading">{{ t(`block_editor.shortcuts.group_${group.group}`) }}</span>
+                    <div v-for="binding in group.bindings" :key="binding.id" class="block-editor-shortcut">
+                        <span class="block-editor-shortcut-keys">
+                            <kbd v-for="key in displayKeys(binding.keys)" :key="key">{{ key }}</kbd>
+                            <template v-if="binding.alt?.length">
+                                <span class="block-editor-shortcut-or">{{ t('block_editor.shortcuts.or') }}</span>
+                                <kbd v-for="key in displayKeys(binding.alt)" :key="key">{{ key }}</kbd>
+                            </template>
+                        </span>
+                        <span>{{ t(binding.i18nKey) }}</span>
                     </div>
                 </div>
             </div>
@@ -513,6 +486,14 @@
             <kbd class="block-editor-help-kbd">?</kbd>
         </button>
 
+        <div v-if="!shortcutsOpen" class="block-editor-footer" role="status" data-test="block-editor-footer">
+            <span class="block-editor-footer-context">{{ footerContext }}</span>
+            <span v-for="hint in footerHints" :key="hint.id" class="block-editor-footer-hint">
+                <kbd v-for="key in displayKeys(hint.keys)" :key="key">{{ key }}</kbd>
+                {{ t(hint.i18nKey) }}
+            </span>
+        </div>
+
         <Transition name="block-editor-undo">
             <div v-if="undoState" class="block-editor-undo" role="status" aria-live="polite">
                 <span class="block-editor-undo-label">{{ undoState.label }}</span>
@@ -526,11 +507,18 @@
                 </button>
             </div>
         </Transition>
+
+        <BlockCommandMenu
+            v-if="commandMenuOpen"
+            :items="commandMenuItems"
+            :contextLabel="commandMenuContextLabel"
+            @close="commandMenuOpen = false"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
-    import {computed, nextTick, onMounted, provide, ref, watch, type Component} from "vue"
+    import {computed, nextTick, provide, ref, watch, type Component} from "vue"
     import {useI18n} from "vue-i18n"
     import TriggerIcon from "vue-material-design-icons/LightningBoltOutline.vue"
     import TasksIcon from "vue-material-design-icons/FormatListBulleted.vue"
@@ -542,8 +530,14 @@
     import ChevronLeft from "vue-material-design-icons/ChevronLeft.vue"
     import Close from "vue-material-design-icons/Close.vue"
     import Keyboard from "vue-material-design-icons/Keyboard.vue"
+    import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
+    import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
+    import ArrowRightBold from "vue-material-design-icons/ArrowRightBold.vue"
+    import ContentSave from "vue-material-design-icons/ContentSave.vue"
+    import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
+    import OpenInNew from "vue-material-design-icons/OpenInNew.vue"
 
-    import {KsTaskIcon, KsIconButton, vKsLoading} from "@kestra-io/design-system"
+    import {KsTaskIcon, KsIconButton, KsInput, KsMessageBox, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
     import {useRoute, useRouter, type LocationQueryRaw} from "vue-router"
 
@@ -570,9 +564,13 @@
     import BlockCard from "./BlockCard.vue"
     import BlockSectionCard from "./BlockSectionCard.vue"
     import BlockEmptyDrop from "./BlockEmptyDrop.vue"
+    import BlockInsertionCaret from "./BlockInsertionCaret.vue"
+    import BlockCommandMenu, {type BlockCommandMenuItem} from "./BlockCommandMenu.vue"
     import FlowableClusterCard from "./FlowableClusterCard.vue"
     import TaskEdit from "../../flows/TaskEdit.vue"
     import {BLOCK_SCHEMA_PATH_INJECTION_KEY} from "../injectionKeys"
+    import {useBlockEditorKeyboard} from "./useBlockEditorKeyboard"
+    import {BLOCK_EDITOR_KEYMAP, blockEditorKeymapByGroup, findBlockEditorBinding, type BlockEditorKeymapGroup} from "./keymap"
 
     const {t} = useI18n()
     const flowStore = useFlowStore()
@@ -661,11 +659,12 @@
     const editorEl = ref<HTMLElement>()
     const focusedId = ref<string | undefined>()
     const shortcutsOpen = ref(false)
+    const commandMenuOpen = ref(false)
+    const confirmDialogOpen = ref(false)
+    let lastConfirmDialogCloseAt = 0
     const internalSelectedId = ref<string | undefined>(props.selectedId)
 
-    onMounted(() => editorEl.value?.focus())
-
-    const selectedId = computed({
+    const activeSelectedId = computed({
         get: () => internalSelectedId.value,
         set: (v: string | undefined) => {
             internalSelectedId.value = v
@@ -693,7 +692,7 @@
     }
 
     const dockTabs = ref<EditingBlock[]>([])
-    const activeTab = computed(() => dockTabs.value.find(tab => tab.id === selectedId.value))
+    const activeTab = computed(() => dockTabs.value.find(tab => tab.id === activeSelectedId.value))
 
     const splitCount = ref(1)
     const activationOrder = ref<string[]>([])
@@ -728,17 +727,17 @@
                 outputCollapsed: tab.outputCollapsed ?? false,
             }]
         }
-        selectedId.value = tab.id
+        activeSelectedId.value = tab.id
         touchActivation(tab.id)
     }
 
     function activateTab(id: string) {
-        selectedId.value = id
+        activeSelectedId.value = id
         touchActivation(id)
     }
 
     function focusPane(id: string) {
-        if (selectedId.value !== id) activateTab(id)
+        if (activeSelectedId.value !== id) activateTab(id)
     }
 
     watch(() => activeTab.value?.data?.type, (type) => {
@@ -749,15 +748,38 @@
         if (!dockTabs.value.some(tab => tab.id === id)) return
         dockTabs.value = dockTabs.value.filter(tab => tab.id !== id)
         activationOrder.value = activationOrder.value.filter(other => other !== id)
-        if (selectedId.value === id) {
-            selectedId.value = activationOrder.value[0]
+        if (activeSelectedId.value === id) {
+            activeSelectedId.value = activationOrder.value[0]
         }
     }
 
     function closeAllTabs() {
         dockTabs.value = []
         activationOrder.value = []
-        selectedId.value = undefined
+        activeSelectedId.value = undefined
+    }
+
+    function activeDockPaneEl(): HTMLElement | undefined {
+        const id = activeSelectedId.value
+        if (!id) return undefined
+        return document.querySelector<HTMLElement>(`[data-dock-pane-id="${CSS.escape(id)}"]`) ?? undefined
+    }
+
+    function focusActiveDockPane(): boolean {
+        const pane = activeDockPaneEl()
+        const focusable = pane?.querySelector<HTMLElement>(
+            "input:not([disabled]), textarea:not([disabled]), select:not([disabled]), " +
+                "[contenteditable=\"true\"], button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])",
+        )
+        if (!focusable) return false
+        focusable.focus()
+        return true
+    }
+
+    function isFocusInsideDock(): boolean {
+        const active = document.activeElement
+        const dock = active?.closest<HTMLElement>(".block-editor-dock")
+        return Boolean(dock)
     }
 
     const route = useRoute()
@@ -767,7 +789,7 @@
 
     const dockStateKey = computed(() => [
         dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(","),
-        selectedId.value ?? "",
+        activeSelectedId.value ?? "",
         splitCount.value,
         activeTab.value?.inputsCollapsed ?? false,
         activeTab.value?.outputCollapsed ?? false,
@@ -780,7 +802,7 @@
         const tabs = dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(",")
         if (tabs) query.tabs = tabs
         else delete query.tabs
-        if (selectedId.value) query.tab = selectedId.value
+        if (activeSelectedId.value) query.tab = activeSelectedId.value
         else delete query.tab
         if (tabs && splitCount.value > 1) query.cols = String(splitCount.value)
         else delete query.cols
@@ -825,7 +847,7 @@
         const cols = Number(route.query.cols)
         if (cols >= 1 && cols <= 3) splitCount.value = cols
         const collapsed = typeof route.query.collapsed === "string" ? route.query.collapsed.split(",") : []
-        const activeTabObj = dockTabs.value.find(tab => tab.id === selectedId.value)
+        const activeTabObj = dockTabs.value.find(tab => tab.id === activeSelectedId.value)
         if (activeTabObj) {
             activeTabObj.inputsCollapsed = collapsed.includes("inputs")
             activeTabObj.outputCollapsed = collapsed.includes("output")
@@ -927,6 +949,7 @@
 
     const taskPickerVisible = ref(false)
     const pickerAnchor = ref<HTMLElement>()
+    const pickerSearchInput = ref<InstanceType<typeof KsInput>>()
     const taskPickerSearch = ref("")
     const debouncedSearch = ref("")
     let searchTimer: ReturnType<typeof setTimeout> | undefined
@@ -955,21 +978,43 @@
     ]
 
     const RECENT_KEY = "blockEditor.recentTaskTypes"
-    const SUGGESTED_FQCNS = [
-        "io.kestra.plugin.core.log.Log",
-        "io.kestra.plugin.core.http.Request",
-        "io.kestra.plugin.scripts.python.Script",
-        "io.kestra.plugin.scripts.shell.Commands",
-        "io.kestra.plugin.core.flow.Subflow",
-        "io.kestra.plugin.core.flow.If",
-        "io.kestra.plugin.core.flow.Switch",
-        "io.kestra.plugin.core.flow.ForEach",
-        "io.kestra.plugin.core.flow.Parallel",
-        "io.kestra.plugin.core.flow.Dag",
-    ]
+    const SUGGESTED_FQCNS_BY_SECTION: Record<BlockSection, string[]> = {
+        tasks: [
+            "io.kestra.plugin.core.log.Log",
+            "io.kestra.plugin.core.http.Request",
+            "io.kestra.plugin.scripts.python.Script",
+            "io.kestra.plugin.scripts.shell.Commands",
+            "io.kestra.plugin.core.flow.Subflow",
+            "io.kestra.plugin.core.flow.If",
+            "io.kestra.plugin.core.flow.Switch",
+            "io.kestra.plugin.core.flow.Loop",
+            "io.kestra.plugin.core.flow.Parallel",
+            "io.kestra.plugin.core.flow.Dag",
+        ],
+        triggers: [
+            "io.kestra.plugin.core.trigger.Schedule",
+            "io.kestra.plugin.core.trigger.Webhook",
+            "io.kestra.plugin.core.trigger.Flow",
+        ],
+        errors: [
+            "io.kestra.plugin.core.log.Log",
+            "io.kestra.plugin.core.execution.Fail",
+            "io.kestra.plugin.core.http.Request",
+        ],
+        finally: [
+            "io.kestra.plugin.core.log.Log",
+            "io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles",
+            "io.kestra.plugin.core.http.Request",
+        ],
+    }
 
     function anchorFrom(evt?: Event) {
-        pickerAnchor.value = (evt?.currentTarget as HTMLElement) ?? editorEl.value ?? undefined
+        // Keyboard-triggered opens (no evt) have no click target to anchor to. Falling
+        // back to editorEl (the whole scrollable panel) pins the picker near the top of
+        // the panel's layout box regardless of scroll position, which renders it
+        // off-screen for any focused block that isn't near the top. Anchor to the
+        // focused card instead so the picker opens next to the actual insertion point.
+        pickerAnchor.value = (evt?.currentTarget as HTMLElement) ?? focusedCard() ?? editorEl.value ?? undefined
     }
 
     function resetPickerView() {
@@ -982,6 +1027,10 @@
         loadRecent()
     }
 
+    function focusPickerSearch() {
+        nextTick(() => pickerSearchInput.value?.focus())
+    }
+
     function openTaskPicker(section: BlockSection, evt?: Event) {
         anchorFrom(evt)
         taskPickerSection.value = section
@@ -990,15 +1039,49 @@
         resetPickerView()
         taskPickerVisible.value = true
         ensurePluginData()
+        focusPickerSearch()
+    }
+
+    function sectionFromParentPath(parentPath: string): BlockSection {
+        const lane = parentPath.split(".").pop() ?? ""
+        if (lane === "errors") return "errors"
+        if (lane === "finally") return "finally"
+        return "tasks"
     }
 
     function openTaskPickerAtPath(parentPath: string, afterIndex: number, evt?: Event) {
         anchorFrom(evt)
+        taskPickerSection.value = sectionFromParentPath(parentPath)
         taskPickerParentPath.value = parentPath
         taskPickerAfterIndex.value = afterIndex >= 0 ? afterIndex : undefined
         resetPickerView()
         taskPickerVisible.value = true
         ensurePluginData()
+        focusPickerSearch()
+    }
+
+    function focusedBlockPath(): string | undefined {
+        const id = focusedId.value
+        if (!id) return undefined
+        for (const section of DOCK_SECTIONS) {
+            const found = findNestedPath(sectionList(section), id, section)
+            if (found) return found
+        }
+        return undefined
+    }
+
+    function openTaskPickerAnchoredAfterFocused() {
+        const path = focusedBlockPath()
+        if (!path) {
+            openTaskPicker("tasks")
+            return
+        }
+        const match = path.match(/^(.*)\[(\d+)\]$/)
+        if (!match) {
+            openTaskPicker("tasks")
+            return
+        }
+        openTaskPickerAtPath(match[1], parseInt(match[2], 10))
     }
 
     const pickerStyle = computed(() => {
@@ -1006,11 +1089,21 @@
         if (!anchor) return {}
         const rect = anchor.getBoundingClientRect()
         const width = 440
-        const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8))
+        const gap = 4
+        const margin = 8
+        const maxHeight = 420
+        const left = Math.max(margin, Math.min(rect.left, window.innerWidth - width - margin))
+        const spaceBelow = window.innerHeight - rect.bottom - gap - margin
+        const spaceAbove = rect.top - gap - margin
+        const openUp = spaceBelow < Math.min(maxHeight, 280) && spaceAbove > spaceBelow
+        const available = Math.max(200, Math.min(maxHeight, openUp ? spaceAbove : spaceBelow))
         return {
-            top: `${rect.bottom + 4}px`,
             left: `${left}px`,
             width: `${width}px`,
+            maxHeight: `${available}px`,
+            ...(openUp
+                ? {bottom: `${window.innerHeight - rect.top + gap}px`}
+                : {top: `${rect.bottom + gap}px`}),
         }
     })
 
@@ -1029,24 +1122,26 @@
         group: string
     }
 
+    const activeEntryKind = computed(() => taskPickerSection.value === "triggers" ? "triggers" : "tasks")
+
     const allPickerEntries = computed<PickerEntry[]>(() => {
         if (!pluginsStore.plugins) return []
         const entries: PickerEntry[] = []
         const seen = new Set<string>()
+        const kind = activeEntryKind.value
         for (const plugin of pluginsStore.plugins) {
-            for (const [key, value] of Object.entries(plugin)) {
-                if (!isEntryAPluginElementPredicate(key, value)) continue
-                for (const el of value as PluginElement[]) {
-                    if (el.deprecated || seen.has(el.cls)) continue
-                    seen.add(el.cls)
-                    const parts = el.cls.split(".")
-                    entries.push({
-                        fqcn: el.cls,
-                        name: parts[parts.length - 1] ?? el.cls,
-                        label: el.title ?? parts[parts.length - 1] ?? el.cls,
-                        group: plugin.title ?? plugin.name ?? "",
-                    })
-                }
+            const value = plugin[kind]
+            if (!isEntryAPluginElementPredicate(kind, value)) continue
+            for (const el of value as PluginElement[]) {
+                if (el.deprecated || seen.has(el.cls)) continue
+                seen.add(el.cls)
+                const parts = el.cls.split(".")
+                entries.push({
+                    fqcn: el.cls,
+                    name: parts[parts.length - 1] ?? el.cls,
+                    label: el.title ?? parts[parts.length - 1] ?? el.cls,
+                    group: plugin.title ?? plugin.name ?? "",
+                })
             }
         }
         return entries
@@ -1081,7 +1176,9 @@
     })
 
     const suggestedEntries = computed<PickerEntry[]>(() =>
-        SUGGESTED_FQCNS.map(fqcn => entryByFqcn.value.get(fqcn)).filter((e): e is PickerEntry => Boolean(e)),
+        SUGGESTED_FQCNS_BY_SECTION[taskPickerSection.value]
+            .map(fqcn => entryByFqcn.value.get(fqcn))
+            .filter((e): e is PickerEntry => Boolean(e)),
     )
 
     const recentEntries = computed<PickerEntry[]>(() =>
@@ -1223,12 +1320,6 @@
         return [...editorEl.value.querySelectorAll<HTMLElement>("[data-block-id]")].filter(el => el.offsetParent !== null)
     }
 
-    function highlightFocused() {
-        navigableCards().forEach(el =>
-            el.classList.toggle("block-kbd-focused", el.getAttribute("data-block-id") === focusedId.value),
-        )
-    }
-
     function focusedCard(): HTMLElement | undefined {
         return navigableCards().find(el => el.getAttribute("data-block-id") === focusedId.value)
     }
@@ -1241,16 +1332,57 @@
         const next = current < 0 ? (direction > 0 ? 0 : cards.length - 1) : (current + direction + cards.length) % cards.length
         focusedId.value = ids[next] || undefined
         cards[next].scrollIntoView({block: "nearest"})
-        nextTick(highlightFocused)
+    }
+
+    function focusedClusterHeader(): HTMLElement | undefined {
+        const card = focusedCard()
+        if (!card) return undefined
+        return card.matches("[data-test='flowable-cluster-header']")
+            ? card
+            : (card.querySelector<HTMLElement>("[data-test='flowable-cluster-header']") ?? undefined)
+    }
+
+    function stepInto() {
+        const header = focusedClusterHeader()
+        if (!header) return
+        if (header.getAttribute("aria-expanded") === "false") {
+            header.click()
+            return
+        }
+        nextTick(() => {
+            const card = focusedCard()
+            const cards = navigableCards()
+            const current = focusedId.value ? cards.findIndex(el => el.getAttribute("data-block-id") === focusedId.value) : -1
+            const next = cards[current + 1]
+            if (card && next && current >= 0 && card.contains(next)) {
+                focusedId.value = next.getAttribute("data-block-id") ?? focusedId.value
+                next.scrollIntoView({block: "nearest"})
+            }
+        })
+    }
+
+    function stepOut() {
+        const header = focusedClusterHeader()
+        if (header?.getAttribute("aria-expanded") === "true") {
+            header.click()
+            return
+        }
+        const card = focusedCard()
+        const parent = card?.parentElement?.closest<HTMLElement>("[data-block-id]")
+        if (parent) {
+            focusedId.value = parent.getAttribute("data-block-id") ?? focusedId.value
+            parent.scrollIntoView({block: "nearest"})
+        }
     }
 
     function openFocused() {
         const card = focusedCard()
         if (!card) return
-        if (card.matches("[data-test='block-card']")) {
-            card.click()
+        const clusterHeader = card.querySelector<HTMLElement>("[data-test='flowable-cluster-header']")
+        if (clusterHeader) {
+            clusterHeader.click()
         } else {
-            card.querySelector<HTMLElement>("[data-test='flowable-cluster-header']")?.click()
+            card.click()
         }
     }
 
@@ -1258,94 +1390,160 @@
         focusedCard()?.querySelector<HTMLElement>(selector)?.click()
     }
 
+    function focusedBlockDisplayName(): string {
+        const card = focusedCard()
+        return card?.querySelector<HTMLElement>("[data-test='block-card-id']")?.textContent?.trim() || focusedId.value || ""
+    }
+
+    function focusedBlockIsFlowable(): boolean {
+        return Boolean(focusedCard()?.querySelector("[data-test='flowable-cluster-header']"))
+    }
+
+    function confirmDelete(name: string, isFlowableBlock: boolean, onConfirm: () => void) {
+        const message = isFlowableBlock
+            ? t("block_editor.confirm_delete.message_group", {name})
+            : t("block_editor.confirm_delete.message", {name})
+        confirmDialogOpen.value = true
+        KsMessageBox.confirm(message, t("block_editor.confirm_delete.title", {name}), {
+            type: "warning",
+            confirmButtonText: t("block_editor.delete"),
+            cancelButtonText: t("cancel"),
+        }).then(onConfirm).catch(() => {}).finally(() => {
+            confirmDialogOpen.value = false
+            // KsMessageBox resolves/rejects its promise through several microtask
+            // checkpoints that browsers run between bubble-phase DOM listeners, so by
+            // the time the Escape that dismissed it reaches our window-level listener
+            // (the outermost, and therefore last, bubble target) confirmDialogOpen has
+            // already flipped back to false. A short grace window is the only reliable
+            // way to recognize "this Escape just closed the confirm dialog" from here.
+            lastConfirmDialogCloseAt = performance.now()
+        })
+    }
+
+    function requestDeleteFocused() {
+        if (!focusedId.value) return
+        const name = focusedBlockDisplayName()
+        const isFlowableBlock = focusedBlockIsFlowable()
+        confirmDelete(name, isFlowableBlock, () => {
+            actionInFocused("[data-test='block-card-delete']")
+            focusedId.value = undefined
+        })
+    }
+
     function addAfterFocused() {
-        const sectionEl = focusedCard()?.closest<HTMLElement>("[data-test^='block-section-']")
-        const section = sectionEl?.getAttribute("data-test")?.replace("block-section-", "") as BlockSection | undefined
-        openTaskPicker(section ?? "tasks")
+        openTaskPickerAnchoredAfterFocused()
     }
 
-    function cycleTab(direction: 1 | -1) {
-        if (dockTabs.value.length < 2) return
-        const ids = dockTabs.value.map(tab => tab.id)
-        const current = selectedId.value ? ids.indexOf(selectedId.value) : -1
-        activateTab(ids[current < 0 ? 0 : (current + direction + ids.length) % ids.length])
+    function isAnyOverlayOpen(): boolean {
+        return shortcutsOpen.value || taskPickerVisible.value || commandMenuOpen.value || confirmDialogOpen.value
     }
 
-    function onEditorKeydown(event: KeyboardEvent) {
-        const target = event.target as HTMLElement
-        const typing = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable
+    function closeTopOverlay(): boolean {
+        if (commandMenuOpen.value) {
+            commandMenuOpen.value = false
+            return true
+        }
+        if (shortcutsOpen.value) {
+            shortcutsOpen.value = false
+            return true
+        }
+        if (taskPickerVisible.value) {
+            taskPickerVisible.value = false
+            return true
+        }
+        return false
+    }
 
-        if ((event.metaKey || event.ctrlKey) && (event.key === "[" || event.key === "]")) {
-            event.preventDefault()
-            cycleTab(event.key === "]" ? 1 : -1)
-            return
-        }
-        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-            event.preventDefault()
-            openTaskPicker("tasks")
-            return
-        }
-        if (event.key === "Escape") {
-            if (shortcutsOpen.value) shortcutsOpen.value = false
-            else if (taskPickerVisible.value) taskPickerVisible.value = false
-            return
-        }
-        if (typing || event.metaKey || event.ctrlKey) return
+    // TODO: wire to a real flow-level undo/redo history once the flow store exposes one;
+    // for now Cmd/Ctrl+Z only replays the block-deletion undo snapshot.
+    function performUndoIfAvailable() {
+        if (undoState.value) performUndo()
+    }
 
-        if (event.key === "?") {
-            event.preventDefault()
-            shortcutsOpen.value = !shortcutsOpen.value
-        } else if (event.key === "/" && !taskPickerVisible.value) {
-            event.preventDefault()
-            openTaskPicker("tasks")
-        } else if (event.key === "j" || (event.key === "ArrowDown" && !event.altKey)) {
-            event.preventDefault()
-            moveFocus(1)
-        } else if (event.key === "k" || (event.key === "ArrowUp" && !event.altKey)) {
-            event.preventDefault()
-            moveFocus(-1)
-        } else if (event.altKey && event.key === "ArrowDown") {
-            event.preventDefault()
-            moveSelected("down")
-        } else if (event.altKey && event.key === "ArrowUp") {
-            event.preventDefault()
-            moveSelected("up")
-        } else if (event.key === "Enter" || event.key === "e" || event.key === "E") {
-            if (focusedId.value) {
-                event.preventDefault()
-                openFocused()
+    function dispatchBlockEditorAction(id: string, event: KeyboardEvent) {
+        // "save" is intentionally a no-op here: NoCode.vue's useKeyboardSave()
+        // already owns the global Cmd/Ctrl+S handler. It stays in the keymap
+        // only so the help overlay and footer hints can show it.
+        if (id === "undo") {
+            performUndoIfAvailable()
+            return
+        }
+        if (id === "command-menu") {
+            commandMenuOpen.value = true
+            return
+        }
+        if (id === "focus-panel") {
+            // Let native Tab behavior proceed (don't preventDefault) when there is no
+            // dock panel to jump into — otherwise Tab would silently stop working
+            // everywhere else on this page (sidebar links, etc).
+            return focusActiveDockPane()
+        }
+        if (id === "clear") {
+            if (closeTopOverlay()) return
+            // KsMessageBox owns its own Escape-to-cancel and isn't tracked by
+            // closeTopOverlay(). Its promise settles through microtask checkpoints
+            // that run between bubble-phase listeners, so confirmDialogOpen has
+            // already flipped back to false by the time this (window-level, outermost)
+            // handler sees the same Escape — hence the timestamp grace window instead
+            // of a reactive-state check.
+            if (confirmDialogOpen.value || performance.now() - lastConfirmDialogCloseAt < 100) return
+            // Escape backs out one level at a time: out of an editing field into canvas
+            // nav first (panel stays open), then a second Escape closes the panel.
+            if (dockTabs.value.length > 0 && isFocusInsideDock()) {
+                (document.activeElement as HTMLElement | null)?.blur()
+                return
             }
-        } else if (event.key === "d" || event.key === "D") {
+            if (dockTabs.value.length > 0) {
+                closeAllTabs()
+                return
+            }
+            focusedId.value = undefined
+            return
+        }
+        if (id === "help") {
+            shortcutsOpen.value = !shortcutsOpen.value
+            return
+        }
+        if (isAnyOverlayOpen()) return
+
+        if (id === "quick-insert") {
+            openTaskPicker("tasks")
+        } else if (id === "move") {
+            moveFocus(event.key === "ArrowDown" || event.key === "j" ? 1 : -1)
+        } else if (id === "step-into") {
+            stepInto()
+        } else if (id === "step-out") {
+            stepOut()
+        } else if (id === "reorder") {
+            moveSelected(event.key === "ArrowDown" ? "down" : "up")
+        } else if (id === "open") {
+            if (focusedId.value) openFocused()
+        } else if (id === "duplicate") {
             if (focusedId.value) {
-                event.preventDefault()
                 actionInFocused("[data-test='block-card-duplicate']")
-            } else if (selectedId.value) {
-                event.preventDefault()
+            } else if (activeSelectedId.value) {
                 duplicateSelected()
             }
-        } else if (event.key === "Delete" || event.key === "Backspace") {
+        } else if (id === "delete") {
             if (focusedId.value) {
-                event.preventDefault()
-                actionInFocused("[data-test='block-card-delete']")
-                focusedId.value = undefined
-            } else if (selectedId.value) {
-                event.preventDefault()
-                deleteSelected()
+                requestDeleteFocused()
+            } else if (activeSelectedId.value) {
+                requestDeleteSelected()
             }
-        } else if (event.key === "a" || event.key === "A" || event.key === "+") {
-            event.preventDefault()
+        } else if (id === "insert-after") {
             addAfterFocused()
-        } else if (event.key === " " || event.key === "ArrowRight" || event.key === "ArrowLeft") {
-            if (focusedId.value) {
-                event.preventDefault()
-                actionInFocused("[data-test='flowable-cluster-header']")
-            }
         }
     }
+
+    useBlockEditorKeyboard({
+        keymap: BLOCK_EDITOR_KEYMAP,
+        dispatch: dispatchBlockEditorAction,
+        isOverlayOpen: isAnyOverlayOpen,
+    })
 
     function deleteSelected() {
         const tab = activeTab.value
-        if (!selectedId.value || !tab) return
+        if (!activeSelectedId.value || !tab) return
         if (tab.path) {
             onDeleteAtPath(tab.path)
         } else {
@@ -1353,9 +1551,16 @@
         }
     }
 
+    function requestDeleteSelected() {
+        const tab = activeTab.value
+        if (!activeSelectedId.value || !tab) return
+        const isFlowableBlock = isFlowable(tab.data)
+        confirmDelete(tab.id, isFlowableBlock, () => deleteSelected())
+    }
+
     function duplicateSelected() {
         const tab = activeTab.value
-        if (!selectedId.value || !tab) return
+        if (!activeSelectedId.value || !tab) return
         if (tab.path) {
             onDuplicateAtPath(tab.path)
         } else {
@@ -1365,7 +1570,7 @@
 
     function moveSelected(direction: "up" | "down") {
         const tab = activeTab.value
-        if (!selectedId.value || !tab) return
+        if (!activeSelectedId.value || !tab) return
         const path = tab.path
         if (!path) {
             const section = tab.section
@@ -1373,7 +1578,7 @@
                 : section === "errors" ? flowLevelErrors.value
                     : section === "finally" ? flowLevelFinally.value
                         : parsedTriggers.value
-            const idx = list.findIndex(item => String(item.id) === selectedId.value)
+            const idx = list.findIndex(item => String(item.id) === activeSelectedId.value)
             if (idx < 0) return
             const syntheticPath = `${section}[${idx}]`
             applyYaml(moveBlockAtPath(flowYaml.value, syntheticPath, direction))
@@ -1388,6 +1593,184 @@
             applyYaml(newYaml)
         }
     }
+
+    const KEY_DISPLAY: Record<string, string> = {
+        ArrowUp: "↑",
+        ArrowDown: "↓",
+        ArrowLeft: "←",
+        ArrowRight: "→",
+        Enter: "↵",
+        Backspace: "⌫",
+        Delete: "⌦",
+        "Meta+Shift+k": "⌘⇧K",
+        "Control+Shift+k": "⌘⇧K",
+        "Meta+s": "⌘S",
+        "Control+s": "⌘S",
+        "Meta+z": "⌘Z",
+        "Control+z": "⌘Z",
+        "Alt+ArrowUp": "⌥↑",
+        "Alt+ArrowDown": "⌥↓",
+    }
+
+    function displayKeys(keys: string[]): string[] {
+        const seen = new Set<string>()
+        const result: string[] = []
+        for (const key of keys) {
+            const display = KEY_DISPLAY[key] ?? key
+            if (seen.has(display)) continue
+            seen.add(display)
+            result.push(display)
+        }
+        return result
+    }
+
+    const SHORTCUT_GROUP_ORDER: BlockEditorKeymapGroup[] = ["navigate", "insert", "edit", "global"]
+
+    const shortcutGroups = computed(() =>
+        SHORTCUT_GROUP_ORDER.map(group => ({group, bindings: blockEditorKeymapByGroup(group)})),
+    )
+
+    const footerContext = computed(() => {
+        if (commandMenuOpen.value) return t("block_editor.footer.command_menu")
+        if (taskPickerVisible.value) return t("block_editor.footer.inserting")
+        if (dockTabs.value.length) return t("block_editor.footer.editing")
+        if (focusedId.value) return t("block_editor.footer.selected", {name: focusedBlockDisplayName()})
+        return t("block_editor.footer.canvas")
+    })
+
+    interface FooterHint {
+        id: string
+        keys: string[]
+        i18nKey: string
+    }
+
+    // Keys for canvas-rebindable actions are looked up from BLOCK_EDITOR_KEYMAP (the
+    // single source of truth) instead of being duplicated here, so the footer can never
+    // drift from the actual dispatch table. Enter/Escape are left literal where they
+    // describe generic modal-navigation UX (confirm/close a list) rather than a specific
+    // rebindable canvas action.
+    function keysFor(id: string): string[] {
+        return findBlockEditorBinding(id)?.keys ?? []
+    }
+
+    const footerHints = computed<FooterHint[]>(() => {
+        if (taskPickerVisible.value || commandMenuOpen.value) {
+            return [
+                {id: "move", keys: ["ArrowUp", "ArrowDown"], i18nKey: "block_editor.kbd_navigate"},
+                {id: "run", keys: ["Enter"], i18nKey: "block_editor.kbd_add"},
+                {id: "close", keys: ["Escape"], i18nKey: "block_editor.kbd_close"},
+            ]
+        }
+        if (dockTabs.value.length) {
+            return [
+                {id: "close", keys: ["Escape"], i18nKey: "block_editor.footer.close_panel"},
+                {id: "move", keys: keysFor("move"), i18nKey: "block_editor.shortcuts.move_between"},
+                {id: "insert", keys: keysFor("insert-after"), i18nKey: "block_editor.shortcuts.add_after"},
+            ]
+        }
+        return [
+            {id: "move", keys: keysFor("move"), i18nKey: "block_editor.shortcuts.move_between"},
+            {id: "open", keys: keysFor("open"), i18nKey: "block_editor.shortcuts.open"},
+            {id: "insert", keys: keysFor("insert-after"), i18nKey: "block_editor.shortcuts.add_after"},
+            {id: "command-menu", keys: keysFor("command-menu"), i18nKey: "block_editor.shortcuts.command_palette"},
+            {id: "help", keys: keysFor("help"), i18nKey: "block_editor.shortcuts.toggle"},
+        ]
+    })
+
+    const commandMenuContextLabel = computed(() =>
+        focusedId.value
+            ? t("block_editor.command_menu.context_selected", {name: focusedBlockDisplayName()})
+            : t("block_editor.command_menu.context_flow"),
+    )
+
+    const commandMenuItems = computed<BlockCommandMenuItem[]>(() => {
+        const items: BlockCommandMenuItem[] = []
+        const insertLabel = focusedId.value
+            ? t("block_editor.command_menu.insert_after", {name: focusedBlockDisplayName()})
+            : t("block_editor.command_menu.insert_at_end")
+        items.push({
+            id: "insert",
+            group: t("block_editor.command_menu.group_insert"),
+            title: insertLabel,
+            icon: PlusCircleOutline,
+            shortcut: "A",
+            run: () => {
+                commandMenuOpen.value = false
+                addAfterFocused()
+            },
+        })
+
+        if (focusedId.value) {
+            const name = focusedBlockDisplayName()
+            items.push({
+                id: "open",
+                group: t("block_editor.command_menu.group_block"),
+                title: t("block_editor.command_menu.open", {name}),
+                icon: OpenInNew,
+                shortcut: "↵",
+                run: () => {
+                    commandMenuOpen.value = false
+                    openFocused()
+                },
+            })
+            items.push({
+                id: "duplicate",
+                group: t("block_editor.command_menu.group_block"),
+                title: t("block_editor.command_menu.duplicate", {name}),
+                icon: ContentCopy,
+                shortcut: "D",
+                run: () => {
+                    commandMenuOpen.value = false
+                    actionInFocused("[data-test='block-card-duplicate']")
+                },
+            })
+            items.push({
+                id: "delete",
+                group: t("block_editor.command_menu.group_block"),
+                title: t("block_editor.command_menu.delete", {name}),
+                icon: DeleteOutline,
+                shortcut: "⌫",
+                run: () => {
+                    commandMenuOpen.value = false
+                    requestDeleteFocused()
+                },
+            })
+        }
+
+        const sections: {section: BlockSection; labelKey: string}[] = [
+            {section: "triggers", labelKey: "no_code.sections.triggers"},
+            {section: "tasks", labelKey: "no_code.sections.tasks"},
+            {section: "errors", labelKey: "block_editor.lane_errors"},
+            {section: "finally", labelKey: "block_editor.lane_finally"},
+        ]
+        for (const {section, labelKey} of sections) {
+            items.push({
+                id: `goto-${section}`,
+                group: t("block_editor.command_menu.group_goto"),
+                title: t("block_editor.command_menu.goto", {section: t(labelKey)}),
+                icon: ArrowRightBold,
+                run: () => {
+                    commandMenuOpen.value = false
+                    const list = sectionList(section)
+                    if (list.length) focusedId.value = String(list[0].id ?? 0)
+                },
+            })
+        }
+
+        items.push({
+            id: "save",
+            group: t("block_editor.command_menu.group_flow"),
+            title: t("block_editor.command_menu.save"),
+            icon: ContentSave,
+            shortcut: "⌘S",
+            run: () => {
+                commandMenuOpen.value = false
+                flowStore.save()
+            },
+        })
+
+        return items
+    })
 </script>
 
 <style scoped lang="scss">
@@ -1405,7 +1788,7 @@
     .block-editor-main {
         height: 100%;
         overflow-y: auto;
-        padding: var(--ks-spacing-6) var(--ks-spacing-4);
+        padding: var(--ks-spacing-6) var(--ks-spacing-4) calc(2.25rem + var(--ks-spacing-6));
     }
 
     .block-editor-dock {
@@ -1651,6 +2034,8 @@
         display: flex;
         flex-direction: column;
         gap: var(--ks-spacing-1);
+        flex: 1;
+        min-height: 0;
         max-height: 320px;
         overflow-y: auto;
 
@@ -1679,8 +2064,13 @@
 
     .block-editor-picker-icon {
         flex-shrink: 0;
-        width: var(--ks-icon-size-base);
-        height: var(--ks-icon-size-base);
+        box-sizing: border-box;
+        width: 1.5rem;
+        height: 1.5rem;
+        padding: 2px;
+        background: var(--ks-bg-plugin-icon);
+        border: 1px solid var(--ks-border-subtle);
+        border-radius: var(--ks-radius-sm);
     }
 
     .block-editor-picker-main {
@@ -1792,6 +2182,7 @@
         border-radius: var(--ks-radius-sm);
         padding: 0 var(--ks-spacing-1);
         margin-right: 2px;
+        color: var(--ks-text-secondary);
     }
 
     .block-editor-picker-empty {
@@ -1857,10 +2248,63 @@
         text-align: center;
     }
 
+    .block-editor-shortcut-or {
+        font-size: var(--ks-font-size-xs);
+        color: var(--ks-text-muted);
+        padding: 0 1px;
+    }
+
+    .block-editor-footer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9;
+        display: flex;
+        align-items: center;
+        gap: var(--ks-spacing-4);
+        height: 2.25rem;
+        padding: 0 var(--ks-spacing-4);
+        background: var(--ks-bg-surface);
+        border-top: 1px solid var(--ks-border-subtle);
+        font-size: var(--ks-font-size-xs);
+        color: var(--ks-text-secondary);
+        overflow-x: auto;
+    }
+
+    .block-editor-footer-context {
+        margin-right: auto;
+        flex-shrink: 0;
+        color: var(--ks-text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .block-editor-footer-hint {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--ks-spacing-1);
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .block-editor-footer-hint kbd {
+        font-family: var(--ks-font-family-mono);
+        font-size: var(--ks-font-size-xs);
+        background: var(--ks-bg-tag-inactive);
+        border: 1px solid var(--ks-border-subtle);
+        border-radius: var(--ks-radius-sm);
+        padding: 1px var(--ks-spacing-1);
+        min-width: 18px;
+        text-align: center;
+        color: var(--ks-text-secondary);
+    }
+
     .block-editor-help {
         position: absolute;
         right: var(--ks-spacing-4);
-        bottom: var(--ks-spacing-4);
+        bottom: calc(2.25rem + var(--ks-spacing-3));
         z-index: 10;
         display: inline-flex;
         align-items: center;
@@ -1900,11 +2344,12 @@
         padding: 1px var(--ks-spacing-1);
         min-width: 18px;
         text-align: center;
+        color: var(--ks-text-secondary);
     }
 
     .block-editor-undo {
         position: absolute;
-        bottom: var(--ks-spacing-4);
+        bottom: calc(2.25rem + var(--ks-spacing-3));
         left: 50%;
         transform: translateX(-50%);
         z-index: 11;

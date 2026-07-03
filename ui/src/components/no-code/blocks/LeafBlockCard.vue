@@ -1,10 +1,11 @@
 <template>
     <div
         class="leaf-block-card"
-        :class="{'leaf-block-card--selected': selected, 'leaf-block-card--drag-over': dragOver}"
+        :class="{'leaf-block-card--selected': selected, 'leaf-block-card--drag-over': dragOver, 'block-kbd-focused': focused}"
         role="button"
         tabindex="0"
         :aria-pressed="selected"
+        :aria-selected="focused"
         :aria-label="cardAriaLabel"
         :draggable="draggable"
         data-test="block-card"
@@ -74,6 +75,7 @@
         block: Record<string, unknown>
         path: string
         selected?: boolean
+        focused?: boolean
         draggable?: boolean
         dragOver?: boolean
         icons?: Record<string, {icon: string; flowable: boolean}>
