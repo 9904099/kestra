@@ -210,6 +210,9 @@ vi.mock("../../../../../src/components/flows/TaskEdit.vue", () => ({
                 </div>
                 <div class="task-edit-col-params">
                     <button data-test="stub-doc-toggle">Documentation</button>
+                    <div role="tablist">
+                        <div role="tab" tabindex="0" data-test="stub-tab-header">Form</div>
+                    </div>
                     <input data-test="stub-form-field-1" />
                     <input data-test="stub-form-field-2" />
                 </div>
@@ -557,8 +560,9 @@ describe("BlockEditor", () => {
             await cards[1].trigger("click")
             await wrapper.vm.$nextTick()
 
-            // Then — both remain open as dock tabs
-            expect(wrapper.findAll("[role='tab']").length).toBe(2)
+            // Then — both remain open as dock tabs (scoped to the tabbar: the
+            // TaskEdit stub renders its own role=tab header inside each pane)
+            expect(wrapper.findAll(".block-editor-dock-tabbar [role='tab']").length).toBe(2)
             expect(wrapper.findAllComponents({name: "TaskEdit"}).length).toBe(2)
         })
 
@@ -1001,6 +1005,7 @@ describe("BlockEditor", () => {
             expect(vm.taskPickerParentPath).toBe("tasks[1].errors")
         })
 
+
         describe("dock pane navigation", () => {
             // These need real DOM attachment: BlockEditor locates the active dock pane
             // via document.querySelector("[data-dock-pane-id]") and reads
@@ -1119,7 +1124,10 @@ describe("BlockEditor", () => {
                 windowKeydown({key: "ArrowDown"})
                 await wrapper.vm.$nextTick()
 
-                // Then
+                // Then — the stub's tablist tab header sits between the toggle and this
+                // field and must be skipped: tab headers are roving-tabindex controls
+                // that consume arrow keys themselves (regression: stopping there made
+                // the next arrow switch to the Source tab and focus its raw editor)
                 expect(document.activeElement?.getAttribute("data-test")).toBe("stub-form-field-1")
 
                 // When

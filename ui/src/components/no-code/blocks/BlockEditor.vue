@@ -872,7 +872,14 @@
         if (!col) return []
         return [...col.querySelectorAll<HTMLElement>(
             "input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [contenteditable=\"true\"], button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])",
-        )].filter(el => el.offsetParent !== null)
+        )].filter(el =>
+            el.offsetParent !== null
+            // Tab headers are roving-tabindex controls that consume arrow keys
+            // themselves (ElTabs switches the active tab on ArrowUp/Down) —
+            // stopping on one makes the next arrow press both switch to the
+            // Source tab AND drop focus into its raw-YAML editor.
+            && !el.closest("[role=\"tablist\"], .kel-tabs__nav"),
+        )
     }
 
     // Which of the three TaskEdit columns currently owns real DOM focus — undefined
