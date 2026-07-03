@@ -582,6 +582,27 @@ describe("BlockEditor", () => {
             // Then — both panes are shown side by side
             expect(shownCount()).toBe(2)
         })
+
+        it("only shows each pane's own tabstrip once 2+ panes are tiled side by side", async () => {
+            // Given — a single visible pane relies on the shared tabbar above it for its
+            // label (no proximity issue there); the per-pane tabstrip stays hidden
+            const localWrapper = wrapper = mount(BlockEditor, makeConfig())
+            const cards = localWrapper.findAll("[data-test='block-card']")
+            await cards[0].trigger("click")
+            await localWrapper.vm.$nextTick()
+            await cards[1].trigger("click")
+            await localWrapper.vm.$nextTick()
+            const panes = () => localWrapper.findAllComponents({name: "TaskEdit"})
+            expect(panes().every(p => p.attributes("hidetabstrip") === "true")).toBe(true)
+
+            // When — split into 2, tiling both panes at once
+            const vm = localWrapper.vm as unknown as {splitCount: number}
+            vm.splitCount = 2
+            await localWrapper.vm.$nextTick()
+
+            // Then — each tiled pane now shows its own label, next to its own content
+            expect(panes().every(p => p.attributes("hidetabstrip") === "false")).toBe(true)
+        })
     })
 
     describe("edit operation", () => {

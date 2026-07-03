@@ -322,6 +322,11 @@
                     </div>
 
                     <div class="block-editor-dock-body">
+                        <!-- With a single pane visible, the tabbar above already labels it,
+                        so each pane's own tabstrip stays hidden. Once split view tiles 2+
+                        panes side by side, the tabbar is no longer next to the content it
+                        describes — showing each pane's own label keeps the name next to its
+                        own section (law of proximity) instead of only at the top of the dock. -->
                         <TaskEdit
                             v-for="tab in dockTabs"
                             v-show="tiledIds.has(tab.id)"
@@ -335,7 +340,7 @@
                             :namespace="namespace"
                             :isHidden="true"
                             presentation="panel"
-                            :hideTabstrip="true"
+                            :hideTabstrip="tiledIds.size <= 1"
                             v-model:inputsCollapsed="tab.inputsCollapsed"
                             v-model:outputCollapsed="tab.outputCollapsed"
                             v-model:docOpen="tab.docOpen"

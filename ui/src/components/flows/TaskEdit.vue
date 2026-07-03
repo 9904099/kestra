@@ -67,7 +67,8 @@
                     class="task-edit-tab-close"
                     :aria-label="$t('close')"
                     :tooltip="$t('close')"
-                    @click="isModalOpen = false"
+                    data-test="task-edit-tab-close"
+                    @click="emit('close')"
                 >
                     <Close />
                 </KsIconButton>
