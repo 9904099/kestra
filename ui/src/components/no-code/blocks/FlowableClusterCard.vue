@@ -6,9 +6,11 @@
     >
         <div
             class="flowable-cluster-header"
+            :class="{'block-kbd-focused': focused}"
             role="button"
             tabindex="0"
             :aria-expanded="expanded"
+            :aria-selected="focused"
             :aria-label="headerAriaLabel"
             data-test="flowable-cluster-header"
             @click="toggle"
@@ -69,11 +71,12 @@
                 :parentPath="laneParentPath(lane.name)"
                 :icons="icons"
                 :selectedId="selectedId"
+                :focusedId="focusedId"
                 :depth="depth"
                 @select="(p) => emit('select', p)"
                 @delete="(p) => emit('delete', p)"
                 @duplicate="(p) => emit('duplicate', p)"
-                @add-at-path="(p, afterIdx) => emit('add-at-path', p, afterIdx)"
+                @add-at-path="(p, afterIdx, evt) => emit('add-at-path', p, afterIdx, evt)"
             />
 
             <div v-if="isSwitchTask" class="flowable-cluster-add-case">
@@ -133,6 +136,7 @@
         path: string
         icons?: Record<string, {icon: string; flowable: boolean}>
         selectedId?: string
+        focusedId?: string
         depth?: number
     }>()
 
@@ -140,10 +144,12 @@
         (e: "select", path: string): void
         (e: "delete", path: string): void
         (e: "duplicate", path: string): void
-        (e: "add-at-path", parentPath: string, afterIndex: number): void
+        (e: "add-at-path", parentPath: string, afterIndex: number, evt?: Event): void
     }>()
 
     const depth = computed(() => props.depth ?? 0)
+
+    const focused = computed(() => props.focusedId !== undefined && props.focusedId === String(props.block.id ?? ""))
 
     const expanded = ref(depth.value < 2)
 
@@ -230,10 +236,10 @@
 
     const newCaseKey = ref("")
 
-    function addCase() {
+    function addCase(evt?: Event) {
         const key = newCaseKey.value.trim()
         if (!key) return
-        emit("add-at-path", `${props.path}.cases.${key}`, -1)
+        emit("add-at-path", `${props.path}.cases.${key}`, -1, evt)
         newCaseKey.value = ""
     }
 </script>

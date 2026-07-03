@@ -28,6 +28,8 @@
                         :path="`${parentPath}[${index}]`"
                         :depth="depth + 1"
                         :selectedId="selectedId"
+                        :focusedId="focusedId"
+                        :data-block-id="String(task.id ?? index)"
                         @select="(p) => emit('select', p)"
                         @delete="(p) => emit('delete', p)"
                         @duplicate="(p) => emit('duplicate', p)"
@@ -39,8 +41,10 @@
                         :icons="icons"
                         :path="`${parentPath}[${index}]`"
                         :selected="selectedId === String(task.id)"
+                        :focused="focusedId !== undefined && focusedId === String(task.id)"
                         :draggable="true"
                         :dragOver="dragOverIndex === index"
+                        :data-block-id="String(task.id ?? index)"
                         :data-test="`nested-block-card`"
                         @select="emit('select', `${parentPath}[${index}]`)"
                         @delete="emit('delete', `${parentPath}[${index}]`)"
@@ -50,6 +54,7 @@
                         @drop="handleDrop($event, index)"
                         @drag-end="handleDragEnd"
                     />
+                    <BlockInsertionCaret v-if="focusedId !== undefined && focusedId === String(task.id)" />
                 </template>
             </template>
 
@@ -65,7 +70,7 @@
                 type="button"
                 :data-test="`branch-lane-add-${laneName}`"
                 :aria-label="t('block_editor.add_to_lane', {lane: laneLabel})"
-                @click="emit('add-at-path', parentPath, tasks.length - 1)"
+                @click="emit('add-at-path', parentPath, tasks.length - 1, $event)"
             >
                 <PlusCircleOutline class="branch-lane-add-icon" />
                 {{ t("block_editor.add_to_lane", {lane: laneLabel}) }}
@@ -89,6 +94,7 @@
 
     import {isFlowableType} from "../../../utils/flowableBlockOps"
     import {useDragAndDrop} from "../../../composables/useDragAndDrop"
+    import BlockInsertionCaret from "./BlockInsertionCaret.vue"
 
     const FlowableClusterCard = defineAsyncComponent(() => import("./FlowableClusterCard.vue"))
     const LeafBlockCard = defineAsyncComponent(() => import("./LeafBlockCard.vue"))
@@ -103,6 +109,7 @@
         parentPath: string
         icons?: Record<string, {icon: string; flowable: boolean}>
         selectedId?: string
+        focusedId?: string
         depth?: number
     }>()
 
@@ -110,7 +117,7 @@
         (e: "select", path: string): void
         (e: "delete", path: string): void
         (e: "duplicate", path: string): void
-        (e: "add-at-path", parentPath: string, afterIndex: number): void
+        (e: "add-at-path", parentPath: string, afterIndex: number, evt?: Event): void
         (e: "reorder", parentPath: string, fromIndex: number, toIndex: number): void
     }>()
 
