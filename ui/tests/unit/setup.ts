@@ -40,6 +40,9 @@ if (typeof document !== "undefined" && typeof document.queryCommandSupported !==
 if (typeof document !== "undefined" && typeof document.execCommand !== "function") {
     (document as any).execCommand = () => false
 }
+if (typeof Element !== "undefined" && typeof Element.prototype.scrollIntoView !== "function") {
+    Element.prototype.scrollIntoView = () => {}
+}
 if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
     (window as any).matchMedia = (query: string) => ({
         matches: false,
