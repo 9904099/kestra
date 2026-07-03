@@ -1048,6 +1048,20 @@ describe("BlockEditor", () => {
         })
 
 
+        it("frames the focused block with a ⇧A caret above and an A caret below", async () => {
+            // Given
+            const wrapper = mountBlockEditor()
+            const vm = wrapper.vm as unknown as {focusedId?: string}
+            vm.focusedId = "log_task"
+            await wrapper.vm.$nextTick()
+
+            // When
+            const kbds = wrapper.findAll("[data-test='block-insertion-caret'] kbd").map(k => k.text())
+
+            // Then — insert-before is as discoverable in place as insert-after
+            expect(kbds).toEqual(["⇧A", "A"])
+        })
+
         describe("native Tab harmony (roving tabindex)", () => {
             let offsetParentSpy: ReturnType<typeof vi.spyOn>
 

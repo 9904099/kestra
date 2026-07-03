@@ -2,7 +2,7 @@
     <div class="block-insertion-caret" data-test="block-insertion-caret" aria-hidden="true">
         <span class="block-insertion-caret-line" />
         <span class="block-insertion-caret-tag">
-            <kbd>A</kbd>
+            <kbd>{{ position === "before" ? "⇧A" : "A" }}</kbd>
             {{ t("block_editor.insert_here") }}
         </span>
     </div>
@@ -12,6 +12,12 @@
     import {useI18n} from "vue-i18n"
 
     const {t} = useI18n()
+
+    withDefaults(defineProps<{
+        position?: "before" | "after"
+    }>(), {
+        position: "after",
+    })
 </script>
 
 <style scoped lang="scss">
