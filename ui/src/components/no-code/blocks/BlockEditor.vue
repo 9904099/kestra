@@ -1220,9 +1220,20 @@
         const {section, id, path} = tab
         if (path) {
             applyYaml(updateBlockAtPath(flowYaml.value, path, newContent))
-        } else {
-            applyYaml(updateBlock(flowYaml.value, section, id, newContent))
+            return
         }
+        const indexBeforeEdit = sectionList(section).findIndex(item => String(item.id) === id)
+        applyYaml(updateBlock(flowYaml.value, section, id, newContent))
+        // A rename from the Source tab changes this block's own dom id — keep the
+        // tab, the keyboard focus ring and the dock-active-tab pointer following
+        // it (by the position it still occupies, since editing in place never
+        // moves it), or they're left pointing at an id that no longer exists.
+        if (indexBeforeEdit < 0) return
+        const newId = resolveBlockDomId(sectionList(section), indexBeforeEdit)
+        if (newId === id) return
+        tab.id = newId
+        if (focusedId.value === id) focusedId.value = newId
+        if (activeSelectedId.value === id) activeSelectedId.value = newId
     }
 
     const undoState = ref<{label: string} | null>(null)
@@ -1353,10 +1364,10 @@
         taskPickerSearch.value = ""
         clearTimeout(searchTimer)
         debouncedSearch.value = ""
-        pickerFocusedIndex.value = -1
         pickerTab.value = "suggested"
         appFilter.value = undefined
         loadRecent()
+        pickerFocusedIndex.value = displayedEntries.value.length > 0 ? 0 : -1
     }
 
     function focusPickerSearch() {
@@ -1591,7 +1602,7 @@
     function setPickerTab(tab: PickerTab) {
         pickerTab.value = tab
         appFilter.value = undefined
-        pickerFocusedIndex.value = -1
+        pickerFocusedIndex.value = displayedEntries.value.length > 0 ? 0 : -1
     }
 
     function loadRecent() {
@@ -1613,8 +1624,11 @@
         }
     }
 
-    watch(filteredCommonTypes, () => {
-        pickerFocusedIndex.value = -1
+    // Keyboard-first: a fresh result list always has its top entry pre-highlighted,
+    // so typing a search and pressing Enter inserts immediately (mirrors
+    // BlockCommandMenu's default-highlighted-first-item behavior).
+    watch(displayedEntries, (items) => {
+        pickerFocusedIndex.value = items.length > 0 ? 0 : -1
     })
 
     function onPickerKeydown(event: KeyboardEvent) {
