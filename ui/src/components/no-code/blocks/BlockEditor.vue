@@ -347,7 +347,6 @@
                     data-test="block-editor-picker"
                     @click.stop
                     @keydown="onPickerKeydown"
-                    @keydown.escape="taskPickerVisible = false"
                 >
                     <p class="block-editor-picker-context">{{ t('block_editor.inserting_into', {section: sectionLabel}) }}</p>
 
