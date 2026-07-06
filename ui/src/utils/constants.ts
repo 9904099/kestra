@@ -33,6 +33,7 @@ export const storageKeys = {
     PAGINATION_SIZE: "paginationSize",
     IMPERSONATE: "impersonate",
     EDITOR_VIEW_TYPE: "editorViewType",
+    NOCODE_ENGINE: "nocodeEngine",
     AUTO_REFRESH_INTERVAL: "autoRefreshInterval",
     AUTO_REFRESH_ENABLED: "autoRefreshEnabled",
     DATE_FORMAT_STORAGE_KEY: "dateFormat",
