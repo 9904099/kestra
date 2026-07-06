@@ -1222,6 +1222,8 @@
     "multi_panel_editor": {
       "close_all_panels": "Закрыть все панели",
       "close_all_tabs": "Закрыть все вкладки",
+      "exit_fullscreen": "Выйти из полноэкранного режима",
+      "fullscreen": "Полный экран",
       "move_left": "Переместить влево",
       "move_right": "Переместить вправо"
     },

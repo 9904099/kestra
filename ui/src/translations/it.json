@@ -1222,6 +1222,8 @@
     "multi_panel_editor": {
       "close_all_panels": "Chiudi tutti i pannelli",
       "close_all_tabs": "Chiudi tutte le tab",
+      "exit_fullscreen": "Esci da schermo intero",
+      "fullscreen": "Schermo intero",
       "move_left": "Sposta a sinistra",
       "move_right": "Sposta a destra"
     },

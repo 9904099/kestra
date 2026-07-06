@@ -1222,6 +1222,8 @@
     "multi_panel_editor": {
       "close_all_panels": "Cerrar todos los paneles",
       "close_all_tabs": "Cerrar todas las pestañas",
+      "exit_fullscreen": "Salir de pantalla completa",
+      "fullscreen": "Pantalla completa",
       "move_left": "Mover a la izquierda",
       "move_right": "Mover a la derecha"
     },

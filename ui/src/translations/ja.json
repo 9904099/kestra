@@ -1222,6 +1222,8 @@
     "multi_panel_editor": {
       "close_all_panels": "すべてのパネルを閉じる",
       "close_all_tabs": "すべてのタブを閉じる",
+      "exit_fullscreen": "全画面表示を終了",
+      "fullscreen": "全画面表示",
       "move_left": "左に移動",
       "move_right": "右に移動"
     },

@@ -9,7 +9,7 @@
         </div>
         <template v-else>
             <KsSplitterPanel
-                v-for="(panel, panelIndex) in panels"
+                v-for="{panel, panelIndex} in renderedPanels"
                 min="10%"
                 :key="panelIndex"
                 :size="panelSizes[panelIndex] ?? panel.size"
@@ -73,6 +73,18 @@
                         </template>
                     </div>
                     <div class="buttons-container">
+                        <button
+                            type="button"
+                            class="maximize_panel"
+                            :title="maximizedPanelIndex === panelIndex ? $t('multi_panel_editor.exit_fullscreen') : $t('multi_panel_editor.fullscreen')"
+                            :aria-label="maximizedPanelIndex === panelIndex ? $t('multi_panel_editor.exit_fullscreen') : $t('multi_panel_editor.fullscreen')"
+                            :aria-pressed="maximizedPanelIndex === panelIndex"
+                            data-test="panel-maximize"
+                            @click="toggleMaximize(panelIndex)"
+                        >
+                            <FullscreenExit v-if="maximizedPanelIndex === panelIndex" />
+                            <Fullscreen v-else />
+                        </button>
                         <button
                             v-if="panel.tabs.filter(t => !t.potential).length > 1"
                             @click="splitPanel(panelIndex)"
@@ -184,7 +196,7 @@
 </template>
 
 <script setup lang="ts">
-    import {nextTick, ref, watch, provide, computed, defineComponent, h, markRaw} from "vue"
+    import {nextTick, ref, watch, provide, computed, defineComponent, h, markRaw, onMounted, onBeforeUnmount} from "vue"
 
     import {VISIBLE_PANELS_INJECTION_KEY} from "./no-code/injectionKeys"
     import {useKeyShortcuts} from "../utils/useKeyShortcuts"
@@ -198,6 +210,8 @@
     import Close from "vue-material-design-icons/Close.vue"
     import Keyboard from "vue-material-design-icons/Keyboard.vue"
     import ViewArrayOutline from "vue-material-design-icons/ViewArrayOutline.vue"
+    import Fullscreen from "vue-material-design-icons/Fullscreen.vue"
+    import FullscreenExit from "vue-material-design-icons/FullscreenExit.vue"
 
     import {trackTabOpen, trackTabClose} from "../utils/tabTracking"
     import {Panel, Tab, TabLive} from "../utils/multiPanelTypes"
@@ -260,6 +274,36 @@
     const emit = defineEmits<{
         removeTab: [tab: string]
     }>()
+
+    const maximizedPanelIndex = ref<number | null>(null)
+
+    const renderedPanels = computed(() => {
+        const index = maximizedPanelIndex.value
+        if (index != null && panels.value[index]) {
+            return [{panel: panels.value[index], panelIndex: index}]
+        }
+        return panels.value.map((panel, panelIndex) => ({panel, panelIndex}))
+    })
+
+    function toggleMaximize(panelIndex: number) {
+        maximizedPanelIndex.value = maximizedPanelIndex.value === panelIndex ? null : panelIndex
+    }
+
+    watch(() => panels.value.length, (length) => {
+        if (maximizedPanelIndex.value != null && maximizedPanelIndex.value >= length) {
+            maximizedPanelIndex.value = null
+        }
+    })
+
+    function onFullscreenKeydown(event: KeyboardEvent) {
+        if (event.key !== "Escape" || maximizedPanelIndex.value == null) return
+        const target = event.target as HTMLElement | null
+        if (target && (target.closest(".monaco-editor") || ["INPUT", "TEXTAREA"].includes(target.tagName) || target.isContentEditable)) return
+        maximizedPanelIndex.value = null
+    }
+
+    onMounted(() => window.addEventListener("keydown", onFullscreenKeydown))
+    onBeforeUnmount(() => window.removeEventListener("keydown", onFullscreenKeydown))
 
     const mouseXRef = ref(-1)
     const movedTabInfo = ref<TabInfo | null>(null)
@@ -697,15 +741,20 @@
         padding-top: var(--ks-spacing-2);
         gap: var(--ks-spacing-1);
 
-        button.split_right{
+        button.split_right,
+        button.maximize_panel{
             border: none;
             color: var(--ks-text-dim);
             background-color: transparent;
             padding: 0 var(--ks-spacing-2);
             line-height: 16px;
+            cursor: pointer;
             svg {
                 height: 16px;
                 width: 16px;
+            }
+            &:hover {
+                color: var(--ks-text-primary);
             }
         }
         .buttons-container{

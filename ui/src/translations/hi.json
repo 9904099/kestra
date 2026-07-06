@@ -1222,6 +1222,8 @@
     "multi_panel_editor": {
       "close_all_panels": "सभी पैनल बंद करें",
       "close_all_tabs": "सभी टैब बंद करें",
+      "exit_fullscreen": "पूर्ण स्क्रीन से बाहर निकलें",
+      "fullscreen": "पूर्ण स्क्रीन",
       "move_left": "बाएँ ले जाएँ",
       "move_right": "दाईं ओर ले जाएँ"
     },

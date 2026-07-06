@@ -1222,6 +1222,8 @@
     "multi_panel_editor": {
       "close_all_panels": "Alle Panels schließen",
       "close_all_tabs": "Alle Registerkarten schließen",
+      "exit_fullscreen": "Vollbild beenden",
+      "fullscreen": "Vollbild",
       "move_left": "Nach links verschieben",
       "move_right": "Nach rechts verschieben"
     },
