@@ -120,6 +120,7 @@
         flex-direction: column;
         gap: var(--ks-spacing-4);
         padding: var(--ks-spacing-6) var(--ks-spacing-4);
+        width: 100%;
         max-width: 48rem;
         margin: 0 auto;
     }
