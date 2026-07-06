@@ -96,6 +96,7 @@
         task: any;
         required?: string[];
         disabled?: boolean;
+        siblingKeys?: string[];
     }>()
 
     const taskComponent = useTemplateRef<{resetSelectType?: () => void}>("taskComponent")
@@ -153,7 +154,7 @@
     const {getBlockComponent} = useBlockComponent()
 
     const type = computed(() => {
-        return getBlockComponent.value(props.schema ?? {}, props.fieldKey)
+        return getBlockComponent.value(props.schema ?? {}, props.fieldKey, props.siblingKeys)
     })
 
     /** Whether the component is rendered in inline mode (used for Plugin Defaults) */
