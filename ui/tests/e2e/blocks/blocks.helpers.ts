@@ -34,8 +34,13 @@ export async function login(page: Page) {
     await page.mouse.move(0, 0)
 }
 
+// Blocks is now the "nocode" tab's engine inside the flow editor's shared
+// dock (see MERGE-PLAN.md), not a standalone page — force the flag so this
+// stays true regardless of the current rollout default, then open the tab.
 export async function openBlockEditor(page: Page, flowId: string) {
-    await page.goto(`/ui/${TENANT}/flows/edit/${shared.namespace}/${flowId}/blocks`)
+    await page.evaluate(() => localStorage.setItem("nocodeEngine", "blocks"))
+    await page.goto(`/ui/${TENANT}/flows/edit/${shared.namespace}/${flowId}/edit`)
+    await page.getByRole("button", {name: "No-code", exact: true}).click()
     await expect(page.locator("[data-test='block-editor']")).toBeVisible()
     await expect(page.locator("[data-block-id]").first()).toBeVisible()
 }

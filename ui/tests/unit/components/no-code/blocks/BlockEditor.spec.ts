@@ -502,26 +502,12 @@ describe("BlockEditor", () => {
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
 
-            // Then — the block stays open and selected (closing is done from the dock tab)
+            // Then — the block stays open and selected (closing happens via the
+            // shared dock, outside this component)
             expect(wrapper.find("[data-test='block-card']").classes()).toContain("block-card--selected")
         })
 
-        it("deselects a block when its dock tab is closed", async () => {
-            // Given
-            wrapper = mount(BlockEditor, makeConfig())
-            await wrapper.find("[data-test='block-card']").trigger("click")
-            await wrapper.vm.$nextTick()
-
-            // When
-            await wrapper.find("[data-test='block-editor-dock-tab-close-log_task']").trigger("click")
-            await wrapper.vm.$nextTick()
-
-            // Then
-            expect(wrapper.find("[data-test='block-card']").classes()).not.toContain("block-card--selected")
-            expect(wrapper.find("[data-test='block-editor-task-edit']").exists()).toBe(false)
-        })
-
-        it("mounts TaskEdit when a leaf block is clicked", async () => {
+        it("emits editTask with the resolved parentPath/blockSchemaPath/refPath instead of hosting its own dock", async () => {
             // Given
             wrapper = mount(BlockEditor, makeConfig())
             const firstCard = wrapper.find("[data-test='block-card']")
@@ -530,128 +516,88 @@ describe("BlockEditor", () => {
             await firstCard.trigger("click")
             await wrapper.vm.$nextTick()
 
-            // Then
-            expect(wrapper.find("[data-test='block-editor-task-edit']").exists()).toBe(true)
+            // Then — the merge plan: BlockEditor hands off to the flow editor's
+            // shared MultiPanelTabs dock (via useNoCodePanels.ts) instead of
+            // mounting TaskEdit itself
+            expect(wrapper.findComponent({name: "TaskEdit"}).exists()).toBe(false)
+            const emitted = wrapper.emitted("editTask")
+            expect(emitted).toBeTruthy()
+            expect(emitted![0]).toEqual(["tasks", expect.stringContaining("properties/tasks/items"), 0, false])
         })
 
-        it("passes the correct section and task data to TaskEdit", async () => {
+        it("emits editTask with split=true when the card's open-in-split button is clicked", async () => {
             // Given
             wrapper = mount(BlockEditor, makeConfig())
 
             // When
+            await wrapper.find("[data-test='block-card-open-split']").trigger("click")
+            await wrapper.vm.$nextTick()
+
+            // Then — the split flag routes the task into a new dock panel beside
+            // the canvas rather than a same-place tab
+            const emitted = wrapper.emitted("editTask")
+            expect(emitted).toBeTruthy()
+            expect(emitted![0]).toEqual(["tasks", expect.stringContaining("properties/tasks/items"), 0, true])
+        })
+
+        it("deselecting via an external delete emits closeTask", async () => {
+            // Given
+            wrapper = mount(BlockEditor, makeConfig())
             await wrapper.find("[data-test='block-card']").trigger("click")
             await wrapper.vm.$nextTick()
 
+            // When — deleting the selected block clears the selection and tells
+            // the owner (the shared dock) its tab is no longer valid
+            await wrapper.find("[data-test='block-card-delete']").trigger("click")
+            await wrapper.vm.$nextTick()
+
             // Then
+            expect(wrapper.emitted("closeTask")).toBeTruthy()
+        })
+
+        it("emits editTask again (with the new block's index) when another block is clicked", async () => {
+            // Given
+            wrapper = mount(BlockEditor, makeConfig())
+            const cards = wrapper.findAll("[data-test='block-card']")
+
+            // When — open two different blocks in sequence
+            await cards[0].trigger("click")
+            await wrapper.vm.$nextTick()
+            await cards[1].trigger("click")
+            await wrapper.vm.$nextTick()
+
+            // Then — each click hands off its own editTask to the shared dock,
+            // which owns the actual tab/split/tile behavior
+            const emitted = wrapper.emitted("editTask")
+            expect(emitted).toHaveLength(2)
+            expect(emitted![0]).toEqual(["tasks", expect.any(String), 0, false])
+            expect(emitted![1]).toEqual(["tasks", expect.any(String), 1, false])
+        })
+    })
+
+    describe("inline edit mode (rendered by the shared dock)", () => {
+        it("renders only TaskEdit for the resolved task when editingTask is true", () => {
+            // Given / When — mirrors how useNoCodePanels.ts mounts BlockEditor
+            // as the dock tab's component once nocodeEngine=blocks
+            wrapper = mount(BlockEditor, {
+                ...makeConfig(),
+                props: {editingTask: true, parentPath: "tasks", refPath: 0},
+            })
+
+            // Then
+            expect(wrapper.find("[data-test='block-editor']").exists()).toBe(false)
             const taskEdit = wrapper.findComponent({name: "TaskEdit"})
             expect(taskEdit.exists()).toBe(true)
             expect(taskEdit.props("section")).toBe("tasks")
             expect((taskEdit.props("task") as Record<string, unknown>).id).toBe("log_task")
         })
 
-        it("opens a second tab when another block is clicked, keeping both open", async () => {
-            // Given
-            wrapper = mount(BlockEditor, makeConfig())
-            const cards = wrapper.findAll("[data-test='block-card']")
-
-            // When — open two different blocks
-            await cards[0].trigger("click")
-            await wrapper.vm.$nextTick()
-            await cards[1].trigger("click")
-            await wrapper.vm.$nextTick()
-
-            // Then — both remain open as dock tabs (scoped to the tabbar: the
-            // TaskEdit stub renders its own role=tab header inside each pane)
-            expect(wrapper.findAll(".block-editor-dock-tabbar [role='tab']").length).toBe(2)
-            expect(wrapper.findAllComponents({name: "TaskEdit"}).length).toBe(2)
-        })
-
-        it("shows two panes side by side when split view is set to 2", async () => {
-            // Given — two tabs open (only the active one is visible at split 1)
-            const localWrapper = wrapper = mount(BlockEditor, makeConfig())
-            const cards = localWrapper.findAll("[data-test='block-card']")
-            await cards[0].trigger("click")
-            await localWrapper.vm.$nextTick()
-            await cards[1].trigger("click")
-            await localWrapper.vm.$nextTick()
-            const shownCount = () => localWrapper.findAllComponents({name: "TaskEdit"})
-                .filter(p => (p.element as HTMLElement).style.display !== "none").length
-            expect(shownCount()).toBe(1)
-
-            // When — split into 2
-            const vm = localWrapper.vm as unknown as {splitCount: number}
-            vm.splitCount = 2
-            await localWrapper.vm.$nextTick()
-
-            // Then — both panes are shown side by side
-            expect(shownCount()).toBe(2)
-        })
-
-        it("gives each tiled pane its own tabbar, with no tab duplicated across groups", async () => {
-            // Given — two tabs open, sharing one group/tabbar at split 1
-            const localWrapper = wrapper = mount(BlockEditor, makeConfig())
-            const cards = localWrapper.findAll("[data-test='block-card']")
-            await cards[0].trigger("click")
-            await localWrapper.vm.$nextTick()
-            await cards[1].trigger("click")
-            await localWrapper.vm.$nextTick()
-            const allTabIds = () => localWrapper.findAll(".block-editor-dock-tabbar [role='tab']")
-                .map(tab => tab.attributes("data-test"))
-            expect(localWrapper.findAll(".block-editor-dock-tabbar").length).toBe(1)
-            expect(allTabIds()).toEqual(["block-editor-dock-tab-log_task", "block-editor-dock-tab-http_task"])
-
-            // When — split into 2, tiling both tabs into their own group
-            const vm = localWrapper.vm as unknown as {splitCount: number}
-            vm.splitCount = 2
-            await localWrapper.vm.$nextTick()
-
-            // Then — each tab now has its own group/tabbar (VSCode editor groups),
-            // so across all tabbars each tab id still appears exactly once
-            expect(localWrapper.findAll(".block-editor-dock-tabbar").length).toBe(2)
-            expect(allTabIds().sort()).toEqual(["block-editor-dock-tab-http_task", "block-editor-dock-tab-log_task"])
-        })
-
-        it("merges a pane into another when its tab is dropped there, collapsing the emptied pane", async () => {
-            // Given — two tabs tiled into their own panes; splitting redeals by
-            // recency, so the most-recently-clicked (http_task) anchors first
-            const localWrapper = wrapper = mount(BlockEditor, makeConfig())
-            const cards = localWrapper.findAll("[data-test='block-card']")
-            await cards[0].trigger("click")
-            await localWrapper.vm.$nextTick()
-            await cards[1].trigger("click")
-            await localWrapper.vm.$nextTick()
-            const vm = localWrapper.vm as unknown as {splitCount: number; dockTabs: Array<{id: string}>}
-            vm.splitCount = 2
-            await localWrapper.vm.$nextTick()
-            expect(vm.dockTabs.map(t => t.id)).toEqual(["http_task", "log_task"])
-            expect(localWrapper.findAll(".block-editor-dock-group").length).toBe(2)
-
-            // When — the first pane's only tab label is dragged onto the second pane
-            // (drag-start is native HTML5 dnd on the tab label itself; drop still
-            // lands on the TaskEdit pane body and bubbles up as a "tab-drop" emit).
-            // Both tabs' TaskEdit panes are always mounted (v-show toggles the
-            // active one within a group), so panes[1] is the target group's pane
-            // regardless of which tab in it is currently visible.
-            await localWrapper.find(".block-editor-dock-tab").trigger("dragstart")
-            const panes = localWrapper.findAllComponents({name: "TaskEdit"})
-            await panes[1].vm.$emit("tab-drop")
-            await localWrapper.vm.$nextTick()
-
-            // Then — the emptied pane closes (VSCode editor-group behavior), and
-            // both tabs now live together in the surviving pane
-            expect(vm.dockTabs.map(t => t.id)).toEqual(["log_task", "http_task"])
-            expect(localWrapper.findAll(".block-editor-dock-group").length).toBe(1)
-        })
-
-    })
-
-    describe("edit operation", () => {
         it("writes the updated YAML back to the store when TaskEdit emits update:task", async () => {
             // Given
-            wrapper = mount(BlockEditor, makeConfig())
-            await wrapper.find("[data-test='block-card']").trigger("click")
-            await wrapper.vm.$nextTick()
-            await wrapper.vm.$nextTick()
+            wrapper = mount(BlockEditor, {
+                ...makeConfig(),
+                props: {editingTask: true, parentPath: "tasks", refPath: 0},
+            })
 
             // When
             const updatedTaskYaml = "id: log_task\ntype: io.kestra.plugin.core.log.Log\nmessage: Updated message"
@@ -667,22 +613,20 @@ describe("BlockEditor", () => {
             expect(parsed.tasks[1].id).toBe("http_task")
         })
 
-        it("closes the tab and deselects the block after a successful edit", async () => {
+        it("emits closeTask when TaskEdit emits close", async () => {
             // Given
-            wrapper = mount(BlockEditor, makeConfig())
-            await wrapper.find("[data-test='block-card']").trigger("click")
-            await wrapper.vm.$nextTick()
-            await wrapper.vm.$nextTick()
+            wrapper = mount(BlockEditor, {
+                ...makeConfig(),
+                props: {editingTask: true, parentPath: "tasks", refPath: 0},
+            })
 
             // When — a save emits update:task then closes the panel (as TaskEdit.saveTask does)
-            const updatedTaskYaml = "id: log_task\ntype: io.kestra.plugin.core.log.Log\nmessage: Updated"
             const taskEditEl = wrapper.findComponent({name: "TaskEdit"})
-            await taskEditEl.vm.$emit("update:task", updatedTaskYaml)
             await taskEditEl.vm.$emit("close")
             await wrapper.vm.$nextTick()
 
             // Then
-            expect(wrapper.find("[data-test='block-card']").classes()).not.toContain("block-card--selected")
+            expect(wrapper.emitted("closeTask")).toBeTruthy()
         })
     })
 
@@ -862,12 +806,12 @@ describe("BlockEditor", () => {
             await wrapper.vm.$nextTick()
 
             const vm = wrapper.vm as unknown as {
-                activeTab: {path?: string} | undefined
+                activeSelectedPath: string | undefined
                 activeSelectedId: string | undefined
                 handleTaskDragStart: (event: DragEvent, index: number) => void
                 handleTaskDrop: (event: DragEvent, index: number) => void
             }
-            expect(vm.activeTab?.path).toBe("tasks[1].then[0]")
+            expect(vm.activeSelectedPath).toBe("tasks[1].then[0]")
             expect(vm.activeSelectedId).toBe("nested_a")
 
             // When — prime drag from tasks[0], then drop on tasks[1]
@@ -877,9 +821,9 @@ describe("BlockEditor", () => {
             vm.handleTaskDrop(mockEvent, 1)
             await wrapper.vm.$nextTick()
 
-            // Then — stale path is detected, the tab is closed and selection cleared
+            // Then — stale path is detected and selection cleared
             expect(vm.activeSelectedId).toBeUndefined()
-            expect(vm.activeTab).toBeUndefined()
+            expect(vm.activeSelectedPath).toBeUndefined()
         })
 
         it("emits update:selectedId when selectedId changes via v-model", async () => {
@@ -1171,150 +1115,6 @@ describe("BlockEditor", () => {
                 // Then — document.activeElement moved with the ring, so a
                 // follow-up native Tab continues from the focused card
                 expect(document.activeElement?.getAttribute("data-block-id")).toBe("__section:triggers")
-                wrapper.unmount()
-            })
-        })
-
-        describe("dock pane navigation", () => {
-            // These need real DOM attachment: BlockEditor locates the active dock pane
-            // via document.querySelector("[data-dock-pane-id]") and reads
-            // document.activeElement, neither of which see a detached VTU tree. The
-            // offsetParent stub is needed because jsdom never computes real layout, so
-            // it would otherwise always report null and hide every stub field.
-            let offsetParentSpy: ReturnType<typeof vi.spyOn>
-
-            beforeEach(() => {
-                offsetParentSpy = vi.spyOn(HTMLElement.prototype, "offsetParent", "get").mockReturnValue(document.body)
-            })
-
-            afterEach(() => {
-                offsetParentSpy.mockRestore()
-            })
-
-            async function mountWithOpenDock() {
-                const wrapper = mount(BlockEditor, {...makeConfig(), attachTo: document.body})
-                await wrapper.find("[data-test='block-card']").trigger("click")
-                await wrapper.vm.$nextTick()
-                const vm = wrapper.vm as unknown as {focusedId?: string}
-                // A real keyboard flow (j/k then Enter) leaves focusedId pointing at the
-                // block that was just opened — set it directly here to reproduce that.
-                vm.focusedId = "log_task"
-                await wrapper.vm.$nextTick()
-                return wrapper
-            }
-
-            it("ArrowRight enters the dock's Inputs pane when canvas focus matches the open tab", async () => {
-                // Given
-                const wrapper = await mountWithOpenDock()
-
-                // When
-                windowKeydown({key: "ArrowRight"})
-                await wrapper.vm.$nextTick()
-
-                // Then
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-inputs-field")
-                wrapper.unmount()
-            })
-
-            it("does not enter the dock when canvas focus is on a different block than the open tab", async () => {
-                // Given — dock open for log_task, but canvas focus is elsewhere
-                const wrapper = await mountWithOpenDock()
-                const vm = wrapper.vm as unknown as {focusedId?: string}
-                vm.focusedId = "http_task"
-                await wrapper.vm.$nextTick()
-
-                // When
-                windowKeydown({key: "ArrowRight"})
-                await wrapper.vm.$nextTick()
-
-                // Then — falls through to ordinary canvas step-into instead (a no-op here,
-                // since neither task is a flowable group)
-                expect(document.activeElement?.getAttribute("data-test")).not.toBe("stub-inputs-field")
-                wrapper.unmount()
-            })
-
-            it("cycles Inputs -> Form -> Output on repeated ArrowRight, and stays on Output past the end", async () => {
-                // Given
-                const wrapper = await mountWithOpenDock()
-
-                // When/Then
-                windowKeydown({key: "ArrowRight"}) // -> Inputs
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-inputs-field")
-
-                windowKeydown({key: "ArrowRight"}) // -> Form (first focusable: the doc toggle)
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-doc-toggle")
-
-                windowKeydown({key: "ArrowRight"}) // -> Output
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-output-chip")
-
-                windowKeydown({key: "ArrowRight"}) // already at Output — absorbed, no-op
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-output-chip")
-                wrapper.unmount()
-            })
-
-            it("cycles back Output -> Form -> Inputs -> canvas on repeated ArrowLeft", async () => {
-                // Given — walk in to Output first
-                const wrapper = await mountWithOpenDock()
-                windowKeydown({key: "ArrowRight"})
-                windowKeydown({key: "ArrowRight"})
-                windowKeydown({key: "ArrowRight"})
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-output-chip")
-
-                // When/Then
-                windowKeydown({key: "ArrowLeft"}) // -> Form
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-doc-toggle")
-
-                windowKeydown({key: "ArrowLeft"}) // -> Inputs
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-inputs-field")
-
-                windowKeydown({key: "ArrowLeft"}) // -> back out to the canvas card (dock stays open)
-                await wrapper.vm.$nextTick()
-                // Real focus returns to the card itself (roving tabindex), so a
-                // follow-up native Tab continues from there instead of from nowhere
-                expect(document.activeElement?.getAttribute("data-block-id")).toBe("log_task")
-                expect(wrapper.find("[data-test='block-editor-task-edit']").exists()).toBe(true)
-                wrapper.unmount()
-            })
-
-            it("ArrowDown/ArrowUp move real focus between fields inside the active pane", async () => {
-                // Given — land in the Form pane, on its first focusable field
-                const wrapper = await mountWithOpenDock()
-                windowKeydown({key: "ArrowRight"})
-                windowKeydown({key: "ArrowRight"})
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-doc-toggle")
-
-                // When
-                windowKeydown({key: "ArrowDown"})
-                await wrapper.vm.$nextTick()
-
-                // Then — the stub's tablist tab header sits between the toggle and this
-                // field and must be skipped: tab headers are roving-tabindex controls
-                // that consume arrow keys themselves (regression: stopping there made
-                // the next arrow switch to the Source tab and focus its raw editor)
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-form-field-1")
-
-                // When
-                windowKeydown({key: "ArrowDown"})
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-form-field-2")
-
-                // When — already at the last field, ArrowDown is absorbed (clamped, not wrapped)
-                windowKeydown({key: "ArrowDown"})
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-form-field-2")
-
-                // When
-                windowKeydown({key: "ArrowUp"})
-                await wrapper.vm.$nextTick()
-                expect(document.activeElement?.getAttribute("data-test")).toBe("stub-form-field-1")
                 wrapper.unmount()
             })
         })

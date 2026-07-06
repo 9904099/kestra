@@ -100,37 +100,15 @@ test.describe("Block editor — keyboard navigation", () => {
         await expectRing(page, "last_task")
     })
 
-    test("navigates the dock panes with ArrowRight/ArrowLeft and returns to the card", async ({page}) => {
+    test("Enter opens the block's editor in the shared flow-editor dock", async ({page}) => {
+        // The dock's own split/tile/drag-drop pane navigation is covered by
+        // MultiPanelTabs.vue's own tests — this only proves the merge's contract:
+        // opening a block hands off to that shared dock instead of a bespoke one.
         await walkTo(page, "middle_task")
         await page.keyboard.press("Enter")
-        await expect(page.locator("[data-dock-pane-id='middle_task']")).toBeVisible()
 
-        // Inputs -> Form -> back out to the card
-        await page.keyboard.press("ArrowRight")
-        expect(await page.evaluate(() => !!document.activeElement?.closest(".task-edit-col-inputs"))).toBe(true)
-
-        await page.keyboard.press("ArrowRight")
-        expect(await page.evaluate(() => !!document.activeElement?.closest(".task-edit-col-params"))).toBe(true)
-
-        await page.keyboard.press("ArrowLeft")
-        await page.keyboard.press("ArrowLeft")
-        expect(await page.evaluate(() => document.activeElement?.getAttribute("data-block-id"))).toBe("middle_task")
-        await expect(page.locator("[data-dock-pane-id='middle_task']")).toBeVisible()
-    })
-
-    test("Escape backs out one level at a time: dock field, then panel", async ({page}) => {
-        await walkTo(page, "middle_task")
-        await page.keyboard.press("Enter")
-        await expect(page.locator("[data-dock-pane-id='middle_task']")).toBeVisible()
-        await page.keyboard.press("Tab") // jump into the dock panel
-        expect(await page.evaluate(() => !!document.activeElement?.closest(".block-editor-dock"))).toBe(true)
-
-        await page.keyboard.press("Escape") // back onto the card, panel stays
-        expect(await page.evaluate(() => document.activeElement?.getAttribute("data-block-id"))).toBe("middle_task")
-        await expect(page.locator("[data-dock-pane-id='middle_task']")).toBeVisible()
-
-        await page.keyboard.press("Escape") // close the panel
-        await expect(page.locator("[data-dock-pane-id='middle_task']")).toBeHidden()
+        await expect(page.getByRole("tab", {name: /middle_task/})).toBeVisible()
+        await expect(page.locator(".task-edit-col-inputs")).toBeVisible()
     })
 
     test("the help overlay opens with ? and closes with Escape", async ({page}) => {

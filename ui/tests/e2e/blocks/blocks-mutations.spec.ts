@@ -63,40 +63,36 @@ test.describe("Block editor — mutations & split view", () => {
         expect(taskIdsInOrder(source)).toEqual(["seq_group", "last_task", "middle_task"])
     })
 
-    test("split view gives each pane its own tabbar, with no tab duplicated, and supports per-pane close", async ({page}) => {
+    test("opening blocks by default lands them as same-place tabs in the shared No-code pane", async ({page}) => {
+        // The merge's default: a clicked block opens as a tab in the No-code
+        // pane itself (hiding the canvas), not a split. To open a second block
+        // the user returns to the canvas tab first — proving both live in one
+        // shared pane, not a Blocks-specific dock.
+        const canvasTab = page.locator(".editor-tab").filter({hasText: "No-code"}).first()
+
         await page.locator("[data-block-id='middle_task']").click()
+        await expect(page.getByRole("tab", {name: /middle_task/})).toBeVisible()
+
+        await canvasTab.click()
         await page.locator("[data-block-id='last_task']").click()
-        await page.locator("[data-test='block-editor-split-2']").click()
 
-        // Each tiled tab now has its own group/tabbar (VSCode editor groups) —
-        // no tab appears twice across the two tabbars
-        await expect(page.locator(".block-editor-dock-group")).toHaveCount(2)
-        await expect(page.locator("[data-test='block-editor-dock-tab-middle_task']")).toHaveCount(1)
-        await expect(page.locator("[data-test='block-editor-dock-tab-last_task']")).toHaveCount(1)
-
-        // Closing a pane's tab actually closes that pane
-        await page.locator("[data-test='block-editor-dock-tab-close-last_task']").click()
-        await expect(page.locator("[data-dock-pane-id='last_task']")).toBeHidden()
-        await expect(page.locator("[data-dock-pane-id='middle_task']")).toBeVisible()
+        const editorTabs = page.locator(".editor-tabs .editor-tab")
+        await expect(editorTabs.filter({hasText: "middle_task"})).toHaveCount(1)
+        await expect(editorTabs.filter({hasText: "last_task"})).toHaveCount(1)
     })
 
-    test("merges a pane into another when its tab is dropped there, collapsing the emptied pane", async ({page}) => {
-        await page.locator("[data-block-id='middle_task']").click()
-        await page.locator("[data-block-id='last_task']").click()
-        await page.locator("[data-test='block-editor-split-2']").click()
+    test("the card's open-in-split button opens the task beside the canvas, both visible at once", async ({page}) => {
+        // The card button routes straight into a split via MultiPanelTabs, so the
+        // canvas and the task edit render simultaneously — impossible if the task
+        // had opened as a same-place tab (which hides the canvas).
+        const card = page.locator("[data-block-id='middle_task']")
+        await card.hover()
+        const splitButton = card.locator("[data-test='block-card-open-split']")
+        await expect(splitButton).toBeVisible()
+        await splitButton.dispatchEvent("click")
 
-        const paneOrder = () => page.locator("[data-dock-pane-id]:visible")
-            .evaluateAll(els => els.map(el => el.getAttribute("data-dock-pane-id")))
-        // Splitting redeals by recency — last_task (clicked most recently) anchors first
-        expect(await paneOrder()).toEqual(["last_task", "middle_task"])
-
-        await page.locator("[data-test='block-editor-dock-tab-middle_task']")
-            .dragTo(page.locator("[data-dock-pane-id='last_task']"))
-
-        // The emptied pane closes (VSCode editor-group behavior); both tabs now
-        // live together in the surviving pane, with the dropped-in tab active
-        await expect(page.locator(".block-editor-dock-group")).toHaveCount(1)
-        expect(await paneOrder()).toEqual(["middle_task"])
+        await expect(page.locator("[data-test='block-editor-task-edit']")).toBeVisible()
+        await expect(page.locator("[data-test='block-editor-canvas']")).toBeVisible()
     })
 
     test("the command menu jumps between sections", async ({page}) => {

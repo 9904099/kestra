@@ -21,10 +21,15 @@ test.describe("Block editor — form editing", () => {
         await flowsApi.removeFlowsViaApi()
     })
 
+    // Opening a block hands off to the flow editor's shared dock (see
+    // MERGE-PLAN.md) — its pane shows exactly one active tab's TaskEdit at a
+    // time here (no split), so scoping by data-test is enough; there is no
+    // per-tab data-dock-pane-id attribute anymore.
     async function openDock(page: Page, id: string) {
         await walkTo(page, id)
         await page.keyboard.press("Enter")
-        await expect(page.locator(`[data-dock-pane-id='${id}']`)).toBeVisible()
+        await expect(page.getByRole("tab", {name: new RegExp(id)})).toBeVisible()
+        await expect(page.locator("[data-test='block-editor-task-edit']")).toBeVisible()
         await waitForMonacoStable(page)
     }
 
@@ -32,7 +37,7 @@ test.describe("Block editor — form editing", () => {
     // they carry no data-test hooks of their own — the Form pane's field order
     // (id, message for a Log task) is the only stable handle.
     function formMonacoField(page: Page, index: number) {
-        return page.locator("[data-dock-pane-id] .task-edit-col-params .monaco-editor:visible").nth(index)
+        return page.locator("[data-test='block-editor-task-edit'] .task-edit-col-params .monaco-editor:visible").nth(index)
     }
 
     test("renames the task id from the form and the canvas card follows", async ({page, request, baseURL}) => {
@@ -66,7 +71,7 @@ test.describe("Block editor — form editing", () => {
 
     test("switches the message between String and Array with the segmented control", async ({page}) => {
         await openDock(page, "middle_task")
-        const pane = page.locator("[data-dock-pane-id='middle_task']")
+        const pane = page.locator("[data-test='block-editor-task-edit']")
 
         // The radio input itself is a zero-size a11y node — its .kel-segmented
         // wrapper label is the visible, clickable surface.
@@ -79,7 +84,7 @@ test.describe("Block editor — form editing", () => {
 
     test("selects an enum value and toggles a boolean switch, both persisted", async ({page, request, baseURL}) => {
         await openDock(page, "middle_task")
-        const pane = page.locator("[data-dock-pane-id='middle_task']")
+        const pane = page.locator("[data-test='block-editor-task-edit']")
         // Scoped to the Form column — the Inputs column has its own "Execution
         // context" section, whose accessible name also matches /Execution/.
         const form = pane.locator(".task-edit-col-params")
@@ -103,7 +108,7 @@ test.describe("Block editor — form editing", () => {
 
     test("fills a duration field from its preset buttons", async ({page, request, baseURL}) => {
         await openDock(page, "middle_task")
-        const pane = page.locator("[data-dock-pane-id='middle_task']")
+        const pane = page.locator("[data-test='block-editor-task-edit']")
         const form = pane.locator(".task-edit-col-params")
 
         await form.getByRole("button", {name: /Execution/}).click()
@@ -116,7 +121,7 @@ test.describe("Block editor — form editing", () => {
 
     test("edits raw YAML in the Source tab and the canvas syncs", async ({page, request, baseURL}) => {
         await openDock(page, "last_task")
-        const pane = page.locator("[data-dock-pane-id='last_task']")
+        const pane = page.locator("[data-test='block-editor-task-edit']")
 
         await pane.getByText("Source", {exact: true}).click()
         await waitForMonacoStable(page, pane)
@@ -139,9 +144,9 @@ test.describe("Block editor — form editing", () => {
         // Monaco model, silently overwriting each other.
         await openDock(page, "middle_task")
         await page.locator("[data-block-id='last_task']").click()
-        await expect(page.locator("[data-dock-pane-id='last_task']")).toBeVisible()
+        await expect(page.getByRole("tab", {name: /last_task/})).toBeVisible()
 
-        const lastPane = page.locator("[data-dock-pane-id='last_task']")
+        const lastPane = page.locator("[data-test='block-editor-task-edit']")
         await lastPane.getByText("Source", {exact: true}).click()
         await waitForMonacoStable(page, lastPane)
         await lastPane.locator(".task-edit-col-params .monaco-editor:visible").first().click()
@@ -159,7 +164,7 @@ test.describe("Block editor — form editing", () => {
     test("two tasks sharing the same id keep distinct focus rings", async ({page}) => {
         // Craft the collision live from the Source tab
         await openDock(page, "last_task")
-        const pane = page.locator("[data-dock-pane-id='last_task']")
+        const pane = page.locator("[data-test='block-editor-task-edit']")
         await pane.getByText("Source", {exact: true}).click()
         await waitForMonacoStable(page, pane)
         await pane.locator(".task-edit-col-params .monaco-editor:visible").first().click()
