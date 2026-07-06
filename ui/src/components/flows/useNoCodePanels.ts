@@ -31,6 +31,7 @@ interface Handlers {
         parentPath: string,
         blockSchemaPath: string,
         refPath?: number,
+        split?: boolean,
     ) => boolean
     onCloseTask: (opener: Opener) => boolean
 }
@@ -203,10 +204,11 @@ export function useNoCodeHandlers(openTabs: Ref<string[]>, focusTab: (tab: strin
             // if the tab is already open, focus it
             // and don't open a new one)
             const [
-                ,
+                opener,
                 parentPath,
                 blockSchemaPath,
                 refPath,
+                split,
             ] = args
             const editKey = getEditTabKey({
                 parentPath,
@@ -220,7 +222,7 @@ export function useNoCodeHandlers(openTabs: Ref<string[]>, focusTab: (tab: strin
                 focusTab(tEdit)
                 return false
             }
-            actions.openEditTaskTab(...args)
+            actions.openEditTaskTab(opener, parentPath, blockSchemaPath, refPath, split ? opener.panelIndex + 1 : undefined)
             return false
         },
         onCloseTask(...args){

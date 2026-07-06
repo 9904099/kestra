@@ -1,5 +1,21 @@
 <template>
+    <TaskEdit
+        v-if="props.editingTask || props.creatingTask"
+        ref="inlineTaskEditRef"
+        class="block-editor-inline-edit"
+        :task="editingTaskData"
+        :section="editingSection"
+        :flowId="flowId"
+        :namespace="namespace"
+        :isHidden="true"
+        presentation="panel"
+        :hideTabstrip="true"
+        data-test="block-editor-task-edit"
+        @update:task="onInlineTaskEdited"
+        @close="emit('closeTask')"
+    />
     <div
+        v-else
         ref="editorEl"
         class="block-editor"
         data-test="block-editor"
@@ -41,6 +57,7 @@
                                         @select="selectBlock('triggers', trigger)"
                                         @delete="onDelete('triggers', trigger.id)"
                                         @duplicate="onDuplicate('triggers', trigger.id)"
+                                        @open-split="selectBlock('triggers', trigger, true)"
                                         @drag-start="handleTriggerDragStart($event, index)"
                                         @drag-over="handleTriggerDragOver($event, index)"
                                         @drop="handleTriggerDrop($event, index)"
@@ -114,6 +131,7 @@
                                         @select="selectBlock('tasks', task)"
                                         @delete="onDelete('tasks', task.id)"
                                         @duplicate="onDuplicate('tasks', task.id)"
+                                        @open-split="selectBlock('tasks', task, true)"
                                         @drag-start="handleTaskDragStart($event, index)"
                                         @drag-over="handleTaskDragOver($event, index)"
                                         @drop="handleTaskDrop($event, index)"
@@ -182,6 +200,7 @@
                                         @select="selectBlock('errors', task)"
                                         @delete="onDelete('errors', task.id)"
                                         @duplicate="onDuplicate('errors', task.id)"
+                                        @open-split="selectBlock('errors', task, true)"
                                     />
                                     <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelErrors, index)" />
                                 </template>
@@ -243,6 +262,7 @@
                                         @select="selectBlock('finally', task)"
                                         @delete="onDelete('finally', task.id)"
                                         @duplicate="onDuplicate('finally', task.id)"
+                                        @open-split="selectBlock('finally', task, true)"
                                     />
                                     <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelFinally, index)" />
                                 </template>
@@ -265,133 +285,6 @@
                                 />
                             </div>
                         </BlockSectionCard>
-                    </div>
-                </div>
-            </KsSplitterPanel>
-
-            <KsSplitterPanel v-if="dockTabs.length" size="72%" min="40%">
-                <div class="block-editor-dock">
-                    <div class="block-editor-dock-toolbar">
-                        <span class="block-editor-dock-tabbar-spacer" />
-                        <div
-                            v-if="dockTabs.length > 1"
-                            class="block-editor-dock-split"
-                            role="group"
-                            :aria-label="t('block_editor.split_view')"
-                        >
-                            <button
-                                v-for="n in 3"
-                                :key="n"
-                                type="button"
-                                class="block-editor-dock-split-btn"
-                                :class="{'block-editor-dock-split-btn--active': splitCount === n}"
-                                :disabled="dockTabs.length < n"
-                                :aria-pressed="splitCount === n"
-                                :aria-label="t('block_editor.split_into', {count: n})"
-                                :title="t('block_editor.split_into', {count: n})"
-                                :data-test="`block-editor-split-${n}`"
-                                @click="splitCount = n"
-                            >
-                                <span class="block-editor-dock-split-glyph">
-                                    <span v-for="c in n" :key="c" class="block-editor-dock-split-col" />
-                                </span>
-                            </button>
-                        </div>
-                        <KsIconButton
-                            v-if="dockTabs.length > 1"
-                            class="block-editor-dock-closeall"
-                            :aria-label="t('block_editor.close_all')"
-                            :tooltip="t('block_editor.close_all')"
-                            @click="closeAllTabs"
-                        >
-                            <Close />
-                        </KsIconButton>
-                        <KsIconButton
-                            class="block-editor-dock-help"
-                            :aria-label="t('block_editor.shortcuts.title')"
-                            :tooltip="t('block_editor.shortcuts.title')"
-                            data-test="block-editor-help-dock"
-                            @click="shortcutsOpen = true"
-                        >
-                            <Keyboard />
-                        </KsIconButton>
-                    </div>
-
-                    <!-- Each pane owns its own tab strip (VSCode editor groups) —
-                    tabs never live in a shared bar, so opening a block always lands
-                    in the pane that's currently focused, and dragging a tab across
-                    strips actually re-parents it into that pane. -->
-                    <div class="block-editor-dock-body">
-                        <div
-                            v-for="group in dockGroups"
-                            :key="group.id"
-                            class="block-editor-dock-group"
-                            :class="{'block-editor-dock-group--active': group === activeGroup && dockGroups.length > 1}"
-                            :data-test="`block-editor-dock-group-${group.id}`"
-                        >
-                            <TransitionGroup
-                                tag="div"
-                                name="dock-tab"
-                                class="block-editor-dock-tabbar"
-                                role="tablist"
-                                :aria-label="t('block_editor.open_details')"
-                            >
-                                <div
-                                    v-for="tab in group.tabs"
-                                    :key="tab.id"
-                                    role="tab"
-                                    tabindex="0"
-                                    draggable="true"
-                                    class="block-editor-dock-tab"
-                                    :class="{'block-editor-dock-tab--active': group.activeTabId === tab.id}"
-                                    :aria-selected="group.activeTabId === tab.id"
-                                    :data-test="`block-editor-dock-tab-${tab.id}`"
-                                    @click="activateTab(tab.id)"
-                                    @keydown.enter="activateTab(tab.id)"
-                                    @keydown.space.prevent="activateTab(tab.id)"
-                                    @dragstart="onTabDragStart(tab.id)"
-                                    @dragend="onTabDragEnd"
-                                    @dragover.prevent
-                                    @drop.prevent="onTabDropOnTab(group.id, tab.id)"
-                                >
-                                    <KsTaskIcon class="block-editor-dock-tab-ico" :cls="String(tab.data.type ?? '')" :icons="pluginsStore.icons" :onlyIcon="true" />
-                                    <span class="block-editor-dock-tab-id">{{ tab.id }}</span>
-                                    <KsIconButton
-                                        class="block-editor-dock-tab-close"
-                                        :aria-label="t('close')"
-                                        :data-test="`block-editor-dock-tab-close-${tab.id}`"
-                                        @click.stop="closeTab(tab.id)"
-                                    >
-                                        <Close />
-                                    </KsIconButton>
-                                </div>
-                            </TransitionGroup>
-
-                            <TaskEdit
-                                v-for="tab in group.tabs"
-                                v-show="group.activeTabId === tab.id"
-                                :key="tab.id"
-                                :ref="(el) => setTaskEditRef(tab.id, el)"
-                                class="block-editor-dock-pane"
-                                :data-dock-pane-id="tab.id"
-                                :task="tab.data"
-                                :section="tab.section"
-                                :flowId="flowId"
-                                :namespace="namespace"
-                                :isHidden="true"
-                                presentation="panel"
-                                :hideTabstrip="true"
-                                v-model:inputsCollapsed="tab.inputsCollapsed"
-                                v-model:outputCollapsed="tab.outputCollapsed"
-                                v-model:docOpen="tab.docOpen"
-                                data-test="block-editor-task-edit"
-                                @mousedown="focusPane(tab.id)"
-                                @focusin="focusPane(tab.id)"
-                                @update:task="(content) => onTaskEdited(tab, content)"
-                                @close="closeTab(tab.id)"
-                                @tab-drop="onTabDropOnGroup(group.id)"
-                            />
-                        </div>
                     </div>
                 </div>
             </KsSplitterPanel>
@@ -535,7 +428,6 @@
         </KsDialog>
 
         <button
-            v-if="!dockTabs.length"
             type="button"
             class="block-editor-help"
             :aria-label="t('block_editor.shortcuts.title')"
@@ -579,7 +471,7 @@
 </template>
 
 <script setup lang="ts">
-    import {computed, nextTick, provide, ref, watch, type Component} from "vue"
+    import {computed, nextTick, ref, watch, type Component} from "vue"
     import {useI18n} from "vue-i18n"
     import TriggerIcon from "vue-material-design-icons/LightningBoltOutline.vue"
     import TasksIcon from "vue-material-design-icons/FormatListBulleted.vue"
@@ -589,7 +481,6 @@
     import AppsIcon from "vue-material-design-icons/ViewGridOutline.vue"
     import RecentIcon from "vue-material-design-icons/History.vue"
     import ChevronLeft from "vue-material-design-icons/ChevronLeft.vue"
-    import Close from "vue-material-design-icons/Close.vue"
     import Keyboard from "vue-material-design-icons/Keyboard.vue"
     import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
@@ -598,9 +489,8 @@
     import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
     import OpenInNew from "vue-material-design-icons/OpenInNew.vue"
 
-    import {KsTaskIcon, KsIconButton, KsInput, KsMessageBox, vKsLoading} from "@kestra-io/design-system"
+    import {KsTaskIcon, KsInput, KsMessageBox, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
-    import {useRoute, useRouter, type LocationQueryRaw} from "vue-router"
 
     import {useFlowStore} from "../../../stores/flow"
     import {usePluginsStore} from "../../../stores/plugins"
@@ -618,7 +508,6 @@
         moveBlockAtPath,
         reorderAtPath,
         resolveBlockDomId,
-        updateBlock,
         updateBlockAtPath,
         type BlockSection,
     } from "../../../utils/flowableBlockOps"
@@ -630,20 +519,23 @@
     import BlockCommandMenu, {type BlockCommandMenuItem} from "./BlockCommandMenu.vue"
     import FlowableClusterCard from "./FlowableClusterCard.vue"
     import TaskEdit from "../../flows/TaskEdit.vue"
-    import {BLOCK_SCHEMA_PATH_INJECTION_KEY} from "../injectionKeys"
     import {useBlockEditorKeyboard} from "./useBlockEditorKeyboard"
     import {BLOCK_EDITOR_KEYMAP, blockEditorKeymapByGroup, findBlockEditorBinding, type BlockEditorKeymapGroup} from "./keymap"
+    import type {NoCodeProps} from "../../flows/noCodeTypes"
 
     const {t} = useI18n()
     const flowStore = useFlowStore()
     const pluginsStore = usePluginsStore()
 
-    const props = defineProps<{
+    const props = defineProps<NoCodeProps & {
         selectedId?: string
     }>()
 
     const emit = defineEmits<{
         (e: "update:selectedId", id: string | undefined): void
+        (e: "createTask", parentPath: string, blockSchemaPath: string, refPath: number | undefined, position: "after" | "before"): boolean | void
+        (e: "editTask", parentPath: string, blockSchemaPath: string, refPath: number | undefined, split?: boolean): boolean | void
+        (e: "closeTask"): boolean | void
     }>()
 
     const flowYaml = computed<string>(() => flowStore.flowYaml ?? "")
@@ -657,6 +549,33 @@
             return undefined
         }
     })
+
+    // Mirrors useNoCodePanels.ts's getTabFromNoCodeTab: the block currently
+    // being edited/created is resolved from parentPath/refPath against the
+    // live flow YAML, the same contract NoCode.vue implements via injection.
+    const editingPath = computed<string>(() => {
+        if (!props.editingTask) return props.parentPath ?? ""
+        return props.refPath !== undefined ? `${props.parentPath}[${props.refPath}]` : props.parentPath ?? ""
+    })
+
+    const editingTaskData = computed<Record<string, unknown> | undefined>(() => {
+        if (props.creatingTask) return undefined
+        if (!props.editingTask || !editingPath.value) return undefined
+        const blockYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path: editingPath.value})
+        if (!blockYaml) return undefined
+        try {
+            return flowYamlUtils.parse<Record<string, unknown>>(blockYaml)
+        } catch {
+            return undefined
+        }
+    })
+
+    const editingSection = computed<BlockSection>(() => sectionFromParentPath(props.parentPath ?? ""))
+
+    function onInlineTaskEdited(newContent: string) {
+        if (!editingPath.value) return
+        applyYaml(updateBlockAtPath(flowYaml.value, editingPath.value, newContent))
+    }
 
     function isFlowable(task: Record<string, unknown>): boolean {
         return isFlowableType(String(task.type ?? ""), pluginsStore.icons)
@@ -705,10 +624,12 @@
         return `__section:${section}`
     }
 
+    const ALL_SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally"]
+
     function sectionFromSentinel(id: string | undefined): BlockSection | undefined {
         if (!id?.startsWith("__section:")) return undefined
         const section = id.slice("__section:".length) as BlockSection
-        return DOCK_SECTIONS.includes(section) ? section : undefined
+        return ALL_SECTIONS.includes(section) ? section : undefined
     }
 
     // Same idea as the section sentinel, but for an empty lane INSIDE a
@@ -767,15 +688,11 @@
 
     const editorEl = ref<HTMLElement>()
 
-    // Every mounted dock pane, keyed by tab id — flushed before a save so a
-    // debounced edit typed just before Cmd/Ctrl+S is never silently dropped.
-    const taskEditRefs = new Map<string, InstanceType<typeof TaskEdit>>()
-    function setTaskEditRef(id: string, el: unknown) {
-        if (el) taskEditRefs.set(id, el as InstanceType<typeof TaskEdit>)
-        else taskEditRefs.delete(id)
-    }
+    // Flushed before a save so a debounced edit typed just before Cmd/Ctrl+S
+    // in the inline edit form is never silently dropped.
+    const inlineTaskEditRef = ref<InstanceType<typeof TaskEdit>>()
     function saveFlowWithPendingEdits() {
-        taskEditRefs.forEach(pane => pane.flushPendingEdit())
+        inlineTaskEditRef.value?.flushPendingEdit()
         flowStore.save?.()
     }
     const focusedId = ref<string | undefined>()
@@ -793,6 +710,12 @@
         },
     })
 
+    // The path of the currently-selected block when it's a nested one (opened
+    // via openNestedEdit) — undefined for a top-level block. Only used to
+    // detect when a drag-reorder invalidates the selection, since the shared
+    // dock (not this component) now owns the actual open tab.
+    const activeSelectedPath = ref<string | undefined>()
+
     watch(() => props.selectedId, async (id) => {
         internalSelectedId.value = id
         if (!id || !editorEl.value) return
@@ -802,397 +725,26 @@
         card?.scrollIntoView({block: "nearest", behavior: reduceMotion ? "auto" : "smooth"})
     })
 
-    interface EditingBlock {
-        id: string
-        section: BlockSection
-        data: Record<string, unknown>
-        path?: string
-        docOpen?: boolean
-        inputsCollapsed?: boolean
-        outputCollapsed?: boolean
+    // The flow schema's root $ref, needed to compute a block's blockSchemaPath
+    // the same way useTopologyPanels.ts does when it opens the shared dock.
+    const flowSchemaRoot = computed(() => pluginsStore.flowSchema?.$ref ?? "")
+
+    function blockSchemaPathFor(section: BlockSection): string {
+        return [flowSchemaRoot.value, "properties", section, "items"].join("/")
     }
 
-    // VSCode-style editor groups: each pane owns its own ordered tab list and
-    // its own active tab, instead of every open block sharing one flat list.
-    interface DockGroup {
-        id: string
-        tabs: EditingBlock[]
-        activeTabId?: string
-    }
-
-    const dockGroups = ref<DockGroup[]>([])
-    let groupSeq = 0
-    const newGroupId = () => `dock-group-${++groupSeq}`
-
-    function findGroupOf(id: string | undefined): DockGroup | undefined {
-        if (!id) return undefined
-        return dockGroups.value.find(group => group.tabs.some(tab => tab.id === id))
-    }
-
-    // Flat read-only view for callers that only care "is anything open" or
-    // "find this tab" — writes always go through a specific group's tabs[].
-    const dockTabs = computed<EditingBlock[]>(() => dockGroups.value.flatMap(group => group.tabs))
-    const activeTab = computed(() => dockTabs.value.find(tab => tab.id === activeSelectedId.value))
-    const activeGroup = computed(() => findGroupOf(activeSelectedId.value) ?? dockGroups.value[0])
-
-    const activationOrder = ref<string[]>([])
-
-    function touchActivation(id: string) {
-        activationOrder.value = [id, ...activationOrder.value.filter(other => other !== id)]
-    }
-
-    // "Split into N" redeals the N most-recently-active tabs one per pane, and
-    // parks anything else as a background tab in the most recent pane's own
-    // strip — same recency rule the old flat tabbar used, just materialized
-    // into real per-pane groups instead of a shared list.
-    const splitCount = computed({
-        get: () => dockGroups.value.length || 1,
-        set: (target: number) => setSplitCount(target),
-    })
-
-    function setSplitCount(target: number) {
-        target = Math.max(1, Math.min(3, target, dockTabs.value.length || 1))
-        if (target === dockGroups.value.length) return
-        const ranked = [...dockTabs.value].sort((a, b) =>
-            activationOrder.value.indexOf(a.id) - activationOrder.value.indexOf(b.id))
-        const anchors = ranked.slice(0, target)
-        const rest = ranked.slice(target)
-        const groups: DockGroup[] = anchors.map(tab => ({id: newGroupId(), tabs: [tab], activeTabId: tab.id}))
-        if (rest.length && groups.length) groups[0].tabs.push(...rest)
-        dockGroups.value = groups
-    }
-
-    const dockDragTabId = ref<string>()
-
-    function onTabDragStart(id: string) {
-        dockDragTabId.value = id
-    }
-
-    function onTabDragEnd() {
-        dockDragTabId.value = undefined
-    }
-
-    // Moves a tab into targetGroupId, inserted right before beforeId (or at the
-    // end when omitted). Reordering within a group and re-parenting into a
-    // different one both flow through here — the source group collapses if it
-    // ends up empty, mirroring VSCode closing an emptied editor group.
-    function moveTabTo(sourceId: string, targetGroupId: string, beforeId?: string) {
-        const sourceGroup = findGroupOf(sourceId)
-        const targetGroup = dockGroups.value.find(group => group.id === targetGroupId)
-        if (!sourceGroup || !targetGroup) return
-        const fromIndex = sourceGroup.tabs.findIndex(tab => tab.id === sourceId)
-        if (fromIndex < 0) return
-        const sameGroup = sourceGroup === targetGroup
-
-        const [tab] = sourceGroup.tabs.splice(fromIndex, 1)
-        let insertAt = beforeId ? targetGroup.tabs.findIndex(t => t.id === beforeId) : targetGroup.tabs.length
-        if (insertAt < 0) insertAt = targetGroup.tabs.length
-        targetGroup.tabs.splice(insertAt, 0, tab)
-
-        if (sameGroup) return
-
-        if (sourceGroup.activeTabId === sourceId) {
-            sourceGroup.activeTabId = sourceGroup.tabs[Math.max(0, fromIndex - 1)]?.id ?? sourceGroup.tabs[0]?.id
-        }
-        targetGroup.activeTabId = tab.id
-        if (sourceGroup.tabs.length === 0) {
-            dockGroups.value = dockGroups.value.filter(group => group !== sourceGroup)
-        }
-        if (activeSelectedId.value === tab.id) touchActivation(tab.id)
-    }
-
-    function onTabDropOnTab(groupId: string, targetTabId: string) {
-        const sourceId = dockDragTabId.value
-        onTabDragEnd()
-        if (!sourceId || sourceId === targetTabId) return
-        moveTabTo(sourceId, groupId, targetTabId)
-    }
-
-    function onTabDropOnGroup(groupId: string) {
-        const sourceId = dockDragTabId.value
-        onTabDragEnd()
-        if (!sourceId) return
-        moveTabTo(sourceId, groupId)
-    }
-
-
-    provide(BLOCK_SCHEMA_PATH_INJECTION_KEY, computed(() => {
-        const root = pluginsStore.flowSchema?.$ref
-        if (!root) return ""
-        const section = activeTab.value?.section ?? "tasks"
-        return `${root}/properties/${section}/items`
-    }))
-
-    function openTab(tab: EditingBlock) {
-        const existingGroup = findGroupOf(tab.id)
-        if (existingGroup) {
-            const existing = existingGroup.tabs.find(t => t.id === tab.id)!
-            existing.section = tab.section
-            existing.data = tab.data
-            existing.path = tab.path
-            existingGroup.activeTabId = tab.id
-            activeSelectedId.value = tab.id
-            touchActivation(tab.id)
-            return
-        }
-        // Not open anywhere yet: it always joins the currently focused pane —
-        // never a separate, disconnected tab list — so reopening a block while
-        // split never "just adds it to the top" outside the panes in view.
-        let group = activeGroup.value
-        if (!group) {
-            group = {id: newGroupId(), tabs: []}
-            dockGroups.value = [group]
-        }
-        group.tabs = [...group.tabs, {
-            ...tab,
-            docOpen: tab.docOpen ?? false,
-            inputsCollapsed: tab.inputsCollapsed ?? false,
-            outputCollapsed: tab.outputCollapsed ?? false,
-        }]
-        group.activeTabId = tab.id
-        activeSelectedId.value = tab.id
-        touchActivation(tab.id)
-    }
-
-    function activateTab(id: string) {
-        const group = findGroupOf(id)
-        if (group) group.activeTabId = id
-        activeSelectedId.value = id
-        touchActivation(id)
-    }
-
-    function focusPane(id: string) {
-        if (activeSelectedId.value !== id) activateTab(id)
-    }
-
-    watch(() => activeTab.value?.data?.type, (type) => {
-        if (type) pluginsStore.load?.({cls: String(type)})
-    })
-
-    function closeTab(id: string) {
-        const group = findGroupOf(id)
-        if (!group) return
-        const index = group.tabs.findIndex(tab => tab.id === id)
-        group.tabs = group.tabs.filter(tab => tab.id !== id)
-        if (group.tabs.length === 0) {
-            dockGroups.value = dockGroups.value.filter(g => g !== group)
-        } else if (group.activeTabId === id) {
-            group.activeTabId = group.tabs[Math.max(0, index - 1)]?.id
-        }
-        activationOrder.value = activationOrder.value.filter(other => other !== id)
-        if (activeSelectedId.value === id) {
-            activeSelectedId.value = activationOrder.value[0]
-        }
-    }
-
-    function closeAllTabs() {
-        dockGroups.value = []
-        activationOrder.value = []
-        activeSelectedId.value = undefined
-    }
-
-    function activeDockPaneEl(): HTMLElement | undefined {
-        const id = activeSelectedId.value
-        if (!id) return undefined
-        return document.querySelector<HTMLElement>(`[data-dock-pane-id="${CSS.escape(id)}"]`) ?? undefined
-    }
-
-    function focusActiveDockPane(): boolean {
-        const pane = activeDockPaneEl()
-        if (!pane) return false
-        // querySelector on a comma-separated list returns the first DOM-order match
-        // across ALL of them, not the first-listed selector's match — so a toolbar
-        // button ahead of the form in the DOM would win over an actual field. Query
-        // editable fields first and only fall back to generic focusables (buttons,
-        // tabindex) when the pane has none, so Tab lands somewhere worth editing.
-        const field = pane.querySelector<HTMLElement>(
-            "input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [contenteditable=\"true\"]",
-        )
-        const focusable = field ?? pane.querySelector<HTMLElement>("button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])")
-        if (!focusable) return false
-        focusable.focus()
-        return true
-    }
-
-    function isFocusInsideDock(): boolean {
-        const active = document.activeElement
-        const dock = active?.closest<HTMLElement>(".block-editor-dock")
-        return Boolean(dock)
-    }
-
-    type DockPane = "inputs" | "form" | "output"
-    const DOCK_PANE_ORDER: DockPane[] = ["inputs", "form", "output"]
-    const DOCK_PANE_SELECTOR: Record<DockPane, string> = {
-        inputs: ".task-edit-col-inputs",
-        form: ".task-edit-col-params",
-        output: ".task-edit-col-output",
-    }
-
-    function dockPaneColumnEl(pane: DockPane): HTMLElement | undefined {
-        return activeDockPaneEl()?.querySelector<HTMLElement>(DOCK_PANE_SELECTOR[pane]) ?? undefined
-    }
-
-    function dockPaneFocusableFields(pane: DockPane): HTMLElement[] {
-        const col = dockPaneColumnEl(pane)
-        if (!col) return []
-        return [...col.querySelectorAll<HTMLElement>(
-            "input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [contenteditable=\"true\"], button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])",
-        )].filter(el =>
-            el.offsetParent !== null
-            // Tab headers are roving-tabindex controls that consume arrow keys
-            // themselves (ElTabs switches the active tab on ArrowUp/Down) —
-            // stopping on one makes the next arrow press both switch to the
-            // Source tab AND drop focus into its raw-YAML editor.
-            && !el.closest("[role=\"tablist\"], .kel-tabs__nav"),
-        )
-    }
-
-    // Which of the three TaskEdit columns currently owns real DOM focus — undefined
-    // when focus is inside the dock but on chrome that isn't one of the three panes
-    // (e.g. the tabstrip's close button), or not inside the dock at all.
-    function currentDockPane(): DockPane | undefined {
-        const active = document.activeElement
-        if (!active) return undefined
-        return DOCK_PANE_ORDER.find(pane => active.closest(DOCK_PANE_SELECTOR[pane]))
-    }
-
-    function focusFirstFieldOfPane(pane: DockPane): boolean {
-        const target = dockPaneFocusableFields(pane)[0] ?? dockPaneColumnEl(pane)
-        if (!target) return false
-        if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1")
-        target.focus()
-        return true
-    }
-
-    // ArrowRight/ArrowLeft cycle Inputs -> Form -> Output when a dock tab is open —
-    // entry requires canvas focus to already be on the block that's open (so a
-    // canvas-only ArrowRight elsewhere keeps doing its normal step-into). Reaching
-    // past either end blurs back out to canvas-level (dock stays open).
-    function advanceDockPane(direction: 1 | -1): boolean {
-        if (!dockTabs.value.length) return false
-        const current = currentDockPane()
-        if (!current) {
-            if (direction < 0 || !focusedId.value || focusedId.value !== activeSelectedId.value) return false
-            return focusFirstFieldOfPane(DOCK_PANE_ORDER[0])
-        }
-        const nextIndex = DOCK_PANE_ORDER.indexOf(current) + direction
-        if (nextIndex < 0) {
-            // Exiting the dock leftward returns real focus to the canvas card,
-            // so a follow-up Tab or arrow continues from there.
-            if (focusedId.value) {
-                focusCanvasCard(focusedId.value)
-            } else {
-                (document.activeElement as HTMLElement | null)?.blur()
-            }
-            return true
-        }
-        if (nextIndex >= DOCK_PANE_ORDER.length) return true
-        return focusFirstFieldOfPane(DOCK_PANE_ORDER[nextIndex])
-    }
-
-    // ArrowUp/ArrowDown move real focus between a pane's own fields once inside the
-    // dock — absorbed even when nothing resolves, so canvas j/k never fires by
-    // accident while the user is navigating a form.
-    function moveDockPaneFocus(direction: 1 | -1) {
-        const pane = currentDockPane()
-        if (!pane) return
-        const fields = dockPaneFocusableFields(pane)
-        if (!fields.length) return
-        const index = fields.indexOf(document.activeElement as HTMLElement)
-        const nextIndex = index === -1 ? 0 : index + direction
-        if (nextIndex < 0 || nextIndex >= fields.length) return
-        fields[nextIndex].focus()
-    }
-
-    const route = useRoute()
-    const router = useRouter()
-    const DOCK_SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally"]
-    let restoringDock = false
-
-    const dockStateKey = computed(() => [
-        dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(","),
-        activeSelectedId.value ?? "",
-        splitCount.value,
-        activeTab.value?.inputsCollapsed ?? false,
-        activeTab.value?.outputCollapsed ?? false,
-        activeTab.value?.docOpen ?? false,
-    ].join("|"))
-
-    // Debounced: dockStateKey can change several times in a single burst (opening
-    // a tab, then immediately toggling collapse, etc.), and each change used to
-    // fire its own router.replace() — a rapid string of navigations racing each
-    // other. Coalescing to the LAST state in the burst keeps the URL in sync with
-    // one navigation instead of N.
-    let dockUrlSyncTimer: ReturnType<typeof setTimeout> | undefined
-    watch(dockStateKey, () => {
-        if (restoringDock) return
-        clearTimeout(dockUrlSyncTimer)
-        dockUrlSyncTimer = setTimeout(() => {
-            const query: LocationQueryRaw = {...route.query}
-            const tabs = dockTabs.value.map(tab => `${tab.section}:${tab.id}`).join(",")
-            if (tabs) query.tabs = tabs
-            else delete query.tabs
-            if (activeSelectedId.value) query.tab = activeSelectedId.value
-            else delete query.tab
-            if (tabs && splitCount.value > 1) query.cols = String(splitCount.value)
-            else delete query.cols
-            const active = activeTab.value
-            const collapsed = [
-                active?.inputsCollapsed ? "inputs" : "",
-                active?.outputCollapsed ? "output" : "",
-            ].filter(Boolean).join(",")
-            if (tabs && collapsed) query.collapsed = collapsed
-            else delete query.collapsed
-            if (tabs && active?.docOpen) query.doc = "1"
-            else delete query.doc
-            router.replace({query}).catch(() => {})
-        }, 300)
-    })
-
-    const dockRestored = ref(false)
-
-    watch(parsedFlow, (flow) => {
-        if (dockRestored.value || !flow) return
-        dockRestored.value = true
-        const tabsParam = typeof route.query.tabs === "string" ? route.query.tabs : ""
-        if (!tabsParam) return
-        restoringDock = true
-        for (const token of tabsParam.split(",")) {
-            const separator = token.indexOf(":")
-            if (separator < 0) continue
-            const section = token.slice(0, separator) as BlockSection
-            const id = token.slice(separator + 1)
-            if (!id || !DOCK_SECTIONS.includes(section)) continue
-            const block = sectionList(section).find(item => String(item.id) === id)
-            if (block) {
-                openTab({id, section, data: block})
-            } else {
-                const nestedPath = findNestedPath(sectionList(section), id, section)
-                if (nestedPath) openNestedEdit(nestedPath)
-            }
-        }
-        const active = route.query.tab
-        if (typeof active === "string" && dockTabs.value.some(tab => tab.id === active)) {
-            activateTab(active)
-        }
-        const cols = Number(route.query.cols)
-        if (cols >= 1 && cols <= 3) splitCount.value = cols
-        const collapsed = typeof route.query.collapsed === "string" ? route.query.collapsed.split(",") : []
-        const activeTabObj = dockTabs.value.find(tab => tab.id === activeSelectedId.value)
-        if (activeTabObj) {
-            activeTabObj.inputsCollapsed = collapsed.includes("inputs")
-            activeTabObj.outputCollapsed = collapsed.includes("output")
-            activeTabObj.docOpen = route.query.doc === "1"
-        }
-        nextTick(() => {
-            restoringDock = false
-        })
-    }, {immediate: true})
-
-    function selectBlock(section: BlockSection, block: Record<string, unknown>) {
+    // Opening a block's editor now hands off to the shared dock (the flow
+    // editor's MultiPanelTabs, via useNoCodePanels.ts) instead of hosting its
+    // own pane — mirrors useTopologyPanels.ts's click-to-edit wiring exactly.
+    function selectBlock(section: BlockSection, block: Record<string, unknown>, split = false) {
         const strId = block.id != null ? String(block.id) : undefined
         if (!strId) return
-        openTab({id: strId, section, data: block})
+        const list = sectionList(section)
+        const index = list.findIndex(item => item === block)
+        if (index < 0) return
+        activeSelectedId.value = strId
+        activeSelectedPath.value = undefined
+        emit("editTask", section, blockSchemaPathFor(section), index, split)
     }
 
     function openNestedEdit(path: string) {
@@ -1202,8 +754,14 @@
         const parsed = flowYamlUtils.parse<Record<string, unknown>>(blockYaml)
         if (!parsed || !parsed.id) return
 
-        const section: BlockSection = path.startsWith("errors") ? "errors" : path.startsWith("finally") ? "finally" : "tasks"
-        openTab({id: String(parsed.id), section, data: parsed, path})
+        const match = path.match(/^(.*)\[(\d+)\]$/)
+        if (!match) return
+        const parentPath = match[1]
+        const refPath = parseInt(match[2], 10)
+        const section = sectionFromParentPath(parentPath)
+        activeSelectedId.value = String(parsed.id)
+        activeSelectedPath.value = path
+        emit("editTask", parentPath, blockSchemaPathFor(section), refPath)
     }
 
     const onEditTimeout = ref<ReturnType<typeof setTimeout>>()
@@ -1214,26 +772,6 @@
         onEditTimeout.value = setTimeout(() => {
             flowStore.onEdit({source: newYaml, topologyVisible: true})
         }, 1000)
-    }
-
-    function onTaskEdited(tab: EditingBlock, newContent: string) {
-        const {section, id, path} = tab
-        if (path) {
-            applyYaml(updateBlockAtPath(flowYaml.value, path, newContent))
-            return
-        }
-        const indexBeforeEdit = sectionList(section).findIndex(item => String(item.id) === id)
-        applyYaml(updateBlock(flowYaml.value, section, id, newContent))
-        // A rename from the Source tab changes this block's own dom id — keep the
-        // tab, the keyboard focus ring and the dock-active-tab pointer following
-        // it (by the position it still occupies, since editing in place never
-        // moves it), or they're left pointing at an id that no longer exists.
-        if (indexBeforeEdit < 0) return
-        const newId = resolveBlockDomId(sectionList(section), indexBeforeEdit)
-        if (newId === id) return
-        tab.id = newId
-        if (focusedId.value === id) focusedId.value = newId
-        if (activeSelectedId.value === id) activeSelectedId.value = newId
     }
 
     const undoState = ref<{label: string} | null>(null)
@@ -1260,11 +798,18 @@
         clearTimeout(undoTimer)
     }
 
+    function deselectIfCurrent(id: string) {
+        if (activeSelectedId.value !== id) return
+        activeSelectedId.value = undefined
+        activeSelectedPath.value = undefined
+        emit("closeTask")
+    }
+
     function onDelete(section: BlockSection, id: unknown) {
         if (typeof id !== "string") return
         deleteWithUndo(id, () => {
             const newYaml = deleteBlock(flowYaml.value, section, id)
-            closeTab(id)
+            deselectIfCurrent(id)
             applyYaml(newYaml)
         })
     }
@@ -1275,7 +820,7 @@
         const name = parsed?.id ? String(parsed.id) : path
         deleteWithUndo(name, () => {
             const newYaml = deleteBlockAtPath(flowYaml.value, path)
-            if (parsed?.id) closeTab(String(parsed.id))
+            if (parsed?.id) deselectIfCurrent(String(parsed.id))
             applyYaml(newYaml)
         })
     }
@@ -1417,7 +962,7 @@
     function focusedBlockPath(): string | undefined {
         const id = focusedId.value
         if (!id) return undefined
-        for (const section of DOCK_SECTIONS) {
+        for (const section of ALL_SECTIONS) {
             const found = findNestedPath(sectionList(section), id, section)
             if (found) return found
         }
@@ -1677,14 +1222,15 @@
     } = useDragAndDrop()
 
     function clearSelectionIfPathStale(_parentSection: string, from: number, to: number) {
-        const tab = activeTab.value
-        if (!tab?.path) return
-        const match = tab.path.match(/^tasks\[(\d+)\]/)
+        const path = activeSelectedPath.value
+        const id = activeSelectedId.value
+        if (!path || !id) return
+        const match = path.match(/^tasks\[(\d+)\]/)
         if (!match) return
         const movedIndex = parseInt(match[1], 10)
         const lo = Math.min(from, to)
         const hi = Math.max(from, to)
-        if (movedIndex >= lo && movedIndex <= hi) closeTab(tab.id)
+        if (movedIndex >= lo && movedIndex <= hi) deselectIfCurrent(id)
     }
 
     function handleTaskDrop(event: DragEvent, targetIndex: number) {
@@ -1744,7 +1290,7 @@
     // actually reached, not on a stale virtual position.
     function onCanvasFocusIn(event: FocusEvent) {
         const target = event.target as HTMLElement | null
-        if (!target || target.closest(".block-editor-dock")) return
+        if (!target) return
         const id = target.closest("[data-block-id]")?.getAttribute("data-block-id")
         if (id) focusedId.value = id
     }
@@ -1922,12 +1468,10 @@
             return
         }
         if (id === "focus-panel") {
-            // Native Tab must keep working untouched both when there is no dock
-            // to jump into AND when focus is already inside it (tabbing between
-            // the dock's own fields) — the shortcut is only a convenience jump
-            // from outside the panel.
-            if (isFocusInsideDock()) return false
-            return focusActiveDockPane()
+            // The dock now lives in a sibling panel outside this component's
+            // own subtree, so there is nothing to jump into from here — native
+            // Tab is left untouched.
+            return false
         }
         if (id === "clear") {
             if (closeTopOverlay()) return
@@ -1938,22 +1482,6 @@
             // handler sees the same Escape — hence the timestamp grace window instead
             // of a reactive-state check.
             if (confirmDialogOpen.value || performance.now() - lastConfirmDialogCloseAt < 100) return
-            // Escape backs out one level at a time: out of an editing field back
-            // onto the canvas card first (panel stays open), then a second
-            // Escape closes the panel. Returning real focus to the card keeps a
-            // follow-up Tab continuing from there instead of from nowhere.
-            if (dockTabs.value.length > 0 && isFocusInsideDock()) {
-                if (focusedId.value) {
-                    focusCanvasCard(focusedId.value)
-                } else {
-                    (document.activeElement as HTMLElement | null)?.blur()
-                }
-                return
-            }
-            if (dockTabs.value.length > 0) {
-                closeAllTabs()
-                return
-            }
             if (focusedId.value) {
                 const card = focusedCard()
                 if (card && card.contains(document.activeElement)) {
@@ -1976,15 +1504,11 @@
             // one that stays anchored to the focused block.
             openTaskPicker("tasks")
         } else if (id === "move") {
-            if (isFocusInsideDock()) {
-                moveDockPaneFocus(event.key === "ArrowDown" ? 1 : -1)
-            } else {
-                moveFocus(event.key === "ArrowDown" || event.key === "j" ? 1 : -1)
-            }
+            moveFocus(event.key === "ArrowDown" || event.key === "j" ? 1 : -1)
         } else if (id === "step-into") {
-            if (!advanceDockPane(1)) stepInto()
+            stepInto()
         } else if (id === "step-out") {
-            if (!advanceDockPane(-1)) stepOut()
+            stepOut()
         } else if (id === "reorder") {
             const direction = event.key === "ArrowDown" ? "down" : "up"
             if (focusedId.value) {
@@ -2024,31 +1548,51 @@
         isOverlayOpen: isAnyOverlayOpen,
     })
 
-    function deleteSelected() {
-        const tab = activeTab.value
-        if (!activeSelectedId.value || !tab) return
-        if (tab.path) {
-            onDeleteAtPath(tab.path)
-        } else {
-            onDelete(tab.section, tab.id)
+    // Resolves the top-level section a selected (not nested) block id lives in
+    // — the dock tab used to carry this directly; now it's derived on demand.
+    function sectionOfSelected(id: string): BlockSection | undefined {
+        return ALL_SECTIONS.find(section => sectionList(section).some(item => String(item.id) === id))
+    }
+
+    function selectedBlockData(): Record<string, unknown> | undefined {
+        const id = activeSelectedId.value
+        if (!id) return undefined
+        if (activeSelectedPath.value) {
+            const blockYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path: activeSelectedPath.value})
+            return blockYaml ? flowYamlUtils.parse<Record<string, unknown>>(blockYaml) : undefined
         }
+        const section = sectionOfSelected(id)
+        return section ? sectionList(section).find(item => String(item.id) === id) : undefined
+    }
+
+    function deleteSelected() {
+        const id = activeSelectedId.value
+        if (!id) return
+        if (activeSelectedPath.value) {
+            onDeleteAtPath(activeSelectedPath.value)
+            return
+        }
+        const section = sectionOfSelected(id)
+        if (section) onDelete(section, id)
     }
 
     function requestDeleteSelected() {
-        const tab = activeTab.value
-        if (!activeSelectedId.value || !tab) return
-        const isFlowableBlock = isFlowable(tab.data)
-        confirmDelete(tab.id, isFlowableBlock, () => deleteSelected())
+        const id = activeSelectedId.value
+        const data = selectedBlockData()
+        if (!id || !data) return
+        const isFlowableBlock = isFlowable(data)
+        confirmDelete(id, isFlowableBlock, () => deleteSelected())
     }
 
     function duplicateSelected() {
-        const tab = activeTab.value
-        if (!activeSelectedId.value || !tab) return
-        if (tab.path) {
-            onDuplicateAtPath(tab.path)
-        } else {
-            onDuplicate(tab.section, tab.id)
+        const id = activeSelectedId.value
+        if (!id) return
+        if (activeSelectedPath.value) {
+            onDuplicateAtPath(activeSelectedPath.value)
+            return
         }
+        const section = sectionOfSelected(id)
+        if (section) onDuplicate(section, id)
     }
 
     function moveFocused(direction: "up" | "down") {
@@ -2063,16 +1607,13 @@
     }
 
     function moveSelected(direction: "up" | "down") {
-        const tab = activeTab.value
-        if (!activeSelectedId.value || !tab) return
-        const path = tab.path
+        const id = activeSelectedId.value
+        if (!id) return
+        const path = activeSelectedPath.value
         if (!path) {
-            const section = tab.section
-            const list = section === "tasks" ? parsedTasks.value
-                : section === "errors" ? flowLevelErrors.value
-                    : section === "finally" ? flowLevelFinally.value
-                        : parsedTriggers.value
-            const idx = list.findIndex(item => String(item.id) === activeSelectedId.value)
+            const section = sectionOfSelected(id)
+            if (!section) return
+            const idx = sectionList(section).findIndex(item => String(item.id) === id)
             if (idx < 0) return
             const syntheticPath = `${section}[${idx}]`
             applyYaml(moveBlockAtPath(flowYaml.value, syntheticPath, direction))
@@ -2082,7 +1623,7 @@
             const match = path.match(/^(.*)\[(\d+)\]$/)
             if (match) {
                 const newIndex = direction === "up" ? parseInt(match[2], 10) - 1 : parseInt(match[2], 10) + 1
-                tab.path = `${match[1]}[${newIndex}]`
+                activeSelectedPath.value = `${match[1]}[${newIndex}]`
             }
             applyYaml(newYaml)
         }
@@ -2127,7 +1668,6 @@
     const footerContext = computed(() => {
         if (commandMenuOpen.value) return t("block_editor.footer.command_menu")
         if (taskPickerVisible.value) return t("block_editor.footer.inserting")
-        if (dockTabs.value.length) return t("block_editor.footer.editing")
         const sentinelSection = sectionFromSentinel(focusedId.value)
         if (sentinelSection) return t("block_editor.footer.selected", {name: sectionDisplayLabel(sentinelSection)})
         const laneParentPath = parentPathFromLaneSentinel(focusedId.value)
@@ -2157,15 +1697,6 @@
                 {id: "move", keys: ["ArrowUp", "ArrowDown"], i18nKey: "block_editor.kbd_navigate"},
                 {id: "run", keys: ["Enter"], i18nKey: "block_editor.kbd_add"},
                 {id: "close", keys: ["Escape"], i18nKey: "block_editor.kbd_close"},
-            ]
-        }
-        if (dockTabs.value.length) {
-            return [
-                {id: "close", keys: ["Escape"], i18nKey: "block_editor.footer.close_panel"},
-                {id: "move", keys: keysFor("move"), i18nKey: "block_editor.shortcuts.move_between"},
-                {id: "step-into", keys: keysFor("step-into"), i18nKey: "block_editor.shortcuts.step_into"},
-                {id: "step-out", keys: keysFor("step-out"), i18nKey: "block_editor.shortcuts.step_out"},
-                {id: "insert", keys: keysFor("insert-after"), i18nKey: "block_editor.shortcuts.add_after"},
             ]
         }
         // A real block (not an empty section's sentinel) additionally supports
@@ -2327,188 +1858,8 @@
         padding: var(--ks-spacing-6) var(--ks-spacing-4) calc(2.25rem + var(--ks-spacing-6));
     }
 
-    .block-editor-dock {
+    .block-editor-inline-edit {
         height: 100%;
-        min-width: 0;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        gap: var(--ks-spacing-2);
-        padding: var(--ks-spacing-4);
-    }
-
-    .block-editor-dock-toolbar {
-        display: flex;
-        align-items: stretch;
-        gap: var(--ks-spacing-1);
-        flex-shrink: 0;
-    }
-
-    .block-editor-dock-tabbar {
-        position: relative;
-        display: flex;
-        align-items: stretch;
-        gap: var(--ks-spacing-1);
-        flex-shrink: 0;
-        overflow-x: auto;
-    }
-
-    .dock-tab-move {
-        transition: transform 0.18s ease;
-    }
-
-    .dock-tab-enter-active,
-    .dock-tab-leave-active {
-        transition: opacity 0.15s ease, transform 0.15s ease;
-    }
-
-    .dock-tab-enter-from,
-    .dock-tab-leave-to {
-        opacity: 0;
-        transform: scale(0.92);
-    }
-
-    .dock-tab-leave-active {
-        position: absolute;
-    }
-
-    .block-editor-dock-tab {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--ks-spacing-2);
-        max-width: 200px;
-        padding: var(--ks-spacing-2) var(--ks-spacing-1) var(--ks-spacing-2) var(--ks-spacing-3);
-        background: var(--ks-bg-base);
-        border: 1px solid var(--ks-border-subtle);
-        border-bottom: none;
-        border-radius: var(--ks-radius-base) var(--ks-radius-base) 0 0;
-        cursor: grab;
-        color: var(--ks-text-secondary);
-        transition: background-color 0.12s, color 0.12s;
-    }
-
-    .block-editor-dock-tab:hover {
-        background: var(--ks-bg-surface);
-        color: var(--ks-text-primary);
-    }
-
-    .block-editor-dock-tab:focus-visible {
-        outline: 2px solid var(--ks-border-focus);
-        outline-offset: -2px;
-    }
-
-    .block-editor-dock-tab--active {
-        background: var(--ks-bg-surface);
-        color: var(--ks-text-primary);
-        box-shadow: inset 0 2px 0 var(--ks-text-link);
-    }
-
-    .block-editor-dock-split {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--ks-spacing-1);
-        flex-shrink: 0;
-        padding: var(--ks-spacing-1);
-        background: var(--ks-bg-tag);
-        border-radius: var(--ks-radius-base);
-    }
-
-    .block-editor-dock-split-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: var(--ks-spacing-1) var(--ks-spacing-2);
-        border: none;
-        background: transparent;
-        color: var(--ks-icon-default);
-        border-radius: var(--ks-radius-sm);
-        cursor: pointer;
-        transition: background-color 0.12s, color 0.12s;
-    }
-
-    .block-editor-dock-split-btn:hover:not(:disabled) {
-        color: var(--ks-text-primary);
-    }
-
-    .block-editor-dock-split-btn:focus-visible {
-        outline: 2px solid var(--ks-border-focus);
-        outline-offset: -1px;
-    }
-
-    .block-editor-dock-split-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
-
-    .block-editor-dock-split-btn--active {
-        background: var(--ks-bg-surface);
-        color: var(--ks-text-link);
-    }
-
-    .block-editor-dock-split-glyph {
-        display: flex;
-        gap: 1.5px;
-        width: 18px;
-        height: 13px;
-        padding: 2px;
-        border: 1.5px solid currentColor;
-        border-radius: 3px;
-    }
-
-    .block-editor-dock-split-col {
-        flex: 1;
-        background: currentColor;
-        border-radius: 1px;
-    }
-
-    .block-editor-dock-tab-ico {
-        flex-shrink: 0;
-        width: var(--ks-icon-size-sm);
-        height: var(--ks-icon-size-sm);
-    }
-
-    .block-editor-dock-tab-id {
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-size: var(--ks-font-size-sm);
-        font-family: var(--ks-font-family-mono);
-    }
-
-    .block-editor-dock-tab-close {
-        flex-shrink: 0;
-    }
-
-    .block-editor-dock-tabbar-spacer {
-        flex: 1;
-        min-width: var(--ks-spacing-2);
-    }
-
-    .block-editor-dock-body {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        gap: var(--ks-spacing-3);
-    }
-
-    .block-editor-dock-group {
-        flex: 1;
-        min-width: 0;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        gap: var(--ks-spacing-1);
-    }
-
-    .block-editor-dock-group--active .block-editor-dock-pane {
-        box-shadow: 0 0 0 1px var(--ks-text-link);
-        border-radius: var(--ks-radius-lg);
-    }
-
-    .block-editor-dock-pane {
-        flex: 1;
         min-width: 0;
         min-height: 0;
     }

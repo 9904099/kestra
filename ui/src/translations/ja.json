@@ -175,6 +175,7 @@
       "no_recent": "最近使用したtaskはありません",
       "no_task_results": "一致するtaskタイプが見つかりません。",
       "open_details": "開いている詳細",
+      "open_in_split": "分割ビューで開く",
       "output": "Output",
       "output_sub": "このtaskが生成するもの",
       "pick_task_type": "taskタイプを選択",

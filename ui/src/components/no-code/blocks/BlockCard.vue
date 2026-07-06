@@ -44,6 +44,17 @@
             reachable via the d / Backspace shortcuts and the mouse. -->
             <KsIconButton
                 class="block-card-action"
+                :aria-label="t('block_editor.open_in_split')"
+                :tooltip="t('block_editor.open_in_split')"
+                data-test="block-card-open-split"
+                tabindex="-1"
+                @click.stop="emit('open-split')"
+            >
+                <ViewSplitVertical />
+            </KsIconButton>
+
+            <KsIconButton
+                class="block-card-action"
                 :aria-label="t('block_editor.duplicate')"
                 :tooltip="`${t('block_editor.duplicate')} (d)`"
                 data-test="block-card-duplicate"
@@ -73,6 +84,7 @@
     import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import DragVertical from "vue-material-design-icons/DragVertical.vue"
+    import ViewSplitVertical from "vue-material-design-icons/ViewSplitVertical.vue"
 
     import {KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
 
@@ -91,6 +103,7 @@
         (e: "select"): void
         (e: "delete"): void
         (e: "duplicate"): void
+        (e: "open-split"): void
         (e: "drag-start", event: DragEvent): void
         (e: "drag-over", event: DragEvent): void
         (e: "drop", event: DragEvent): void

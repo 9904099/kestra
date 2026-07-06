@@ -175,6 +175,7 @@
       "no_recent": "暂无最近的 task",
       "no_task_results": "未找到匹配的task类型。",
       "open_details": "已打开的详情",
+      "open_in_split": "在拆分视图中打开",
       "output": "Output",
       "output_sub": "此 task 产生的内容",
       "pick_task_type": "选择task类型",
