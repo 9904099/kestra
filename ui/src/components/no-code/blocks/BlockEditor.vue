@@ -471,7 +471,7 @@
 </template>
 
 <script setup lang="ts">
-    import {computed, nextTick, ref, watch, type Component} from "vue"
+    import {computed, nextTick, provide, ref, watch, type Component} from "vue"
     import {useI18n} from "vue-i18n"
     import TriggerIcon from "vue-material-design-icons/LightningBoltOutline.vue"
     import TasksIcon from "vue-material-design-icons/FormatListBulleted.vue"
@@ -522,6 +522,23 @@
     import {useBlockEditorKeyboard} from "./useBlockEditorKeyboard"
     import {BLOCK_EDITOR_KEYMAP, blockEditorKeymapByGroup, findBlockEditorBinding, type BlockEditorKeymapGroup} from "./keymap"
     import type {NoCodeProps} from "../../flows/noCodeTypes"
+    import {
+        BLOCK_SCHEMA_PATH_INJECTION_KEY,
+        CREATING_FLOW_INJECTION_KEY,
+        CREATING_TASK_INJECTION_KEY,
+        DEFAULT_NAMESPACE_INJECTION_KEY,
+        EDITING_TASK_INJECTION_KEY,
+        FIELDNAME_INJECTION_KEY,
+        FULL_SCHEMA_INJECTION_KEY,
+        FULL_SOURCE_INJECTION_KEY,
+        PANEL_INJECTION_KEY,
+        PARENT_PATH_INJECTION_KEY,
+        POSITION_INJECTION_KEY,
+        REF_PATH_INJECTION_KEY,
+        ROOT_SCHEMA_INJECTION_KEY,
+        SCHEMA_DEFINITIONS_INJECTION_KEY,
+    } from "../injectionKeys"
+    import {defaultNamespace} from "../../../composables/useNamespaces"
 
     const {t} = useI18n()
     const flowStore = useFlowStore()
@@ -541,6 +558,22 @@
     const flowYaml = computed<string>(() => flowStore.flowYaml ?? "")
     const flowId = computed<string>(() => flowStore.flow?.id ?? "")
     const namespace = computed<string>(() => flowStore.flow?.namespace ?? "")
+
+    const inlineEditPanel = ref()
+    provide(FULL_SOURCE_INJECTION_KEY, flowYaml)
+    provide(PARENT_PATH_INJECTION_KEY, props.parentPath ?? "")
+    provide(REF_PATH_INJECTION_KEY, props.refPath)
+    provide(PANEL_INJECTION_KEY, inlineEditPanel)
+    provide(POSITION_INJECTION_KEY, props.position ?? "after")
+    provide(CREATING_FLOW_INJECTION_KEY, flowStore.isCreating ?? false)
+    provide(DEFAULT_NAMESPACE_INJECTION_KEY, computed(() => flowStore.flow?.namespace ?? defaultNamespace() ?? "company.team"))
+    provide(CREATING_TASK_INJECTION_KEY, props.creatingTask)
+    provide(EDITING_TASK_INJECTION_KEY, props.editingTask)
+    provide(FIELDNAME_INJECTION_KEY, props.fieldName)
+    provide(BLOCK_SCHEMA_PATH_INJECTION_KEY, computed(() => props.blockSchemaPath ?? pluginsStore.flowSchema?.$ref ?? ""))
+    provide(FULL_SCHEMA_INJECTION_KEY, computed(() => pluginsStore.flowSchema ?? {}))
+    provide(ROOT_SCHEMA_INJECTION_KEY, computed(() => pluginsStore.flowRootSchema ?? {}))
+    provide(SCHEMA_DEFINITIONS_INJECTION_KEY, computed(() => pluginsStore.flowDefinitions ?? {}))
 
     const parsedFlow = computed(() => {
         try {

@@ -553,10 +553,8 @@
 
         .task-edit-col-params {
             order: -1;
-        }
-
-        .task-edit-col-params .task-edit-panes {
-            overflow: visible;
+            flex: 1 1 0;
+            min-height: 0;
         }
 
         .task-edit-col-inputs.task-edit-col--collapsed,
