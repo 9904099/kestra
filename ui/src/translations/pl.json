@@ -180,6 +180,10 @@
       "output_sub": "co produkuje ta task",
       "pick_task_type": "Wybierz typ task",
       "picker_more_results": "{count} więcej, zawęź wyszukiwanie",
+      "save_blocked": {
+        "message": "Napraw błędy przed zapisaniem.",
+        "title": "Nie można zapisać flow"
+      },
       "search_task_placeholder": "Szukaj typów task...",
       "shortcuts": {
         "add_after": "Wstaw blok po zaznaczeniu",
@@ -188,13 +192,13 @@
         "clear": "Zamknij / wyczyść zaznaczenie",
         "collapse_expand": "Zwiń / rozwiń",
         "command_palette": "Menu poleceń (kontekstowe)",
-        "focus_panel": "Ustaw fokus na otwartym panelu",
         "group_edit": "Edycja",
         "group_global": "Globalne",
         "group_insert": "Wstaw",
         "group_navigate": "Nawigacja",
         "move_between": "Przenieś zaznaczenie",
         "open": "Otwórz zaznaczony blok",
+        "open_split": "Otwórz wybrany blok w widoku podzielonym",
         "or": "lub",
         "reorder": "Zmień kolejność w górę / w dół",
         "save": "Zapisz flow",

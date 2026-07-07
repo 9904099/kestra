@@ -180,6 +180,10 @@
       "output_sub": "ce que produit cette task",
       "pick_task_type": "Choisir un type de task",
       "picker_more_results": "{count} de plus, affinez votre recherche",
+      "save_blocked": {
+        "message": "Corrigez les erreurs avant d'enregistrer.",
+        "title": "Impossible d'enregistrer le flow"
+      },
       "search_task_placeholder": "Rechercher des types de task...",
       "shortcuts": {
         "add_after": "Insérer un bloc après la sélection",
@@ -188,13 +192,13 @@
         "clear": "Fermer / désélectionner",
         "collapse_expand": "Replier / déplier",
         "command_palette": "Menu de commandes (contextuel)",
-        "focus_panel": "Donner le focus au panneau ouvert",
         "group_edit": "Modifier",
         "group_global": "Global",
         "group_insert": "Insérer",
         "group_navigate": "Naviguer",
         "move_between": "Déplacer la sélection",
         "open": "Ouvrir le bloc sélectionné",
+        "open_split": "Ouvrir le bloc sélectionné en vue divisée",
         "or": "ou",
         "reorder": "Réordonner vers le haut / le bas",
         "save": "Enregistrer le flow",

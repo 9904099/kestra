@@ -180,6 +180,10 @@
       "output_sub": "что производит эта task",
       "pick_task_type": "Выбрать тип task",
       "picker_more_results": "ещё {count}, уточните поиск",
+      "save_blocked": {
+        "message": "Исправьте ошибки перед сохранением.",
+        "title": "Не удалось сохранить flow"
+      },
       "search_task_placeholder": "Поиск типов task...",
       "shortcuts": {
         "add_after": "Вставить блок после выделения",
@@ -188,13 +192,13 @@
         "clear": "Закрыть / снять выделение",
         "collapse_expand": "Свернуть / развернуть",
         "command_palette": "Меню команд (контекстное)",
-        "focus_panel": "Перейти к открытой панели",
         "group_edit": "Редактирование",
         "group_global": "Глобальные",
         "group_insert": "Вставка",
         "group_navigate": "Навигация",
         "move_between": "Переместить выделение",
         "open": "Открыть выбранный блок",
+        "open_split": "Открыть выбранный блок в режиме разделения",
         "or": "или",
         "reorder": "Переместить вверх / вниз",
         "save": "Сохранить flow",

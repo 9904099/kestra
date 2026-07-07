@@ -180,6 +180,10 @@
       "output_sub": "यह task क्या उत्पन्न करती है",
       "pick_task_type": "task प्रकार चुनें",
       "picker_more_results": "{count} और, अपनी खोज को परिष्कृत करें",
+      "save_blocked": {
+        "message": "सहेजने से पहले त्रुटियों को ठीक करें।",
+        "title": "फ़्लो सहेजा नहीं जा सकता"
+      },
       "search_task_placeholder": "task प्रकार खोजें...",
       "shortcuts": {
         "add_after": "चयन के बाद एक ब्लॉक जोड़ें",
@@ -188,13 +192,13 @@
         "clear": "बंद करें / चयन हटाएं",
         "collapse_expand": "संक्षिप्त / विस्तृत करें",
         "command_palette": "कमांड मेनू (संदर्भ आधारित)",
-        "focus_panel": "खुले पैनल पर फ़ोकस करें",
         "group_edit": "संपादित करें",
         "group_global": "वैश्विक",
         "group_insert": "जोड़ें",
         "group_navigate": "नेविगेट करें",
         "move_between": "चयन को हिलाएं",
         "open": "चयनित ब्लॉक खोलें",
+        "open_split": "चयनित ब्लॉक को विभाजित दृश्य में खोलें",
         "or": "या",
         "reorder": "ऊपर / नीचे पुनर्व्यवस्थित करें",
         "save": "Flow सहेजें",

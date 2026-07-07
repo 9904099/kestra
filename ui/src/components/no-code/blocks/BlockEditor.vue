@@ -495,6 +495,7 @@
     import {flowYamlUtils} from "@kestra-io/topology"
 
     import {useFlowStore} from "../../../stores/flow"
+    import {useCoreStore} from "../../../stores/core"
     import {usePluginsStore} from "../../../stores/plugins"
     import {isEntryAPluginElementPredicate, type PluginElement} from "../../../utils/pluginUtils"
     import {
@@ -544,6 +545,7 @@
 
     const {t} = useI18n()
     const flowStore = useFlowStore()
+    const coreStore = useCoreStore()
     const pluginsStore = usePluginsStore()
 
     const props = defineProps<NoCodeProps & {
@@ -726,9 +728,16 @@
     // Flushed before a save so a debounced edit typed just before Cmd/Ctrl+S
     // in the inline edit form is never silently dropped.
     const inlineTaskEditRef = ref<InstanceType<typeof TaskEdit>>()
-    function saveFlowWithPendingEdits() {
+    async function saveFlowWithPendingEdits() {
         inlineTaskEditRef.value?.flushPendingEdit()
-        flowStore.save?.()
+        const outcome = await flowStore.save?.()
+        if (outcome === "blocked") {
+            coreStore.message = {
+                variant: "error",
+                title: t("block_editor.save_blocked.title"),
+                message: flowStore.flowErrors?.join("\n") ?? t("block_editor.save_blocked.message"),
+            }
+        }
     }
     const focusedId = ref<string | undefined>()
     const shortcutsOpen = ref(false)
@@ -782,7 +791,7 @@
         emit("editTask", section, blockSchemaPathFor(section), index, split)
     }
 
-    function openNestedEdit(path: string) {
+    function openNestedEdit(path: string, split = false) {
         const blockYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path})
         if (!blockYaml) return
 
@@ -796,12 +805,23 @@
         const section = sectionFromParentPath(parentPath)
         activeSelectedId.value = String(parsed.id)
         activeSelectedPath.value = path
-        emit("editTask", parentPath, blockSchemaPathFor(section), refPath)
+        emit("editTask", parentPath, blockSchemaPathFor(section), refPath, split)
     }
 
     const onEditTimeout = ref<ReturnType<typeof setTimeout>>()
 
+    const undoHistory = ref<string[]>([])
+    let applyingUndo = false
+
     function applyYaml(newYaml: string) {
+        if (!applyingUndo) {
+            const previous = flowStore.flowYaml
+            if (typeof previous === "string" && previous !== newYaml) {
+                undoHistory.value.push(previous)
+                if (undoHistory.value.length > 100) undoHistory.value.shift()
+            }
+            dismissDeleteBadge()
+        }
         flowStore.flowYaml = newYaml
         clearTimeout(onEditTimeout.value)
         onEditTimeout.value = setTimeout(() => {
@@ -810,26 +830,29 @@
     }
 
     const undoState = ref<{label: string} | null>(null)
-    let undoSnapshot: string | null = null
     let undoTimer: ReturnType<typeof setTimeout> | undefined
 
     function deleteWithUndo(name: string, mutate: () => void) {
-        const snapshot = flowYaml.value
         mutate()
-        undoSnapshot = snapshot
         undoState.value = {label: t("block_editor.block_deleted", {name})}
         clearTimeout(undoTimer)
-        undoTimer = setTimeout(dismissUndo, 6000)
+        undoTimer = setTimeout(dismissDeleteBadge, 6000)
     }
 
     function performUndo() {
-        if (undoSnapshot != null) applyYaml(undoSnapshot)
-        dismissUndo()
+        if (!undoHistory.value.length) return
+        const previous = undoHistory.value.pop() as string
+        applyingUndo = true
+        try {
+            applyYaml(previous)
+        } finally {
+            applyingUndo = false
+        }
+        dismissDeleteBadge()
     }
 
-    function dismissUndo() {
+    function dismissDeleteBadge() {
         undoState.value = null
-        undoSnapshot = null
         clearTimeout(undoTimer)
     }
 
@@ -1396,6 +1419,11 @@
         }
     }
 
+    function openFocusedSplit() {
+        const path = focusedBlockPath()
+        if (path) openNestedEdit(path, true)
+    }
+
     function actionInFocused(selector: string) {
         focusedCard()?.querySelector<HTMLElement>(selector)?.click()
     }
@@ -1481,11 +1509,6 @@
         return false
     }
 
-    // TODO: wire to a real flow-level undo/redo history once the flow store exposes one;
-    // for now Cmd/Ctrl+Z only replays the block-deletion undo snapshot.
-    function performUndoIfAvailable() {
-        if (undoState.value) performUndo()
-    }
 
     function dispatchBlockEditorAction(id: string, event: KeyboardEvent) {
         // NoCode.vue's useKeyboardSave() is NOT mounted on this page, so the
@@ -1495,18 +1518,12 @@
             return
         }
         if (id === "undo") {
-            performUndoIfAvailable()
+            performUndo()
             return
         }
         if (id === "command-menu") {
             commandMenuOpen.value = true
             return
-        }
-        if (id === "focus-panel") {
-            // The dock now lives in a sibling panel outside this component's
-            // own subtree, so there is nothing to jump into from here — native
-            // Tab is left untouched.
-            return false
         }
         if (id === "clear") {
             if (closeTopOverlay()) return
@@ -1517,14 +1534,8 @@
             // handler sees the same Escape — hence the timestamp grace window instead
             // of a reactive-state check.
             if (confirmDialogOpen.value || performance.now() - lastConfirmDialogCloseAt < 100) return
-            if (focusedId.value) {
-                const card = focusedCard()
-                if (card && card.contains(document.activeElement)) {
-                    (document.activeElement as HTMLElement | null)?.blur()
-                }
-            }
-            focusedId.value = undefined
-            return
+            // Nothing to close: leave native Escape untouched instead of swallowing it.
+            return false
         }
         if (id === "help") {
             shortcutsOpen.value = !shortcutsOpen.value
@@ -1562,6 +1573,8 @@
             const target = event.target as HTMLElement | null
             if (target?.closest("button, a, [role='button']") && !target.closest("[data-block-id]")) return false
             if (focusedId.value) openFocused()
+        } else if (id === "open-split") {
+            if (focusedId.value) openFocusedSplit()
         } else if (id === "duplicate") {
             if (focusedId.value) {
                 actionInFocused("[data-test='block-card-duplicate']")
@@ -1585,6 +1598,10 @@
         keymap: BLOCK_EDITOR_KEYMAP,
         dispatch: dispatchBlockEditorAction,
         isOverlayOpen: isAnyOverlayOpen,
+        isEditorEvent: (event) => {
+            const target = event.target as Node | null
+            return Boolean(editorEl.value && target && editorEl.value.contains(target))
+        },
     })
 
     // Resolves the top-level section a selected (not nested) block id lives in
@@ -1674,6 +1691,8 @@
         ArrowLeft: "←",
         ArrowRight: "→",
         Enter: "↵",
+        "Meta+Enter": "⌘↵",
+        "Control+Enter": "⌘↵",
         Backspace: "⌫",
         Delete: "⌦",
         "Meta+Shift+p": "⌘⇧P",
@@ -1700,8 +1719,13 @@
 
     const SHORTCUT_GROUP_ORDER: BlockEditorKeymapGroup[] = ["navigate", "insert", "edit", "global"]
 
+    const HIDDEN_SHORTCUT_IDS = new Set(["clear"])
+
     const shortcutGroups = computed(() =>
-        SHORTCUT_GROUP_ORDER.map(group => ({group, bindings: blockEditorKeymapByGroup(group)})),
+        SHORTCUT_GROUP_ORDER.map(group => ({
+            group,
+            bindings: blockEditorKeymapByGroup(group).filter(binding => !HIDDEN_SHORTCUT_IDS.has(binding.id)),
+        })),
     )
 
     const footerContext = computed(() => {

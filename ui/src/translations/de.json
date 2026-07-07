@@ -180,6 +180,10 @@
       "output_sub": "was diese task erzeugt",
       "pick_task_type": "Aufgabentyp auswählen",
       "picker_more_results": "{count} weitere, verfeinern Sie Ihre Suche",
+      "save_blocked": {
+        "message": "Beheben Sie die Fehler vor dem Speichern.",
+        "title": "Flow kann nicht gespeichert werden"
+      },
       "search_task_placeholder": "Aufgabentypen suchen...",
       "shortcuts": {
         "add_after": "Block nach Auswahl einfügen",
@@ -188,13 +192,13 @@
         "clear": "Schließen / Auswahl aufheben",
         "collapse_expand": "Ein-/Ausklappen",
         "command_palette": "Befehlsmenü (kontextabhängig)",
-        "focus_panel": "Geöffnetes Panel fokussieren",
         "group_edit": "Bearbeiten",
         "group_global": "Global",
         "group_insert": "Einfügen",
         "group_navigate": "Navigieren",
         "move_between": "Auswahl bewegen",
         "open": "Ausgewählten Block öffnen",
+        "open_split": "Ausgewählten Block in geteilter Ansicht öffnen",
         "or": "oder",
         "reorder": "Nach oben / unten verschieben",
         "save": "Flow speichern",

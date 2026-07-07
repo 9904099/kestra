@@ -180,6 +180,10 @@
       "output_sub": "此 task 产生的内容",
       "pick_task_type": "选择task类型",
       "picker_more_results": "还有{count}个，请细化搜索",
+      "save_blocked": {
+        "message": "保存前请修复错误。",
+        "title": "无法保存 flow"
+      },
       "search_task_placeholder": "搜索task类型...",
       "shortcuts": {
         "add_after": "在所选内容之后插入区块",
@@ -188,13 +192,13 @@
         "clear": "关闭 / 清除选择",
         "collapse_expand": "折叠 / 展开",
         "command_palette": "命令菜单（上下文相关）",
-        "focus_panel": "聚焦已打开的面板",
         "group_edit": "编辑",
         "group_global": "全局",
         "group_insert": "插入",
         "group_navigate": "导航",
         "move_between": "移动选择",
         "open": "打开所选区块",
+        "open_split": "在分屏视图中打开所选块",
         "or": "或",
         "reorder": "上移 / 下移",
         "save": "保存flow",

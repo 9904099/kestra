@@ -180,6 +180,10 @@
       "output_sub": "このtaskが生成するもの",
       "pick_task_type": "taskタイプを選択",
       "picker_more_results": "他{count}件、検索を絞り込んでください",
+      "save_blocked": {
+        "message": "保存する前にエラーを修正してください。",
+        "title": "フローを保存できません"
+      },
       "search_task_placeholder": "taskタイプを検索...",
       "shortcuts": {
         "add_after": "選択の後にブロックを挿入",
@@ -188,13 +192,13 @@
         "clear": "閉じる / 選択解除",
         "collapse_expand": "折りたたみ / 展開",
         "command_palette": "コマンドメニュー（コンテキスト対応）",
-        "focus_panel": "開いているパネルにフォーカス",
         "group_edit": "編集",
         "group_global": "グローバル",
         "group_insert": "挿入",
         "group_navigate": "移動",
         "move_between": "選択を移動",
         "open": "選択したブロックを開く",
+        "open_split": "選択したブロックを分割ビューで開く",
         "or": "または",
         "reorder": "上下に並べ替え",
         "save": "flowを保存",

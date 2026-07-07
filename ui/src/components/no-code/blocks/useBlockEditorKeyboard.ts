@@ -45,6 +45,10 @@ export interface UseBlockEditorKeyboardOptions {
     // void/true keeps the existing always-prevent behavior every other binding relies on.
     dispatch: (id: string, event: KeyboardEvent) => void | boolean
     isOverlayOpen?: () => boolean
+    // Return true when the event originated inside the block editor. Non-global
+    // bindings (e.g. "a") are ignored otherwise, so a window-level listener never
+    // hijacks a key while focus is on another part of the page.
+    isEditorEvent?: (event: KeyboardEvent) => boolean
 }
 
 export function resolveBlockEditorBinding(
@@ -64,6 +68,7 @@ export function useBlockEditorKeyboard(options: UseBlockEditorKeyboardOptions) {
         const isGlobal = ALWAYS_GLOBAL_IDS.has(binding.id)
         const ignoresOverlayGuard = IGNORES_OVERLAY_GUARD_IDS.has(binding.id)
 
+        if (!isGlobal && options.isEditorEvent && !options.isEditorEvent(event)) return
         if (event.key !== "Escape" && !isGlobal && typing) return
         if (event.key !== "Escape" && !isGlobal && !ignoresOverlayGuard && overlayOpen) return
 

@@ -180,6 +180,10 @@
       "output_sub": "이 task가 생성하는 것",
       "pick_task_type": "task 유형 선택",
       "picker_more_results": "{count}개 더, 검색을 좁혀보세요",
+      "save_blocked": {
+        "message": "저장하기 전에 오류를 수정하세요.",
+        "title": "플로우를 저장할 수 없습니다"
+      },
       "search_task_placeholder": "task 유형 검색...",
       "shortcuts": {
         "add_after": "선택 항목 뒤에 블록 삽입",
@@ -188,13 +192,13 @@
         "clear": "닫기 / 선택 해제",
         "collapse_expand": "접기 / 펼치기",
         "command_palette": "명령 메뉴(상황별)",
-        "focus_panel": "열린 패널에 포커스",
         "group_edit": "편집",
         "group_global": "전역",
         "group_insert": "삽입",
         "group_navigate": "탐색",
         "move_between": "선택 이동",
         "open": "선택한 블록 열기",
+        "open_split": "선택한 블록을 분할 보기로 열기",
         "or": "또는",
         "reorder": "위/아래로 재정렬",
         "save": "flow 저장",

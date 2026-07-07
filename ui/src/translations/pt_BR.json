@@ -180,6 +180,10 @@
       "output_sub": "o que esta task produz",
       "pick_task_type": "Escolher tipo de task",
       "picker_more_results": "mais {count}, refine sua busca",
+      "save_blocked": {
+        "message": "Corrija os erros antes de salvar.",
+        "title": "Não é possível salvar o flow"
+      },
       "search_task_placeholder": "Pesquisar tipos de task...",
       "shortcuts": {
         "add_after": "Inserir um bloco após a seleção",
@@ -188,13 +192,13 @@
         "clear": "Fechar / limpar seleção",
         "collapse_expand": "Recolher / expandir",
         "command_palette": "Menu de comandos (contextual)",
-        "focus_panel": "Focar o painel aberto",
         "group_edit": "Editar",
         "group_global": "Global",
         "group_insert": "Inserir",
         "group_navigate": "Navegar",
         "move_between": "Mover seleção",
         "open": "Abrir bloco selecionado",
+        "open_split": "Abrir o bloco selecionado em visão dividida",
         "or": "ou",
         "reorder": "Reordenar para cima / para baixo",
         "save": "Salvar flow",
