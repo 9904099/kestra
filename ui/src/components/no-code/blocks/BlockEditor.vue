@@ -143,6 +143,7 @@
                                 <BlockEmptyDrop
                                     v-if="parsedTasks.length === 0"
                                     variant="empty"
+                                    dataTest="block-editor-tasks-end"
                                     :label="t('block_editor.task_noun')"
                                     :hint="t('block_editor.empty_add_hint')"
                                     :data-block-id="sectionSentinelId('tasks')"
@@ -154,6 +155,7 @@
                                 <BlockEmptyDrop
                                     v-else
                                     variant="inline"
+                                    dataTest="block-editor-tasks-end"
                                     tabindex="-1"
                                     :label="t('block_editor.task_noun')"
                                     :hint="t('block_editor.empty_add_hint')"
@@ -929,13 +931,13 @@
         ],
     }
 
-    function anchorFrom(evt?: Event) {
+    function anchorFrom(evt?: Event, explicitEl?: HTMLElement) {
         // Keyboard-triggered opens (no evt) have no click target to anchor to. Falling
         // back to editorEl (the whole scrollable panel) pins the picker near the top of
         // the panel's layout box regardless of scroll position, which renders it
         // off-screen for any focused block that isn't near the top. Anchor to the
         // focused card instead so the picker opens next to the actual insertion point.
-        pickerAnchor.value = (evt?.currentTarget as HTMLElement) ?? focusedCard() ?? editorEl.value ?? undefined
+        pickerAnchor.value = explicitEl ?? (evt?.currentTarget as HTMLElement) ?? focusedCard() ?? editorEl.value ?? undefined
     }
 
     function resetPickerView() {
@@ -952,8 +954,8 @@
         nextTick(() => pickerSearchInput.value?.focus())
     }
 
-    function openTaskPicker(section: BlockSection, evt?: Event) {
-        anchorFrom(evt)
+    function openTaskPicker(section: BlockSection, evt?: Event, anchorEl?: HTMLElement) {
+        anchorFrom(evt, anchorEl)
         taskPickerSection.value = section
         taskPickerParentPath.value = undefined
         taskPickerAfterIndex.value = undefined
@@ -1534,8 +1536,12 @@
             // Mirrors the "Add task" button it's advertised on ("or press / to
             // search tasks") exactly: always appends to the end of the
             // top-level tasks list, regardless of what's focused. "a" is the
-            // one that stays anchored to the focused block.
-            openTaskPicker("tasks")
+            // one that stays anchored to the focused block. Anchor the picker to
+            // that same end-of-list insert point (and scroll it into view) so it
+            // opens where the task lands, not next to the focused card.
+            const endDrop = editorEl.value?.querySelector<HTMLElement>("[data-test='block-editor-tasks-end']") ?? undefined
+            endDrop?.scrollIntoView({block: "nearest"})
+            openTaskPicker("tasks", undefined, endDrop)
         } else if (id === "move") {
             moveFocus(event.key === "ArrowDown" || event.key === "j" ? 1 : -1)
         } else if (id === "step-into") {
