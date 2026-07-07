@@ -568,6 +568,7 @@
     }
 
     .task-edit-col-params {
+        position: relative;
         flex: 1 1 0;
         display: flex;
         flex-direction: column;
@@ -605,11 +606,10 @@
     }
 
     .task-edit-params-toolbar {
-        display: flex;
-        justify-content: flex-end;
-        flex-shrink: 0;
-        padding: var(--ks-spacing-2) var(--ks-spacing-3);
-        border-bottom: 1px solid var(--ks-border-subtle);
+        position: absolute;
+        top: var(--ks-spacing-5);
+        right: var(--ks-spacing-5);
+        z-index: 1;
     }
 
     .task-edit-panes {
