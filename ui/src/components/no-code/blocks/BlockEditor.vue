@@ -1693,6 +1693,7 @@
         Enter: "↵",
         "Meta+Enter": "⌘↵",
         "Control+Enter": "⌘↵",
+        " ": "Space",
         Backspace: "⌫",
         Delete: "⌦",
         "Meta+Shift+p": "⌘⇧P",
