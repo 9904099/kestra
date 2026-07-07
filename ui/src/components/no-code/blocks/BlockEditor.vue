@@ -1027,6 +1027,15 @@
         return undefined
     }
 
+    // No focused block to anchor to: anchor the picker to the end-of-tasks drop
+    // point (scrolled into view) rather than leaving it unanchored, which pins it
+    // to the top of the panel and clips it off-screen.
+    function openTaskPickerAtTasksEnd() {
+        const endDrop = editorEl.value?.querySelector<HTMLElement>("[data-test='block-editor-tasks-end']") ?? undefined
+        endDrop?.scrollIntoView({block: "nearest"})
+        openTaskPicker("tasks", undefined, endDrop)
+    }
+
     function openTaskPickerAnchoredAfterFocused() {
         const sentinelSection = sectionFromSentinel(focusedId.value)
         if (sentinelSection) {
@@ -1040,12 +1049,12 @@
         }
         const path = focusedBlockPath()
         if (!path) {
-            openTaskPicker("tasks")
+            openTaskPickerAtTasksEnd()
             return
         }
         const match = path.match(/^(.*)\[(\d+)\]$/)
         if (!match) {
-            openTaskPicker("tasks")
+            openTaskPickerAtTasksEnd()
             return
         }
         openTaskPickerAtPath(match[1], parseInt(match[2], 10))
@@ -1064,12 +1073,12 @@
         }
         const path = focusedBlockPath()
         if (!path) {
-            openTaskPicker("tasks")
+            openTaskPickerAtTasksEnd()
             return
         }
         const match = path.match(/^(.*)\[(\d+)\]$/)
         if (!match) {
-            openTaskPicker("tasks")
+            openTaskPickerAtTasksEnd()
             return
         }
         // Anchor on the focused block's own index with position "before" — an
@@ -1598,10 +1607,6 @@
         keymap: BLOCK_EDITOR_KEYMAP,
         dispatch: dispatchBlockEditorAction,
         isOverlayOpen: isAnyOverlayOpen,
-        isEditorEvent: (event) => {
-            const target = event.target as Node | null
-            return Boolean(editorEl.value && target && editorEl.value.contains(target))
-        },
     })
 
     // Resolves the top-level section a selected (not nested) block id lives in
