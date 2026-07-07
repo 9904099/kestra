@@ -113,7 +113,8 @@ public class PluginController {
     public HttpResponse<Map<String, Object>> getSchemasFromType(
         @Parameter(description = "The schema needed") @PathVariable SchemaType type,
         @Parameter(description = "If schema should be an array of requested type") @Nullable @QueryValue(value = "arrayOf", defaultValue = "false") Boolean arrayOf,
-        @Parameter(description = "Whether to merge the pre-baked plugin schema bundle for un-installed types") @Nullable @QueryValue(value = "includeCatalog", defaultValue = "false") Boolean includeCatalog) {
+        @Parameter(description = "Whether to merge the pre-baked plugin schema bundle for un-installed types") @Nullable
+        @QueryValue(value = "includeCatalog", defaultValue = "false") Boolean includeCatalog) {
 
         Map<String, Object> schema = jsonSchemaCache.getSchemaForType(type, arrayOf);
 
