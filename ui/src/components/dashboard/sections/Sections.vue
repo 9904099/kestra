@@ -32,7 +32,7 @@
                             >
                                 <KsButton
                                     :icon="Download"
-                                    :aria-label="$t('dashboards.export')"
+                                    :tooltip="$t('dashboards.export')"
                                     link
                                     class="ms-2"
                                 />
