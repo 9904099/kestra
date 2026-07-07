@@ -21,6 +21,7 @@
         <div class="branch-lane-body" :style="indentStyle">
             <template v-if="tasks.length > 0">
                 <template v-for="(task, index) in tasks" :key="resolveBlockDomId(tasks, index)">
+                    <BlockInsertionCaret v-if="focusedId !== undefined && focusedId === resolveBlockDomId(tasks, index)" position="before" />
                     <FlowableClusterCard
                         v-if="isFlowable(task)"
                         :block="task"
