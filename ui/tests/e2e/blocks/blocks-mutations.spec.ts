@@ -1,6 +1,6 @@
 import {expect, test} from "@playwright/test"
 import {FlowsApi} from "../api/flows.api"
-import {canvasCardIds, expectRing, fetchFlowSource, login, openBlockEditor, saveFlow, taskIdsInOrder, walkTo} from "./blocks.helpers"
+import {canvasCardIds, expectRing, fetchFlowSource, login, openBlockEditor, pickTask, saveFlow, taskIdsInOrder, walkTo, waitForRing} from "./blocks.helpers"
 
 // Destructive/structural mutations (duplicate, delete + undo, reorder) and the
 // split-view multi-pane behaviors, all keyboard-first.
@@ -44,6 +44,18 @@ test.describe("Block editor — mutations & split view", () => {
         await expect(page.locator("[data-block-id='middle_task']")).toBeHidden()
         await expectRing(page, "last_task")
         await page.locator("[data-test='block-editor-undo']").click()
+        await expect(page.locator("[data-block-id='middle_task']")).toBeVisible()
+    })
+
+    test("Ctrl/Cmd+Z undoes an inserted block", async ({page}) => {
+        await walkTo(page, "middle_task")
+        await page.keyboard.press("a")
+        await pickTask(page, "fail", "Fail")
+        const inserted = await waitForRing(page)
+        await expect(page.locator(`[data-block-id='${inserted}']`)).toBeVisible()
+
+        await page.keyboard.press("ControlOrMeta+z")
+        await expect(page.locator(`[data-block-id='${inserted}']`)).toBeHidden()
         await expect(page.locator("[data-block-id='middle_task']")).toBeVisible()
     })
 
