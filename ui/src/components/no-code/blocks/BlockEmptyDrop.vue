@@ -72,7 +72,7 @@
         flex-direction: column;
         align-items: center;
         gap: var(--ks-spacing-1);
-        padding: var(--ks-spacing-6);
+        padding: var(--ks-spacing-4) var(--ks-spacing-6);
         text-align: center;
     }
 
