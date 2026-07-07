@@ -158,19 +158,10 @@
             </div>
         </KsDrawer>
 
-        <div v-ks-loading="isLoading" class="task-edit-panel-footer">
+        <div v-if="errors && errors.length" v-ks-loading="isLoading" class="task-edit-panel-footer">
             <div class="task-edit-validation-status" role="status" aria-live="polite">
                 <ValidationError link :errors="errors" />
             </div>
-            <KsButton
-                v-if="canSave && !readOnly"
-                :icon="ContentSave"
-                :disabled="errors && !!errors.length"
-                type="primary"
-                @click="saveTask"
-            >
-                {{ $t("save task") }}
-            </KsButton>
         </div>
     </div>
 </template>
@@ -398,6 +389,15 @@
     }
 
     const saveTask = () => {
+        if (props.presentation === "panel") {
+            if (timer.value) {
+                clearTimeout(timer.value)
+                timer.value = undefined
+            }
+            emit("update:task", taskYaml.value)
+            taskBaseline.value = taskYaml.value
+            return
+        }
         emit("update:task", taskYaml.value)
         taskYaml.value = ""
         isModalOpen.value = false
@@ -634,7 +634,7 @@
     .task-edit-panel-footer {
         display: flex;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: flex-start;
         gap: var(--ks-spacing-3);
         flex-shrink: 0;
         padding: var(--ks-spacing-3) var(--ks-spacing-4);
