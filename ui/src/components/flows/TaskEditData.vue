@@ -8,7 +8,7 @@
         :data-test="`task-edit-data-${kind}`"
         @click="emit('toggle')"
     >
-        <component :is="side === 'right' ? ChevronLeft : ChevronRight" class="task-edit-data-rail-ico" />
+        <component :is="stacked ? ChevronUp : (side === 'right' ? ChevronLeft : ChevronRight)" class="task-edit-data-rail-ico" />
         <span class="task-edit-data-rail-label">{{ title }}</span>
     </button>
     <div v-else class="task-edit-data" :data-test="`task-edit-data-${kind}`">
@@ -23,7 +23,7 @@
                 :tooltip="t('collapse')"
                 @click="emit('toggle')"
             >
-                <component :is="side === 'right' ? ChevronRight : ChevronLeft" />
+                <component :is="stacked ? ChevronDown : (side === 'right' ? ChevronRight : ChevronLeft)" />
             </KsIconButton>
         </div>
 
@@ -82,6 +82,8 @@
     import Magnify from "vue-material-design-icons/Magnify.vue"
     import ChevronRight from "vue-material-design-icons/ChevronRight.vue"
     import ChevronLeft from "vue-material-design-icons/ChevronLeft.vue"
+    import ChevronUp from "vue-material-design-icons/ChevronUp.vue"
+    import ChevronDown from "vue-material-design-icons/ChevronDown.vue"
 
     interface DataChip {
         label: string
@@ -102,11 +104,13 @@
         collapsible?: boolean
         isCollapsed?: boolean
         side?: "left" | "right"
+        stacked?: boolean
     }>(), {
         filterable: false,
         collapsible: false,
         isCollapsed: false,
         side: "left",
+        stacked: false,
     })
 
     const emit = defineEmits<{(e: "toggle"): void}>()
@@ -212,9 +216,13 @@
     @container (max-width: 760px) {
         .task-edit-data-rail {
             flex-direction: row;
-            justify-content: flex-start;
+            justify-content: space-between;
             height: auto;
             padding: var(--ks-spacing-2) var(--ks-spacing-3);
+        }
+
+        .task-edit-data-rail-ico {
+            order: 1;
         }
 
         .task-edit-data-rail-label {

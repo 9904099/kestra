@@ -56,6 +56,7 @@
 
     <div
         v-else-if="isModalOpen"
+        ref="panelRef"
         class="task-edit-panel"
         data-test="task-edit-panel"
         @dragover.prevent
@@ -95,6 +96,7 @@
                 :filterable="true"
                 :collapsible="true"
                 :isCollapsed="inputsCollapsed"
+                :stacked="isStacked"
                 side="left"
                 @toggle="inputsCollapsed = !inputsCollapsed"
             />
@@ -134,6 +136,7 @@
                 :sections="outputSections"
                 :collapsible="true"
                 :isCollapsed="outputCollapsed"
+                :stacked="isStacked"
                 side="right"
                 @toggle="outputCollapsed = !outputCollapsed"
             />
@@ -250,6 +253,23 @@
     const docOpen = defineModel<boolean>("docOpen", {default: false})
     const inputsCollapsed = defineModel<boolean>("inputsCollapsed", {default: false})
     const outputCollapsed = defineModel<boolean>("outputCollapsed", {default: false})
+
+    const panelRef = ref<HTMLElement>()
+    const isStacked = ref(false)
+
+    watch(panelRef, (el, _previous, onCleanup) => {
+        if (!el) return
+        const observer = new ResizeObserver((entries) => {
+            isStacked.value = (entries[0]?.contentRect.width ?? el.clientWidth) <= 760
+        })
+        observer.observe(el)
+        onCleanup(() => observer.disconnect())
+    }, {immediate: true})
+
+    watch(isStacked, (stacked) => {
+        inputsCollapsed.value = stacked
+        outputCollapsed.value = stacked
+    })
     const type = ref<string>()
     const revisions = ref<any[]>()
     const timer = ref<ReturnType<typeof setTimeout>>()
