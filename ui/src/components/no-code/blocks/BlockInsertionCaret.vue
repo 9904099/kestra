@@ -3,16 +3,11 @@
         <span class="block-insertion-caret-line" />
         <span class="block-insertion-caret-tag">
             <kbd>{{ position === "before" ? "⇧A" : "A" }}</kbd>
-            {{ t("block_editor.insert_here") }}
         </span>
     </div>
 </template>
 
 <script setup lang="ts">
-    import {useI18n} from "vue-i18n"
-
-    const {t} = useI18n()
-
     withDefaults(defineProps<{
         position?: "before" | "after"
     }>(), {

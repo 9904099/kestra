@@ -45,7 +45,6 @@
                         >
                             <div class="block-section-list" data-test="block-editor-trigger-list">
                                 <template v-for="(trigger, index) in parsedTriggers" :key="resolveBlockDomId(parsedTriggers, index)">
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(parsedTriggers, index)" position="before" />
                                     <BlockCard
                                         :block="trigger"
                                         :selected="activeSelectedId === String(trigger.id)"
@@ -100,7 +99,6 @@
                                 @dragend="handleTaskDragEnd"
                             >
                                 <template v-for="(task, index) in parsedTasks" :key="resolveBlockDomId(parsedTasks, index)">
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(parsedTasks, index)" position="before" />
                                     <FlowableClusterCard
                                         v-if="isFlowable(task)"
                                         :block="task"
@@ -175,7 +173,6 @@
                         >
                             <div class="block-section-list">
                                 <template v-for="(task, index) in flowLevelErrors" :key="resolveBlockDomId(flowLevelErrors, index)">
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelErrors, index)" position="before" />
                                     <FlowableClusterCard
                                         v-if="isFlowable(task)"
                                         :block="task"
@@ -237,7 +234,6 @@
                         >
                             <div class="block-section-list">
                                 <template v-for="(task, index) in flowLevelFinally" :key="resolveBlockDomId(flowLevelFinally, index)">
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelFinally, index)" position="before" />
                                     <FlowableClusterCard
                                         v-if="isFlowable(task)"
                                         :block="task"
