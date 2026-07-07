@@ -425,6 +425,10 @@
             })
         }
         if (props.presentation === "panel") {
+            let parsed: unknown
+            try { parsed = YAML_UTILS.parse(taskYaml.value) } catch { parsed = undefined }
+            // Don't push half-typed / unparseable YAML into the flow: it corrupts the document.
+            if (!parsed || typeof parsed !== "object") return
             emit("update:task", taskYaml.value)
             taskBaseline.value = taskYaml.value
         }
@@ -449,21 +453,31 @@
     }
 
     watch(() => props.task, async (newTask) => {
-        if (newTask) {
-            taskYaml.value = YAML_UTILS.stringify(newTask)
-            if (newTask.type) {
-                await pluginsStore.load({cls: newTask.type})
-            }
-        } else {
+        if (!newTask) {
             taskYaml.value = ""
+            return
+        }
+        const incoming = YAML_UTILS.stringify(newTask)
+        // Skip our own edit echoing back through the flow: re-serializing here mid-typing scrambled Source edits.
+        const committed = taskBaseline.value ? YAML_UTILS.stringify(YAML_UTILS.parse(taskBaseline.value) ?? {}) : undefined
+        if (incoming !== committed) {
+            taskYaml.value = incoming
+            taskBaseline.value = incoming
+        }
+        if (newTask.type) {
+            await pluginsStore.load({cls: newTask.type})
         }
     }, {immediate: true})
 
+    const typeLoadTimer = ref<ReturnType<typeof setTimeout>>()
     watch(taskYaml, () => {
         const task = YAML_UTILS.parse(taskYaml.value)
         if (task?.type && task.type !== type.value) {
-            pluginsStore.load({cls: task.type})
             type.value = task.type
+            // Debounced: typing the type in Source changes it per keystroke, and
+            // loading each partial fqcn ("io", "io.k", …) 404s.
+            clearTimeout(typeLoadTimer.value)
+            typeLoadTimer.value = setTimeout(() => pluginsStore.load({cls: task.type}), 500)
         }
     })
 
