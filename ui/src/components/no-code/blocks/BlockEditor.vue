@@ -45,7 +45,6 @@
                         >
                             <div class="block-section-list" data-test="block-editor-trigger-list">
                                 <template v-for="(trigger, index) in parsedTriggers" :key="resolveBlockDomId(parsedTriggers, index)">
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(parsedTriggers, index)" position="before" />
                                     <BlockCard
                                         :block="trigger"
                                         :selected="activeSelectedId === String(trigger.id)"
@@ -63,7 +62,6 @@
                                         @drop="handleTriggerDrop($event, index)"
                                         @drag-end="handleTriggerDragEnd"
                                     />
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(parsedTriggers, index)" />
                                 </template>
                                 <BlockEmptyDrop
                                     v-if="parsedTriggers.length === 0"
@@ -100,7 +98,6 @@
                                 @dragend="handleTaskDragEnd"
                             >
                                 <template v-for="(task, index) in parsedTasks" :key="resolveBlockDomId(parsedTasks, index)">
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(parsedTasks, index)" position="before" />
                                     <FlowableClusterCard
                                         v-if="isFlowable(task)"
                                         :block="task"
@@ -137,7 +134,6 @@
                                         @drop="handleTaskDrop($event, index)"
                                         @drag-end="handleTaskDragEnd"
                                     />
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(parsedTasks, index)" />
                                 </template>
 
                                 <BlockEmptyDrop
@@ -175,7 +171,6 @@
                         >
                             <div class="block-section-list">
                                 <template v-for="(task, index) in flowLevelErrors" :key="resolveBlockDomId(flowLevelErrors, index)">
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelErrors, index)" position="before" />
                                     <FlowableClusterCard
                                         v-if="isFlowable(task)"
                                         :block="task"
@@ -204,7 +199,6 @@
                                         @duplicate="onDuplicate('errors', task.id)"
                                         @open-split="selectBlock('errors', task, true)"
                                     />
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelErrors, index)" />
                                 </template>
                                 <BlockEmptyDrop
                                     v-if="flowLevelErrors.length === 0"
@@ -237,7 +231,6 @@
                         >
                             <div class="block-section-list">
                                 <template v-for="(task, index) in flowLevelFinally" :key="resolveBlockDomId(flowLevelFinally, index)">
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelFinally, index)" position="before" />
                                     <FlowableClusterCard
                                         v-if="isFlowable(task)"
                                         :block="task"
@@ -266,7 +259,6 @@
                                         @duplicate="onDuplicate('finally', task.id)"
                                         @open-split="selectBlock('finally', task, true)"
                                     />
-                                    <BlockInsertionCaret v-if="focusedId === resolveBlockDomId(flowLevelFinally, index)" />
                                 </template>
                                 <BlockEmptyDrop
                                     v-if="flowLevelFinally.length === 0"
@@ -518,7 +510,6 @@
     import BlockCard from "./BlockCard.vue"
     import BlockSectionCard from "./BlockSectionCard.vue"
     import BlockEmptyDrop from "./BlockEmptyDrop.vue"
-    import BlockInsertionCaret from "./BlockInsertionCaret.vue"
     import BlockCommandMenu, {type BlockCommandMenuItem} from "./BlockCommandMenu.vue"
     import FlowableClusterCard from "./FlowableClusterCard.vue"
     import TaskEdit from "../../flows/TaskEdit.vue"

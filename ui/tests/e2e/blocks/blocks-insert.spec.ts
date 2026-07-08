@@ -19,13 +19,6 @@ test.describe("Block editor — insertions", () => {
         await flowsApi.removeFlowsViaApi()
     })
 
-    test("frames the focused block with a ⇧A caret above and an A caret below", async ({page}) => {
-        await walkTo(page, "middle_task")
-
-        const kbds = page.locator("[data-test='block-insertion-caret'] kbd")
-        await expect(kbds).toHaveText(["⇧A", "A"])
-    })
-
     test("a inserts a task right after the focused block", async ({page, request, baseURL}) => {
         await walkTo(page, "middle_task")
         await page.keyboard.press("a")

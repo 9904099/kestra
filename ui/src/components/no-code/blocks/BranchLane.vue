@@ -21,7 +21,6 @@
         <div class="branch-lane-body" :style="indentStyle">
             <template v-if="tasks.length > 0">
                 <template v-for="(task, index) in tasks" :key="resolveBlockDomId(tasks, index)">
-                    <BlockInsertionCaret v-if="focusedId !== undefined && focusedId === resolveBlockDomId(tasks, index)" position="before" />
                     <FlowableClusterCard
                         v-if="isFlowable(task)"
                         :block="task"
@@ -56,7 +55,6 @@
                         @drop="handleDrop($event, index)"
                         @drag-end="handleDragEnd"
                     />
-                    <BlockInsertionCaret v-if="focusedId !== undefined && focusedId === resolveBlockDomId(tasks, index)" />
                 </template>
             </template>
 
@@ -102,7 +100,6 @@
 
     import {isFlowableType, resolveBlockDomId} from "../../../utils/flowableBlockOps"
     import {useDragAndDrop} from "../../../composables/useDragAndDrop"
-    import BlockInsertionCaret from "./BlockInsertionCaret.vue"
 
     const FlowableClusterCard = defineAsyncComponent(() => import("./FlowableClusterCard.vue"))
     const LeafBlockCard = defineAsyncComponent(() => import("./LeafBlockCard.vue"))
