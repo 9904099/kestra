@@ -131,6 +131,8 @@
       },
       "declared_outputs": "Deklarierte Outputs",
       "delete": "Löschen",
+      "depends_on_label": "Abhängig von",
+      "depends_on_placeholder": "Tasks auswählen…",
       "depth_pill": "Tiefe {depth}",
       "drag_reorder": "Zum Neuanordnen ziehen",
       "duplicate": "Duplizieren",

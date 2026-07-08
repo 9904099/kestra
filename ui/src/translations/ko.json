@@ -131,6 +131,8 @@
       },
       "declared_outputs": "선언된 Outputs",
       "delete": "삭제",
+      "depends_on_label": "종속 대상",
+      "depends_on_placeholder": "task 선택…",
       "depth_pill": "깊이 {depth}",
       "drag_reorder": "드래그하여 순서 변경",
       "duplicate": "복제",

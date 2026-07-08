@@ -131,6 +131,8 @@
       },
       "declared_outputs": "宣言されたOutputs",
       "delete": "削除",
+      "depends_on_label": "依存先",
+      "depends_on_placeholder": "taskを選択…",
       "depth_pill": "深さ {depth}",
       "drag_reorder": "ドラッグして並び替え",
       "duplicate": "複製",

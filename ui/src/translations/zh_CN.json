@@ -131,6 +131,8 @@
       },
       "declared_outputs": "已声明的 Outputs",
       "delete": "删除",
+      "depends_on_label": "依赖于",
+      "depends_on_placeholder": "选择 task…",
       "depth_pill": "深度 {depth}",
       "drag_reorder": "拖拽以重新排序",
       "duplicate": "复制",

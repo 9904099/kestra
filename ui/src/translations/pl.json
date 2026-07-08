@@ -131,6 +131,8 @@
       },
       "declared_outputs": "Zadeklarowane Outputs",
       "delete": "Usuń",
+      "depends_on_label": "Zależy od",
+      "depends_on_placeholder": "Wybierz taski…",
       "depth_pill": "Głębokość {depth}",
       "drag_reorder": "Przeciągnij, aby zmienić kolejność",
       "duplicate": "Duplikuj",

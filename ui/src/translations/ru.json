@@ -131,6 +131,8 @@
       },
       "declared_outputs": "Объявленные Outputs",
       "delete": "Удалить",
+      "depends_on_label": "Зависит от",
+      "depends_on_placeholder": "Выберите task…",
       "depth_pill": "Глубина {depth}",
       "drag_reorder": "Перетащите для изменения порядка",
       "duplicate": "Дублировать",

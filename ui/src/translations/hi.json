@@ -131,6 +131,8 @@
       },
       "declared_outputs": "घोषित Outputs",
       "delete": "हटाएं",
+      "depends_on_label": "इस पर निर्भर",
+      "depends_on_placeholder": "task चुनें…",
       "depth_pill": "गहराई {depth}",
       "drag_reorder": "पुनर्क्रमित करने के लिए खींचें",
       "duplicate": "दोहराएं",
