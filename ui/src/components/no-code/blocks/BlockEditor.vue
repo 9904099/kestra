@@ -4,6 +4,7 @@
         ref="inlineTaskEditRef"
         class="block-editor-inline-edit"
         :task="editingTaskData"
+        :taskRaw="editingTaskRaw"
         :section="editingSection"
         :flowId="flowId"
         :namespace="namespace"
@@ -596,6 +597,15 @@
         } catch {
             return undefined
         }
+    })
+
+    // Raw YAML slice of the edited block — preserves comments and exact string
+    // quoting that a parse/stringify round-trip would drop, so the Source tab is
+    // faithful to Flow Code.
+    const editingTaskRaw = computed<string | undefined>(() => {
+        if (props.creatingTask) return undefined
+        if (!props.editingTask || !editingPath.value) return undefined
+        return flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path: editingPath.value}) || undefined
     })
 
     const editingSection = computed<BlockSection>(() => sectionFromParentPath(props.parentPath ?? ""))

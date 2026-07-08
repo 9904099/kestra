@@ -40,6 +40,18 @@ test.describe("Block editor — form editing", () => {
         return page.locator("[data-test='block-editor-task-edit'] .task-edit-col-params .monaco-editor:visible").nth(index)
     }
 
+    test("Source tab keeps comments and exact quoting from Flow Code", async ({page}) => {
+        const fid = await flowsApi.generateFlowViaApi("blocks-fidelity.yaml", "blocks-fidelity-fixture")
+        await openBlockEditor(page, fid)
+        await openDock(page, "commented_task")
+        await page.getByRole("tab", {name: "Source"}).click()
+
+        const dock = page.locator("[data-test='block-editor-task-edit']")
+        await expect(dock).toContainText("survive")
+        await expect(dock).toContainText("«")
+        await expect(dock).toContainText("bonjour")
+    })
+
     test("renames the task id from the form and the canvas card follows", async ({page, request, baseURL}) => {
         await openDock(page, "middle_task")
 

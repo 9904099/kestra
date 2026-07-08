@@ -189,6 +189,7 @@
     interface Props {
         component?: string;
         task?: Record<string, any>;
+        taskRaw?: string;
         taskId?: string;
         flowId: string;
         namespace: string;
@@ -207,6 +208,7 @@
     const props = withDefaults(defineProps<Props>(), {
         component: "KsButton",
         task: undefined,
+        taskRaw: undefined,
         taskId: undefined,
         revision: undefined,
         section: SECTIONS.TASKS,
@@ -410,6 +412,8 @@
         isModalOpen.value = true
         if (props.taskId) {
             taskYaml.value = await load(props.taskId ? props.taskId : props.task?.id) ?? ""
+        } else if (props.taskRaw != null) {
+            taskYaml.value = props.taskRaw
         } else if (props.task) {
             taskYaml.value = YAML_UTILS.stringify(props.task)
         }
@@ -455,20 +459,33 @@
         commitEdit()
     }
 
-    watch(() => props.task, async (newTask) => {
-        if (!newTask) {
+    // Semantic normalization so an echo that only differs in formatting
+    // (re-indentation from the round-trip through the flow) still counts as
+    // "unchanged" and doesn't clobber in-progress Source edits.
+    const normalizeYaml = (yaml?: string): string | undefined => {
+        if (yaml == null) return undefined
+        try {
+            return JSON.stringify(YAML_UTILS.parse(yaml) ?? {})
+        } catch {
+            return yaml
+        }
+    }
+
+    watch([() => props.task, () => props.taskRaw], async ([newTask, raw]) => {
+        if (!newTask && raw == null) {
             taskYaml.value = ""
             return
         }
-        const incoming = YAML_UTILS.stringify(newTask)
-        // Skip our own edit echoing back through the flow: re-serializing here mid-typing scrambled Source edits.
-        const committed = taskBaseline.value ? YAML_UTILS.stringify(YAML_UTILS.parse(taskBaseline.value) ?? {}) : undefined
-        if (incoming !== committed) {
+        // Prefer the raw slice (comments + exact quoting preserved) over
+        // re-serializing the parsed task, which drops both.
+        const incoming = raw ?? YAML_UTILS.stringify(newTask)
+        if (normalizeYaml(incoming) !== normalizeYaml(taskBaseline.value)) {
             taskYaml.value = incoming
             taskBaseline.value = incoming
         }
-        if (newTask.type) {
-            await pluginsStore.load({cls: newTask.type})
+        const taskType = newTask?.type ?? YAML_UTILS.parse(incoming)?.type
+        if (taskType) {
+            await pluginsStore.load({cls: taskType})
         }
     }, {immediate: true})
 
