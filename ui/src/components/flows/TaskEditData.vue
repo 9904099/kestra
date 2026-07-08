@@ -53,19 +53,24 @@
                 </button>
 
                 <div v-if="!collapsed.has(section.key)" class="task-edit-data-chips">
-                    <button
-                        v-for="chip in section.chips"
-                        :key="chip.expr"
-                        class="task-edit-data-chip"
-                        type="button"
-                        draggable="true"
-                        :title="chip.expr"
-                        @click="copy(chip.expr)"
-                        @dragstart="onDragStart($event, chip.expr)"
-                    >
-                        <span class="task-edit-data-chip-label">{{ chip.label }}</span>
-                        <span class="task-edit-data-chip-action">{{ copied === chip.expr ? t("copied") : insertHint }}</span>
-                    </button>
+                    <template v-for="chip in section.chips" :key="chip.label">
+                        <button
+                            v-if="interactive"
+                            class="task-edit-data-chip"
+                            type="button"
+                            draggable="true"
+                            :title="chip.expr"
+                            @click="chip.expr && copy(chip.expr)"
+                            @dragstart="chip.expr && onDragStart($event, chip.expr)"
+                        >
+                            <span class="task-edit-data-chip-label">{{ chip.label }}</span>
+                            <span class="task-edit-data-chip-action">{{ copied === chip.expr ? t("copied") : insertHint }}</span>
+                        </button>
+                        <div v-else class="task-edit-data-chip task-edit-data-chip--static">
+                            <span class="task-edit-data-chip-label">{{ chip.label }}</span>
+                            <span v-if="chip.type" class="task-edit-data-chip-type">{{ chip.type }}</span>
+                        </div>
+                    </template>
                 </div>
             </div>
 
@@ -87,7 +92,8 @@
 
     interface DataChip {
         label: string
-        expr: string
+        expr?: string
+        type?: string
     }
     interface DataSection {
         key: string
@@ -105,12 +111,14 @@
         isCollapsed?: boolean
         side?: "left" | "right"
         stacked?: boolean
+        interactive?: boolean
     }>(), {
         filterable: false,
         collapsible: false,
         isCollapsed: false,
         side: "left",
         stacked: false,
+        interactive: true,
     })
 
     const emit = defineEmits<{(e: "toggle"): void}>()
@@ -126,7 +134,7 @@
         const q = filter.value.trim().toLowerCase()
         return props.sections
             .map(section => q
-                ? {...section, chips: section.chips.filter(c => c.label.toLowerCase().includes(q) || c.expr.toLowerCase().includes(q))}
+                ? {...section, chips: section.chips.filter(c => c.label.toLowerCase().includes(q) || (c.expr ?? "").toLowerCase().includes(q))}
                 : section)
             .filter(section => section.chips.length > 0)
     })
@@ -345,6 +353,15 @@
         }
     }
 
+    .task-edit-data-chip--static {
+        cursor: default;
+    }
+
+    .task-edit-data-chip--static:hover {
+        border-color: var(--ks-border-subtle);
+        background: var(--ks-bg-surface);
+    }
+
     .task-edit-data-chip-label {
         min-width: 0;
         overflow: hidden;
@@ -353,6 +370,14 @@
         font-size: var(--ks-font-size-xs);
         font-family: var(--ks-font-family-mono);
         color: var(--ks-text-primary);
+    }
+
+    .task-edit-data-chip-type {
+        flex-shrink: 0;
+        font-size: var(--ks-font-size-xs);
+        font-family: var(--ks-font-family-mono);
+        color: var(--ks-text-muted);
+        text-transform: uppercase;
     }
 
     .task-edit-data-chip-action {

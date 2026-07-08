@@ -128,6 +128,7 @@
             </div>
 
             <TaskEditData
+                v-if="outputSections.length"
                 class="task-edit-col task-edit-col-output"
                 :class="{'task-edit-col--collapsed': outputCollapsed}"
                 kind="output"
@@ -137,6 +138,7 @@
                 :collapsible="true"
                 :isCollapsed="outputCollapsed"
                 :stacked="isStacked"
+                :interactive="false"
                 side="right"
                 @toggle="outputCollapsed = !outputCollapsed"
             />
@@ -243,7 +245,7 @@
     const activeTabs = ref(props.readOnly ? "source" : "form")
     const docOpen = defineModel<boolean>("docOpen", {default: false})
     const inputsCollapsed = defineModel<boolean>("inputsCollapsed", {default: false})
-    const outputCollapsed = defineModel<boolean>("outputCollapsed", {default: false})
+    const outputCollapsed = defineModel<boolean>("outputCollapsed", {default: true})
 
     const panelRef = ref<HTMLElement>()
     const isStacked = ref(false)
@@ -336,7 +338,6 @@
     })
 
     const outputSections = computed(() => {
-        const id = currentTaskId.value || "task_id"
         const candidates = [
             (pluginsStore.plugin as any)?.schema?.outputs?.properties,
             (pluginsStore.plugin as any)?.outputs?.properties,
@@ -345,9 +346,11 @@
         ]
         const properties = candidates.find(c => c && typeof c === "object")
         const names = properties ? Object.keys(properties) : []
-        const chips = names.length
-            ? names.map(name => ({label: name, expr: `{{ outputs.${id}.${name} }}`}))
-            : [{label: "outputs", expr: `{{ outputs.${id} }}`}]
+        if (!names.length) return []
+        const chips = names.map(name => ({
+            label: name,
+            type: String((properties as Record<string, {type?: string}>)[name]?.type ?? "") || undefined,
+        }))
         return [{key: "out", label: t("block_editor.declared_outputs"), chips}]
     })
 
