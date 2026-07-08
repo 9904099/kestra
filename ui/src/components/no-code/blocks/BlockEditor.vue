@@ -2248,12 +2248,23 @@
         border-top: 1px solid var(--ks-border-subtle);
         font-size: var(--ks-font-size-xs);
         color: var(--ks-text-secondary);
-        overflow-x: auto;
+        overflow: hidden;
+    }
+
+    .block-editor-footer::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: var(--ks-spacing-8);
+        background: linear-gradient(to right, transparent, var(--ks-bg-surface));
+        pointer-events: none;
     }
 
     .block-editor-footer-context {
         margin-right: auto;
-        flex-shrink: 0;
+        flex-shrink: 1;
         color: var(--ks-text-muted);
         overflow: hidden;
         text-overflow: ellipsis;
