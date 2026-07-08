@@ -16,8 +16,15 @@
                 @dragover.prevent="(e:DragEvent) => panelDragOver(e, panelIndex)"
                 @dragleave.prevent="panelDragLeave"
                 @drop.prevent="(e:DragEvent) => panelDrop(e, panelIndex)"
-                :class="{'panel-dragover': panel.dragover}"
+                :class="{'panel-dragover': panel.dragover, 'panel-maximized': maximizedPanelIndex === panelIndex}"
             >
+                <div
+                    v-if="maximizedPanelIndex === panelIndex"
+                    class="maximized-backdrop"
+                    :title="$t('multi_panel_editor.exit_fullscreen')"
+                    :aria-label="$t('multi_panel_editor.exit_fullscreen')"
+                    @click="toggleMaximize(panelIndex)"
+                />
                 <div class="editor-tabs-container">
                     <KsButton
                         :icon="DotsGrid"
@@ -732,6 +739,44 @@
 </script>
 
 <style scoped lang="scss">
+    .panel-maximized {
+        position: relative;
+    }
+
+    .maximized-backdrop {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background: var(--ks-bg-base);
+        cursor: pointer;
+    }
+
+    .panel-maximized .editor-tabs-container,
+    .panel-maximized .content-panel {
+        position: relative;
+        z-index: 1;
+        margin-left: var(--ks-spacing-6);
+        margin-right: var(--ks-spacing-6);
+        background: var(--ks-bg-surface);
+        border-left: 1px solid var(--ks-border-default);
+        border-right: 1px solid var(--ks-border-default);
+        box-shadow: var(--ks-shadow-md);
+    }
+
+    .panel-maximized .editor-tabs-container {
+        margin-top: var(--ks-spacing-5);
+        border-top: 1px solid var(--ks-border-default);
+        border-top-left-radius: var(--ks-radius-base);
+        border-top-right-radius: var(--ks-radius-base);
+    }
+
+    .panel-maximized .content-panel {
+        margin-bottom: var(--ks-spacing-5);
+        border-bottom: 1px solid var(--ks-border-default);
+        border-bottom-left-radius: var(--ks-radius-base);
+        border-bottom-right-radius: var(--ks-radius-base);
+    }
+
     .editor-tabs-container{
         display: grid;
         grid-template-columns: auto 1fr auto;
