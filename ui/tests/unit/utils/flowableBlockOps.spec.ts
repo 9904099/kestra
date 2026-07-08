@@ -6,12 +6,18 @@ import {
     buildMinimalTask,
     deleteBlock,
     deleteBlockAtPath,
+    displayTaskOf,
     duplicateBlock,
     duplicateBlockAtPath,
+    isWrappedLaneItem,
+    isWrapperLane,
     moveBlockAtPath,
     reorderAtPath,
+    resolveBlockDomId,
+    taskEditPathFor,
     updateBlock,
     updateBlockAtPath,
+    wrapAsDagTask,
 } from "../../../src/utils/flowableBlockOps"
 
 const SIMPLE_FLOW = `
@@ -94,6 +100,25 @@ tasks:
       - id: sub_b
         type: io.kestra.plugin.core.log.Log
         message: B
+`.trim()
+
+const FLOW_WITH_DAG = `
+id: my_flow
+namespace: company.team
+tasks:
+  - id: my_dag
+    type: io.kestra.plugin.core.flow.Dag
+    tasks:
+      - task:
+          id: a
+          type: io.kestra.plugin.core.log.Log
+          message: A
+      - task:
+          id: b
+          type: io.kestra.plugin.core.log.Log
+          message: B
+        dependsOn:
+          - a
 `.trim()
 
 describe("flowableBlockOps", () => {
@@ -1051,6 +1076,190 @@ tasks:
             const parsed = flowYamlUtils.parse(result)
             expect(parsed.tasks[0].then[0].then).toHaveLength(2)
             expect(parsed.tasks[0].then[0].then[1].id).toBe("deep_task_2")
+        })
+    })
+
+    describe("DAG task wrapper ({task, dependsOn})", () => {
+        describe("isWrappedLaneItem", () => {
+            it("recognizes a {task, dependsOn} wrapper", () => {
+                expect(isWrappedLaneItem({task: {id: "a", type: "io.kestra.plugin.core.log.Log"}, dependsOn: ["b"]})).toBe(true)
+            })
+
+            it("recognizes a wrapper with no dependsOn yet", () => {
+                expect(isWrappedLaneItem({task: {id: "a", type: "io.kestra.plugin.core.log.Log"}})).toBe(true)
+            })
+
+            it("rejects a flat task (has its own type)", () => {
+                expect(isWrappedLaneItem({id: "a", type: "io.kestra.plugin.core.log.Log"})).toBe(false)
+            })
+
+            it("rejects non-object values", () => {
+                expect(isWrappedLaneItem(null)).toBe(false)
+                expect(isWrappedLaneItem(["x"])).toBe(false)
+                expect(isWrappedLaneItem("x")).toBe(false)
+            })
+        })
+
+        describe("displayTaskOf / taskEditPathFor", () => {
+            it("unwraps a wrapper to its inner task", () => {
+                const wrapped = {task: {id: "a", type: "io.kestra.plugin.core.log.Log"}, dependsOn: ["b"]}
+                expect(displayTaskOf(wrapped)).toEqual({id: "a", type: "io.kestra.plugin.core.log.Log"})
+            })
+
+            it("returns a flat task unchanged", () => {
+                const flat = {id: "a", type: "io.kestra.plugin.core.log.Log"}
+                expect(displayTaskOf(flat)).toBe(flat)
+            })
+
+            it("appends .task to the path for a wrapper", () => {
+                const wrapped = {task: {id: "a", type: "io.kestra.plugin.core.log.Log"}}
+                expect(taskEditPathFor("tasks[0].tasks[1]", wrapped)).toBe("tasks[0].tasks[1].task")
+            })
+
+            it("leaves the path unchanged for a flat task", () => {
+                const flat = {id: "a", type: "io.kestra.plugin.core.log.Log"}
+                expect(taskEditPathFor("tasks[1]", flat)).toBe("tasks[1]")
+            })
+        })
+
+        describe("resolveBlockDomId", () => {
+            it("resolves a wrapper's dom id off the wrapped task's id", () => {
+                const items = [
+                    {task: {id: "a", type: "io.kestra.plugin.core.log.Log"}},
+                    {task: {id: "b", type: "io.kestra.plugin.core.log.Log"}, dependsOn: ["a"]},
+                ]
+                expect(resolveBlockDomId(items, 0)).toBe("a")
+                expect(resolveBlockDomId(items, 1)).toBe("b")
+            })
+        })
+
+        describe("isWrapperLane", () => {
+            it("detects a DAG's tasks lane from its existing wrapped items", () => {
+                expect(isWrapperLane(FLOW_WITH_DAG, "tasks[0].tasks")).toBe(true)
+            })
+
+            it("falls back to the parent's type for an empty Dag lane", () => {
+                const emptyDag = `
+id: my_flow
+namespace: company.team
+tasks:
+  - id: my_dag
+    type: io.kestra.plugin.core.flow.Dag
+`.trim()
+                expect(isWrapperLane(emptyDag, "tasks[0].tasks")).toBe(true)
+            })
+
+            it("returns false for a flat lane (e.g. Parallel.tasks)", () => {
+                expect(isWrapperLane(FLOW_WITH_PARALLEL, "tasks[0].tasks")).toBe(false)
+            })
+
+            it("returns false for a flat, empty lane", () => {
+                const emptyParallel = `
+id: my_flow
+namespace: company.team
+tasks:
+  - id: parallel_task
+    type: io.kestra.plugin.core.flow.Parallel
+`.trim()
+                expect(isWrapperLane(emptyParallel, "tasks[0].tasks")).toBe(false)
+            })
+        })
+
+        describe("wrapAsDagTask + addBlockAtPath", () => {
+            it("inserts a new wrapped task into a DAG's tasks lane", () => {
+                // Given
+                const newTask = {id: "c", type: "io.kestra.plugin.core.log.Log", message: "C"}
+
+                // When
+                const result = addBlockAtPath(FLOW_WITH_DAG, "tasks[0].tasks", wrapAsDagTask(newTask))
+
+                // Then
+                const parsed = flowYamlUtils.parse<any>(result)
+                expect(parsed.tasks[0].tasks).toHaveLength(3)
+                expect(parsed.tasks[0].tasks[2].task.id).toBe("c")
+                expect(parsed.tasks[0].tasks[2].dependsOn).toBeUndefined()
+                // siblings untouched
+                expect(parsed.tasks[0].tasks[1].dependsOn).toEqual(["a"])
+            })
+        })
+
+        describe("extractBlockWithPath / updateBlockAtPath through .task", () => {
+            it("reads the inner task's YAML via the .task suffix", () => {
+                const extracted = flowYamlUtils.extractBlockWithPath({source: FLOW_WITH_DAG, path: "tasks[0].tasks[0].task"})
+                const parsed = flowYamlUtils.parse<any>(extracted!)
+                expect(parsed.id).toBe("a")
+                expect(parsed.type).toBe("io.kestra.plugin.core.log.Log")
+            })
+
+            it("updates the inner task without disturbing the wrapper's dependsOn", () => {
+                const updatedYaml = "id: b\ntype: io.kestra.plugin.core.log.Log\nmessage: Updated"
+
+                const result = updateBlockAtPath(FLOW_WITH_DAG, "tasks[0].tasks[1].task", updatedYaml)
+
+                const parsed = flowYamlUtils.parse<any>(result)
+                expect(parsed.tasks[0].tasks[1].task.message).toBe("Updated")
+                expect(parsed.tasks[0].tasks[1].dependsOn).toEqual(["a"])
+                expect(parsed.tasks[0].tasks[0].task.id).toBe("a")
+            })
+        })
+
+        describe("dependsOn persistence via replaceBlockWithPath", () => {
+            it("sets dependsOn on a wrapper that has none yet", () => {
+                const result = flowYamlUtils.replaceBlockWithPath({
+                    source: FLOW_WITH_DAG,
+                    path: "tasks[0].tasks[0].dependsOn",
+                    newContent: flowYamlUtils.stringify(["b"]),
+                })
+
+                const parsed = flowYamlUtils.parse<any>(result)
+                expect(parsed.tasks[0].tasks[0].dependsOn).toEqual(["b"])
+                expect(parsed.tasks[0].tasks[0].task.id).toBe("a")
+            })
+
+            it("removes dependsOn when the new value is an empty array", () => {
+                const result = flowYamlUtils.replaceBlockWithPath({
+                    source: FLOW_WITH_DAG,
+                    path: "tasks[0].tasks[1].dependsOn",
+                    newContent: "",
+                })
+
+                const parsed = flowYamlUtils.parse<any>(result)
+                expect(parsed.tasks[0].tasks[1].dependsOn).toBeUndefined()
+                expect(parsed.tasks[0].tasks[1].task.id).toBe("b")
+            })
+        })
+
+        describe("deleteBlockAtPath on a wrapper", () => {
+            it("removes the whole {task, dependsOn} entry, not just the inner task", () => {
+                const result = deleteBlockAtPath(FLOW_WITH_DAG, "tasks[0].tasks[0]")
+
+                const parsed = flowYamlUtils.parse<any>(result)
+                expect(parsed.tasks[0].tasks).toHaveLength(1)
+                expect(parsed.tasks[0].tasks[0].task.id).toBe("b")
+            })
+        })
+
+        describe("duplicateBlockAtPath on a wrapper", () => {
+            it("duplicates the wrapper, renaming only the inner task's id", () => {
+                const result = duplicateBlockAtPath(FLOW_WITH_DAG, "tasks[0].tasks[0]")
+
+                const parsed = flowYamlUtils.parse<any>(result)
+                expect(parsed.tasks[0].tasks).toHaveLength(3)
+                const copy = parsed.tasks[0].tasks[1]
+                expect(String(copy.task.id)).toMatch(/^a_copy/)
+                expect(copy.task.type).toBe("io.kestra.plugin.core.log.Log")
+                // untouched sibling still depends on the original "a", not the copy
+                expect(parsed.tasks[0].tasks[2].dependsOn).toEqual(["a"])
+            })
+
+            it("preserves the duplicate's own dependsOn value", () => {
+                const result = duplicateBlockAtPath(FLOW_WITH_DAG, "tasks[0].tasks[1]")
+
+                const parsed = flowYamlUtils.parse<any>(result)
+                const copy = parsed.tasks[0].tasks[2]
+                expect(String(copy.task.id)).toMatch(/^b_copy/)
+                expect(copy.dependsOn).toEqual(["a"])
+            })
         })
     })
 })

@@ -18,6 +18,31 @@ export function isFlowableType(
     return FLOWABLE_SUFFIXES.some(suffix => type.endsWith(`.${suffix}`))
 }
 
+// A DAG's `tasks` lane holds `{task, dependsOn}` wrappers instead of flat task
+// nodes — every other flowable (If/Switch/Parallel/Sequential/...) keeps flat
+// lanes. Detecting the wrapper by shape (a `task` object property, no `type`
+// of its own) rather than hardcoding "this only applies to Dag" means any
+// future flowable reusing the same wrapper shape is handled for free, while a
+// flat lane item (which always carries its own `type`) is never mistaken for one.
+export function isWrappedLaneItem(item: unknown): item is {task: Record<string, unknown>; dependsOn?: unknown} {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return false
+    const obj = item as Record<string, unknown>
+    return obj.type === undefined && Boolean(obj.task) && typeof obj.task === "object" && !Array.isArray(obj.task)
+}
+
+// The task to actually render/edit for a lane item — unwraps a DAG-style
+// `{task, dependsOn}` wrapper, or returns the item itself for a flat lane.
+export function displayTaskOf(item: Record<string, unknown>): Record<string, unknown> {
+    return isWrappedLaneItem(item) ? item.task : item
+}
+
+// Appends `.task` to a lane item's own path when it is a wrapper, so callers
+// that need to read/edit/replace the INNER task (not the wrapper) get the
+// right path without needing to know about DAG at every call site.
+export function taskEditPathFor(itemPath: string, item: Record<string, unknown>): string {
+    return isWrappedLaneItem(item) ? `${itemPath}.task` : itemPath
+}
+
 export function updateBlock(source: string, section: BlockSection, id: string, newContent: string): string {
     const existing = flowYamlUtils.extractBlock({source, section, key: id})
     if (!existing) return source
@@ -41,12 +66,15 @@ export interface BlockRef {
 // which would make both light up together since the reactive comparison is
 // per-card, not list-aware — so only a genuine duplicate gets its index
 // appended, disambiguating it while leaving the common (unique-id) case,
-// and every id-based write-site, untouched.
+// and every id-based write-site, untouched. A DAG-style {task, dependsOn}
+// wrapper has no id of its own, so it resolves off the wrapped task's id.
 export function resolveBlockDomId(items: Record<string, unknown>[], index: number): string {
     const item = items[index]
-    if (item?.id == null) return String(index)
-    const id = String(item.id)
-    const firstIndex = items.findIndex(other => other?.id != null && String(other.id) === id)
+    if (!item) return String(index)
+    const displayItem = displayTaskOf(item)
+    if (displayItem.id == null) return String(index)
+    const id = String(displayItem.id)
+    const firstIndex = items.findIndex(other => other && String(displayTaskOf(other).id ?? "") === id)
     return firstIndex === index ? id : `${id}#${index}`
 }
 
@@ -127,9 +155,16 @@ export function duplicateBlockAtPath(source: string, path: string): string {
     if (!parsed) return source
 
     const existingIds = collectAllIds(source)
-    const newId = uniqueId(String(parsed.id), existingIds)
+    // A wrapper (DAG lane item) has no id of its own — the new id comes from
+    // its wrapped task, and only that inner task gets renamed/re-ided; the
+    // wrapper's own dependsOn is copied as-is (it still refers to valid,
+    // untouched sibling ids).
+    const displayItem = displayTaskOf(parsed)
+    const newId = uniqueId(String(displayItem.id), existingIds)
     existingIds.add(newId)
-    const duplicate = renameNestedIds({...parsed, id: newId}, existingIds)
+    const duplicate = isWrappedLaneItem(parsed)
+        ? {...parsed, task: renameNestedIds({...displayItem, id: newId}, existingIds)}
+        : renameNestedIds({...parsed, id: newId}, existingIds)
 
     const parentPath = pathParent(path)
     const match = path.match(/\[(\d+)\]$/)
@@ -194,6 +229,7 @@ function renameTaskNode(
     takenIds: Set<string>,
 ): Record<string, unknown> {
     if (!node || typeof node !== "object") return node
+    if (isWrappedLaneItem(node)) return {...node, task: renameTaskNode(node.task, takenIds)}
     const originalId = typeof node.id === "string" ? node.id : undefined
     if (originalId === undefined) return renameNestedIds(node, takenIds)
     const newId = uniqueId(originalId, takenIds)
@@ -238,6 +274,10 @@ function walkIds(node: unknown, ids: Set<string>): void {
     if (!node || typeof node !== "object") return
     if (Array.isArray(node)) {
         for (const item of node) walkIds(item, ids)
+        return
+    }
+    if (isWrappedLaneItem(node)) {
+        walkIds(node.task, ids)
         return
     }
     const obj = node as Record<string, unknown>
@@ -376,6 +416,32 @@ export function buildMinimalTask(fqcn: string, existingIds?: Set<string>): Recor
     const baseId = shortName.toLowerCase().replace(/[^a-z0-9]+/g, "_") + "_" + Date.now().toString(36) + (++taskCounter).toString(36)
     const id = existingIds ? uniqueId(baseId, existingIds) : baseId
     return {id, type: fqcn}
+}
+
+// Whether the lane at parentPath is DAG-style (its items are {task, dependsOn}
+// wrappers). Checked primarily by shape against whatever the lane already
+// contains — no need to know which flowable kinds use the wrapper shape.
+// Falls back to the parent block's own type only for an empty lane (a brand
+// new Dag with no tasks yet), where there is no existing item to sniff.
+export function isWrapperLane(source: string, parentPath: string): boolean {
+    try {
+        const parsed = flowYamlUtils.parse<Record<string, unknown>>(source)
+        if (!parsed) return false
+        const list = getAtPath(parsed, parentPath)
+        if (Array.isArray(list) && list.length > 0) return isWrappedLaneItem(list[0])
+
+        const lastDot = parentPath.lastIndexOf(".")
+        if (lastDot === -1) return false
+        const parentBlockPath = parentPath.slice(0, lastDot)
+        const parentBlock = getAtPath(parsed, parentBlockPath) as Record<string, unknown> | undefined
+        return String(parentBlock?.type ?? "").endsWith(".Dag")
+    } catch {
+        return false
+    }
+}
+
+export function wrapAsDagTask(task: Record<string, unknown>): Record<string, unknown> {
+    return {task}
 }
 
 export {collectAllIds}
