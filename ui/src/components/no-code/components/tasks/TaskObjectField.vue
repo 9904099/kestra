@@ -68,6 +68,14 @@
                         {{ props.fieldKey }}
                     </span>
 
+                    <span
+                        v-if="pluginDefault !== undefined"
+                        class="plugin-default-hint"
+                        :title="t('block_editor.plugin_default_tooltip')"
+                    >
+                        {{ t("block_editor.plugin_default", {value: pluginDefault}) }}
+                    </span>
+
                     <ClearButton
                         v-if="isAnyOf && !isRequired && hasSelectedASchema"
                         @click="modelValue = undefined; taskComponent?.resetSelectType?.();"
@@ -114,8 +122,9 @@
 
 <script setup lang="ts">
     import {computed, inject, ref, useTemplateRef} from "vue"
+    import {useI18n} from "vue-i18n"
     import {useBlockComponent} from "./useBlockComponent"
-    import {INLINE_TASK_MODE_INJECTION_KEY, BLOCK_SCHEMA_PATH_INJECTION_KEY, FIELD_NAV_INJECTION_KEY} from "../../injectionKeys"
+    import {INLINE_TASK_MODE_INJECTION_KEY, BLOCK_SCHEMA_PATH_INJECTION_KEY, FIELD_NAV_INJECTION_KEY, PLUGIN_DEFAULTS_INJECTION_KEY} from "../../injectionKeys"
 
     import ClearButton from "./ClearButton.vue"
     import {KsMarkdown} from "@kestra-io/design-system"
@@ -199,6 +208,14 @@
     /** Whether the component is rendered in inline mode (used for Plugin Defaults) */
     const inlineMode = inject(INLINE_TASK_MODE_INJECTION_KEY, false)
     const blockSchemaPathInjected = inject(BLOCK_SCHEMA_PATH_INJECTION_KEY, ref(""))
+
+    const {t} = useI18n()
+
+    const pluginDefaults = inject(PLUGIN_DEFAULTS_INJECTION_KEY, undefined)
+    const pluginDefault = computed(() => {
+        const value = pluginDefaults?.value?.[props.fieldKey]
+        return value === undefined || value === null || typeof value === "object" ? undefined : String(value)
+    })
 
     const fieldNav = inject(FIELD_NAV_INJECTION_KEY, undefined)
 
@@ -285,6 +302,13 @@
         white-space: nowrap;
         font-size: var(--ks-font-size-sm);
         font-weight: 600;
+    }
+
+    .plugin-default-hint {
+        flex-shrink: 0;
+        font-size: var(--ks-font-size-xs);
+        font-family: var(--ks-font-family-mono);
+        color: var(--ks-text-muted);
     }
 
     .information-icon {

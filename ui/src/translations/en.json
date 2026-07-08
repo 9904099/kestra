@@ -180,6 +180,8 @@
       "output_sub": "what this task produces",
       "pick_task_type": "Choose a task type",
       "picker_more_results": "{count} more, refine your search",
+      "plugin_default": "default: {value}",
+      "plugin_default_tooltip": "Default value from the flow's pluginDefaults",
       "save_blocked": {
         "message": "Fix the errors before saving.",
         "title": "Cannot save the flow"

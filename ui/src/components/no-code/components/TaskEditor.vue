@@ -70,6 +70,8 @@
         DATA_TYPES_MAP_INJECTION_KEY,
         ON_TASK_EDITOR_CLICK_INJECTION_KEY,
         FIELD_NAV_INJECTION_KEY,
+        FULL_SOURCE_INJECTION_KEY,
+        PLUGIN_DEFAULTS_INJECTION_KEY,
     } from "../injectionKeys"
     import {removeNullAndUndefined} from "../utils/cleanUp"
     import {removeRefPrefix, usePluginsStore} from "../../../stores/plugins"
@@ -98,6 +100,30 @@
     const fieldNav = useFieldNavigation()
     provide(FIELD_NAV_INJECTION_KEY, fieldNav)
     const {stack: navStack, current: navCurrent} = fieldNav
+
+    // Flow-level pluginDefaults merged for the current task type — surfaced as a
+    // "(default: …)" hint on matching fields, never written into the task YAML.
+    const fullSource = inject(FULL_SOURCE_INJECTION_KEY, ref(""))
+    const pluginDefaultsForType = computed<Record<string, unknown>>(() => {
+        const type = selectedTaskType.value || taskModel.value?.type
+        if (!type) return {}
+        let parsed: any
+        try {
+            parsed = YAML_UTILS.parse(fullSource.value)
+        } catch {
+            return {}
+        }
+        const defaults = parsed?.pluginDefaults
+        if (!Array.isArray(defaults)) return {}
+        const merged: Record<string, unknown> = {}
+        for (const entry of defaults) {
+            if (entry?.type && (type === entry.type || type.startsWith(`${entry.type}.`)) && entry.values) {
+                Object.assign(merged, entry.values)
+            }
+        }
+        return merged
+    })
+    provide(PLUGIN_DEFAULTS_INJECTION_KEY, pluginDefaultsForType)
 
     const rootLabel = computed(() =>
         taskModel.value?.id

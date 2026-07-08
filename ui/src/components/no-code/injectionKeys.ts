@@ -9,6 +9,11 @@ export const BLOCK_SCHEMA_PATH_INJECTION_KEY = Symbol("block-schema-path-injecti
  */
 export const FULL_SOURCE_INJECTION_KEY = Symbol("flow-injection-key") as InjectionKey<ComputedRef<string>>
 /**
+ * Flow-level pluginDefaults merged for the current task type: field name -> default value.
+ * Applied as a display hint in the form, never written into the task YAML.
+ */
+export const PLUGIN_DEFAULTS_INJECTION_KEY = Symbol("plugin-defaults-injection-key") as InjectionKey<ComputedRef<Record<string, unknown>>>
+/**
  * When creating a subtask, this is the parent task path
  */
 export const PARENT_PATH_INJECTION_KEY = Symbol("parent-path-injection-key") as InjectionKey<string>

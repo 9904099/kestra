@@ -180,6 +180,8 @@
       "output_sub": "此 task 产生的内容",
       "pick_task_type": "选择task类型",
       "picker_more_results": "还有{count}个，请细化搜索",
+      "plugin_default": "默认: {value}",
+      "plugin_default_tooltip": "来自 flow 的 pluginDefaults 的默认值",
       "save_blocked": {
         "message": "保存前请修复错误。",
         "title": "无法保存 flow"

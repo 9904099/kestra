@@ -180,6 +180,8 @@
       "output_sub": "यह task क्या उत्पन्न करती है",
       "pick_task_type": "task प्रकार चुनें",
       "picker_more_results": "{count} और, अपनी खोज को परिष्कृत करें",
+      "plugin_default": "डिफ़ॉल्ट: {value}",
+      "plugin_default_tooltip": "फ़्लो के pluginDefaults से डिफ़ॉल्ट मान",
       "save_blocked": {
         "message": "सहेजने से पहले त्रुटियों को ठीक करें।",
         "title": "फ़्लो सहेजा नहीं जा सकता"

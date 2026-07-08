@@ -180,6 +180,8 @@
       "output_sub": "что производит эта task",
       "pick_task_type": "Выбрать тип task",
       "picker_more_results": "ещё {count}, уточните поиск",
+      "plugin_default": "по умолчанию: {value}",
+      "plugin_default_tooltip": "Значение по умолчанию из pluginDefaults flow",
       "save_blocked": {
         "message": "Исправьте ошибки перед сохранением.",
         "title": "Не удалось сохранить flow"

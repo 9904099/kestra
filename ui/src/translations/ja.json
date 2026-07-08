@@ -180,6 +180,8 @@
       "output_sub": "このtaskが生成するもの",
       "pick_task_type": "taskタイプを選択",
       "picker_more_results": "他{count}件、検索を絞り込んでください",
+      "plugin_default": "デフォルト: {value}",
+      "plugin_default_tooltip": "フローの pluginDefaults のデフォルト値",
       "save_blocked": {
         "message": "保存する前にエラーを修正してください。",
         "title": "フローを保存できません"

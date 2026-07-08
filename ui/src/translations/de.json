@@ -180,6 +180,8 @@
       "output_sub": "was diese task erzeugt",
       "pick_task_type": "Aufgabentyp auswählen",
       "picker_more_results": "{count} weitere, verfeinern Sie Ihre Suche",
+      "plugin_default": "Standard: {value}",
+      "plugin_default_tooltip": "Standardwert aus den pluginDefaults des Flows",
       "save_blocked": {
         "message": "Beheben Sie die Fehler vor dem Speichern.",
         "title": "Flow kann nicht gespeichert werden"
