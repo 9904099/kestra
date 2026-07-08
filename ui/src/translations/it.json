@@ -123,6 +123,7 @@
         "search_placeholder": "Digita un comando o cerca un task…",
         "title": "Menu comandi"
       },
+      "configure": "Configura",
       "confirm_delete": {
         "message": "Questo rimuove {name} dal flow. Puoi ancora annullare subito dopo.",
         "message_group": "Questo rimuove il gruppo {name} e tutto il suo contenuto. Puoi ancora annullare subito dopo.",

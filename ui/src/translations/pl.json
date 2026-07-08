@@ -123,6 +123,7 @@
         "search_placeholder": "Wpisz polecenie lub wyszukaj task…",
         "title": "Menu poleceń"
       },
+      "configure": "Konfiguruj",
       "confirm_delete": {
         "message": "Spowoduje to usunięcie {name} z flow. Nadal możesz cofnąć tę akcję zaraz po niej.",
         "message_group": "Spowoduje to usunięcie grupy {name} wraz z całą jej zawartością. Nadal możesz cofnąć tę akcję zaraz po niej.",

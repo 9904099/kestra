@@ -43,6 +43,16 @@
 
             <div class="flowable-cluster-actions">
                 <KsIconButton
+                    :aria-label="t('block_editor.configure')"
+                    :tooltip="t('block_editor.configure')"
+                    data-test="flowable-cluster-configure"
+                    tabindex="-1"
+                    @click.stop="emit('select', path)"
+                >
+                    <Cog />
+                </KsIconButton>
+
+                <KsIconButton
                     :aria-label="t('block_editor.duplicate')"
                     :tooltip="`${t('block_editor.duplicate')} (d)`"
                     data-test="block-card-duplicate"
@@ -113,6 +123,7 @@
     import ChevronDown from "vue-material-design-icons/ChevronDown.vue"
     import ChevronRight from "vue-material-design-icons/ChevronRight.vue"
     import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
+    import Cog from "vue-material-design-icons/CogOutline.vue"
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
 

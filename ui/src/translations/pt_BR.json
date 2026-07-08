@@ -123,6 +123,7 @@
         "search_placeholder": "Digite um comando ou busque um task…",
         "title": "Menu de comandos"
       },
+      "configure": "Configurar",
       "confirm_delete": {
         "message": "Isso remove {name} do flow. Você ainda pode desfazer logo em seguida.",
         "message_group": "Isso remove o grupo {name} e tudo o que ele contém. Você ainda pode desfazer logo em seguida.",

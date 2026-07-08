@@ -123,6 +123,7 @@
         "search_placeholder": "명령을 입력하거나 task를 검색…",
         "title": "명령 메뉴"
       },
+      "configure": "구성",
       "confirm_delete": {
         "message": "{name}이(가) flow에서 제거됩니다. 바로 실행 취소할 수 있습니다.",
         "message_group": "{name} 그룹과 그 안의 모든 항목이 제거됩니다. 바로 실행 취소할 수 있습니다.",

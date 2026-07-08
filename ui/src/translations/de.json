@@ -123,6 +123,7 @@
         "search_placeholder": "Befehl eingeben oder task suchen…",
         "title": "Befehlsmenü"
       },
+      "configure": "Konfigurieren",
       "confirm_delete": {
         "message": "Dies entfernt {name} aus dem Flow. Du kannst es direkt danach noch rückgängig machen.",
         "message_group": "Dies entfernt die Gruppe {name} und alles darin. Du kannst es direkt danach noch rückgängig machen.",

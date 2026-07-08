@@ -123,6 +123,7 @@
         "search_placeholder": "输入命令或搜索task…",
         "title": "命令菜单"
       },
+      "configure": "配置",
       "confirm_delete": {
         "message": "这将从flow中移除{name}。之后仍可撤销。",
         "message_group": "这将移除{name}组及其中的所有内容。之后仍可撤销。",

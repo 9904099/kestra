@@ -47,6 +47,18 @@ test.describe("Block editor — mutations & split view", () => {
         await expect(page.locator("[data-block-id='middle_task']")).toBeVisible()
     })
 
+    test("the configure button opens a flowable's config form", async ({page}) => {
+        const fid = await flowsApi.generateFlowViaApi("blocks-flowable.yaml", "blocks-flowable-fixture")
+        await openBlockEditor(page, fid)
+        await walkTo(page, "my_if")
+
+        await page.locator("[data-test='flowable-cluster-configure']").click()
+
+        const dock = page.locator("[data-test='block-editor-task-edit']")
+        await expect(dock).toBeVisible()
+        await expect(dock).toContainText("condition")
+    })
+
     test("Ctrl/Cmd+Z undoes an inserted block", async ({page}) => {
         await walkTo(page, "middle_task")
         await page.keyboard.press("a")

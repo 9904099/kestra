@@ -123,6 +123,7 @@
         "search_placeholder": "コマンドを入力するかtaskを検索…",
         "title": "コマンドメニュー"
       },
+      "configure": "設定",
       "confirm_delete": {
         "message": "{name}をflowから削除します。直後であれば元に戻せます。",
         "message_group": "グループ{name}とその中身をすべて削除します。直後であれば元に戻せます。",

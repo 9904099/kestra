@@ -123,6 +123,7 @@
         "search_placeholder": "Type a command or search a task…",
         "title": "Command menu"
       },
+      "configure": "Configure",
       "confirm_delete": {
         "message": "This removes {name} from the flow. You can still undo right after.",
         "message_group": "This removes the group {name} and everything inside it. You can still undo right after.",
