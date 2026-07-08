@@ -1766,6 +1766,7 @@
             && !sectionFromSentinel(focusedId.value)
             && !parentPathFromLaneSentinel(focusedId.value)
         return [
+            {id: "help", keys: keysFor("help"), i18nKey: "block_editor.shortcuts.toggle"},
             {id: "move", keys: keysFor("move"), i18nKey: "block_editor.shortcuts.move_between"},
             {id: "open", keys: keysFor("open"), i18nKey: "block_editor.shortcuts.open"},
             {id: "insert", keys: keysFor("insert-after"), i18nKey: "block_editor.shortcuts.add_after"},
@@ -1776,7 +1777,6 @@
                 ]
                 : []),
             {id: "command-menu", keys: keysFor("command-menu"), i18nKey: "block_editor.shortcuts.command_palette"},
-            {id: "help", keys: keysFor("help"), i18nKey: "block_editor.shortcuts.toggle"},
         ]
     })
 
