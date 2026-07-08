@@ -44,12 +44,14 @@ test.describe("Block editor — insertions", () => {
         expect(taskIdsInOrder(source)).toEqual(["seq_group", newId, "middle_task", "last_task"])
     })
 
-    test("/ opens the picker anchored on the focused block", async ({page}) => {
+    test("/ opens the command menu where typing a kind surfaces its insert command", async ({page}) => {
         await walkTo(page, "last_task")
         await page.keyboard.press("/")
 
-        await expect(page.getByText("Inserting into Tasks", {exact: true})).toBeVisible()
-        await expect(page.getByPlaceholder("Search or describe a task…")).toBeFocused()
+        const menuInput = page.getByPlaceholder("Type a command or search a task…")
+        await expect(menuInput).toBeFocused()
+        await menuInput.fill("trigger")
+        await expect(page.locator("[data-test='block-command-menu']").getByText("Insert Triggers", {exact: false})).toBeVisible()
         await page.keyboard.press("Escape")
     })
 

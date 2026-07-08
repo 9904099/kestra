@@ -116,6 +116,7 @@
         "insert_at_end": "Inserir task no final de Tasks",
         "insert_before": "Inserir task antes de {name}",
         "insert_in_section": "Inserir task em {section}",
+        "insert_kind": "Inserir {kind}",
         "no_match": "Sem correspondências",
         "open": "Abrir {name}",
         "save": "Salvar flow",

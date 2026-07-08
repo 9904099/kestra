@@ -116,6 +116,7 @@
         "insert_at_end": "Tasks के अंत में task जोड़ें",
         "insert_before": "{name} से पहले task जोड़ें",
         "insert_in_section": "{section} में task जोड़ें",
+        "insert_kind": "{kind} डालें",
         "no_match": "कोई मेल नहीं",
         "open": "{name} खोलें",
         "save": "Flow सहेजें",

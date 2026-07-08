@@ -116,6 +116,7 @@
         "insert_at_end": "Task am Ende von Tasks einfügen",
         "insert_before": "Task vor {name} einfügen",
         "insert_in_section": "Task in {section} einfügen",
+        "insert_kind": "{kind} einfügen",
         "no_match": "Keine Treffer",
         "open": "{name} öffnen",
         "save": "Flow speichern",

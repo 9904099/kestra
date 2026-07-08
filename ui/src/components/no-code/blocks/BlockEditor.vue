@@ -1544,15 +1544,10 @@
         if (isAnyOverlayOpen()) return
 
         if (id === "quick-insert") {
-            // Mirrors the "Add task" button it's advertised on ("or press / to
-            // search tasks") exactly: always appends to the end of the
-            // top-level tasks list, regardless of what's focused. "a" is the
-            // one that stays anchored to the focused block. Anchor the picker to
-            // that same end-of-list insert point (and scroll it into view) so it
-            // opens where the task lands, not next to the focused card.
-            const endDrop = editorEl.value?.querySelector<HTMLElement>("[data-test='block-editor-tasks-end']") ?? undefined
-            endDrop?.scrollIntoView({block: "nearest"})
-            openTaskPicker("tasks", undefined, endDrop)
+            // "/" opens the command menu, where typing "task"/"error"/"trigger"
+            // surfaces the matching "Insert …" command; picking one opens the
+            // task picker for that section.
+            commandMenuOpen.value = true
         } else if (id === "move") {
             moveFocus(event.key === "ArrowDown" || event.key === "j" ? 1 : -1)
         } else if (id === "step-into") {
@@ -1823,6 +1818,24 @@
                 run: () => {
                     commandMenuOpen.value = false
                     addBeforeFocused()
+                },
+            })
+        }
+
+        const insertKinds: {section: BlockSection; labelKey: string}[] = [
+            {section: "tasks", labelKey: "no_code.sections.tasks"},
+            {section: "errors", labelKey: "block_editor.lane_errors"},
+            {section: "triggers", labelKey: "no_code.sections.triggers"},
+        ]
+        for (const {section, labelKey} of insertKinds) {
+            items.push({
+                id: `insert-${section}`,
+                group: t("block_editor.command_menu.group_insert"),
+                title: t("block_editor.command_menu.insert_kind", {kind: t(labelKey)}),
+                icon: PlusCircleOutline,
+                run: () => {
+                    commandMenuOpen.value = false
+                    openTaskPicker(section)
                 },
             })
         }

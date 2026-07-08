@@ -116,6 +116,7 @@
         "insert_at_end": "Вставить task в конец Tasks",
         "insert_before": "Вставить task перед {name}",
         "insert_in_section": "Вставить task в {section}",
+        "insert_kind": "Вставить {kind}",
         "no_match": "Нет совпадений",
         "open": "Открыть {name}",
         "save": "Сохранить flow",
