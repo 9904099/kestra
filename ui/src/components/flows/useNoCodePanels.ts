@@ -5,6 +5,7 @@ import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
 
 import {useFlowStore} from "../../stores/flow"
 import {NoCodeProps} from "./noCodeTypes"
+import {displayTaskOf} from "../../utils/flowableBlockOps"
 
 
 import {trackTabOpen, trackTabClose} from "../../utils/tabTracking"
@@ -95,10 +96,13 @@ function getTabFromNoCodeTab(Comp: any, tab: NoCodeTabWithAction, t: (key: strin
                 ? `${tab.parentPath}[${tab.refPath}]`
                 : tab.parentPath ?? ""
 
-            const currentBlock: any = tab.parentPath ? YAML_UTILS.parse(YAML_UTILS.extractBlockWithPath({
+            const rawBlock: any = tab.parentPath ? YAML_UTILS.parse(YAML_UTILS.extractBlockWithPath({
                 source: flow,
                 path,
             })) : {}
+            // A DAG lane item is a {task, dependsOn} wrapper with no id of its own —
+            // the tab label needs the wrapped task's id, not the wrapper's.
+            const currentBlock = rawBlock ? displayTaskOf(rawBlock) : rawBlock
 
             return {
                 uid: getEditTabKey(tab, keepAliveCacheBuster++),

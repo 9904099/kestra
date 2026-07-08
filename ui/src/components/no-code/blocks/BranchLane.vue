@@ -41,7 +41,7 @@
                         :block="task"
                         :icons="icons"
                         :path="`${parentPath}[${index}]`"
-                        :selected="selectedId === String(task.id)"
+                        :selected="selectedId === String(displayTaskOf(task).id)"
                         :focused="focusedId !== undefined && focusedId === resolveBlockDomId(tasks, index)"
                         :draggable="true"
                         :dragOver="dragOverIndex === index"
@@ -54,6 +54,14 @@
                         @drag-over="handleDragOver($event, index)"
                         @drop="handleDrop($event, index)"
                         @drag-end="handleDragEnd"
+                    />
+
+                    <DagDependsOnEditor
+                        v-if="isWrappedLaneItem(task)"
+                        :dependsOn="dagDependsOnOf(task)"
+                        :siblingIds="siblingIdsFor(index)"
+                        data-test="dag-depends-on"
+                        @update="(value) => emit('update-depends-on', `${parentPath}[${index}]`, value)"
                     />
                 </template>
             </template>
@@ -98,11 +106,12 @@
 
     import {KsTag, KsAlert} from "@kestra-io/design-system"
 
-    import {isFlowableType, resolveBlockDomId} from "../../../utils/flowableBlockOps"
+    import {displayTaskOf, isFlowableType, isWrappedLaneItem, resolveBlockDomId} from "../../../utils/flowableBlockOps"
     import {useDragAndDrop} from "../../../composables/useDragAndDrop"
 
     const FlowableClusterCard = defineAsyncComponent(() => import("./FlowableClusterCard.vue"))
     const LeafBlockCard = defineAsyncComponent(() => import("./LeafBlockCard.vue"))
+    const DagDependsOnEditor = defineAsyncComponent(() => import("./DagDependsOnEditor.vue"))
 
     const {t} = useI18n()
 
@@ -124,6 +133,7 @@
         (e: "duplicate", path: string): void
         (e: "add-at-path", parentPath: string, afterIndex: number, evt?: Event): void
         (e: "reorder", parentPath: string, fromIndex: number, toIndex: number): void
+        (e: "update-depends-on", itemPath: string, dependsOn: string[]): void
     }>()
 
     const {dragOverIndex, handleDragStart, handleDragOver, handleDragEnd, handleDrop: baseDrop} = useDragAndDrop()
@@ -132,6 +142,19 @@
         baseDrop(event, targetIndex, (from, to) => {
             emit("reorder", props.parentPath, from, to)
         })
+    }
+
+    function dagDependsOnOf(item: Record<string, unknown>): string[] {
+        const value = (item as {dependsOn?: unknown}).dependsOn
+        return Array.isArray(value) ? value.map(String) : []
+    }
+
+    // Valid dependsOn targets for the item at `index`: every other DAG sub-task
+    // in the same lane, excluding itself (a task can't depend on its own id).
+    function siblingIdsFor(index: number): string[] {
+        return props.tasks
+            .map((item, i) => (i === index ? undefined : String(displayTaskOf(item).id ?? "")))
+            .filter((id): id is string => Boolean(id))
     }
 
     const depth = computed(() => props.depth ?? 0)
@@ -174,7 +197,7 @@
     })
 
     function isFlowable(task: Record<string, unknown>): boolean {
-        return isFlowableType(String(task.type ?? ""), props.icons)
+        return isFlowableType(String(displayTaskOf(task).type ?? ""), props.icons)
     }
 </script>
 

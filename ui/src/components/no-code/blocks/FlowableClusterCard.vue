@@ -2,7 +2,7 @@
     <div
         class="flowable-cluster"
         :class="{'flowable-cluster--expanded': expanded}"
-        :data-test="`flowable-cluster-${String(block.id ?? '')}`"
+        :data-test="`flowable-cluster-${String(displayBlock.id ?? '')}`"
     >
         <!-- Roving tabindex: only the focused header is a Tab stop; the
         editor's global keymap owns Enter/Space activation (see BlockCard.vue
@@ -26,12 +26,12 @@
 
             <KsTaskIcon
                 class="flowable-cluster-icon"
-                :cls="String(block.type ?? '')"
+                :cls="String(displayBlock.type ?? '')"
                 :icons="icons"
                 :onlyIcon="true"
             />
 
-            <span class="flowable-cluster-id" data-test="block-card-id">{{ block.id }}</span>
+            <span class="flowable-cluster-id" data-test="block-card-id">{{ displayBlock.id }}</span>
 
             <KsTag size="small" class="flowable-cluster-kind-tag" data-test="block-card-type">
                 {{ shortType }}
@@ -90,6 +90,7 @@
                 @delete="(p) => emit('delete', p)"
                 @duplicate="(p) => emit('duplicate', p)"
                 @add-at-path="(p, afterIdx, evt) => emit('add-at-path', p, afterIdx, evt)"
+                @update-depends-on="(p, dependsOn) => emit('update-depends-on', p, dependsOn)"
             />
 
             <div v-if="isSwitchTask" class="flowable-cluster-add-case">
@@ -129,6 +130,8 @@
 
     import {KsTag, KsTaskIcon, KsIconButton, KsInput} from "@kestra-io/design-system"
 
+    import {displayTaskOf, taskEditPathFor} from "../../../utils/flowableBlockOps"
+
     const BranchLane = defineAsyncComponent(() => import("./BranchLane.vue"))
 
     const {t} = useI18n()
@@ -164,11 +167,21 @@
         (e: "delete", path: string): void
         (e: "duplicate", path: string): void
         (e: "add-at-path", parentPath: string, afterIndex: number, evt?: Event): void
+        (e: "update-depends-on", itemPath: string, dependsOn: string[]): void
     }>()
 
     const depth = computed(() => props.depth ?? 0)
 
-    const focused = computed(() => props.focusedId !== undefined && props.focusedId === (props.domId ?? String(props.block.id ?? "")))
+    // The actual task to render/expand — unwraps a DAG-style {task, dependsOn}
+    // wrapper so every other computed below (id, type, lanes...) reads the
+    // real task regardless of whether this card sits in a flat or wrapped lane.
+    const displayBlock = computed(() => displayTaskOf(props.block))
+
+    // Where that task's own branches (then/else/tasks/cases/...) actually live
+    // — one level deeper than props.path for a wrapper, the same path otherwise.
+    const taskPath = computed(() => taskEditPathFor(props.path, props.block))
+
+    const focused = computed(() => props.focusedId !== undefined && props.focusedId === (props.domId ?? String(displayBlock.value.id ?? "")))
 
     const expanded = ref(depth.value < 2)
 
@@ -177,14 +190,14 @@
     }
 
     const shortType = computed(() => {
-        const type = String(props.block.type ?? "")
+        const type = String(displayBlock.value.type ?? "")
         const parts = type.split(".")
         return parts[parts.length - 1] ?? type
     })
 
     const flowableSuffix = computed(() => {
         return Object.keys(FLOWABLE_SUFFIX_MAP).find(suffix =>
-            String(props.block.type ?? "").endsWith(`.${suffix}`),
+            String(displayBlock.value.type ?? "").endsWith(`.${suffix}`),
         ) ?? null
     })
 
@@ -197,7 +210,7 @@
         const result: string[] = []
         for (const key of keys) {
             if (key === "cases") {
-                const casesObj = props.block.cases
+                const casesObj = displayBlock.value.cases
                 if (casesObj && typeof casesObj === "object" && !Array.isArray(casesObj)) {
                     for (const caseKey of Object.keys(casesObj as Record<string, unknown>)) {
                         result.push(`cases.${caseKey}`)
@@ -222,14 +235,14 @@
         return branchKeys.value.map(laneName => {
             if (laneName.startsWith("cases.")) {
                 const caseKey = laneName.slice("cases.".length)
-                const casesObj = props.block.cases as Record<string, unknown> | undefined
+                const casesObj = displayBlock.value.cases as Record<string, unknown> | undefined
                 const caseArr = casesObj?.[caseKey]
                 return {
                     name: laneName,
                     tasks: Array.isArray(caseArr) ? (caseArr as Record<string, unknown>[]) : [],
                 }
             }
-            const val = props.block[laneName]
+            const val = displayBlock.value[laneName]
             return {
                 name: laneName,
                 tasks: Array.isArray(val) ? (val as Record<string, unknown>[]) : [],
@@ -241,16 +254,16 @@
 
     const headerAriaLabel = computed(() =>
         expanded.value
-            ? t("block_editor.cluster_collapse_aria", {id: String(props.block.id ?? "")})
-            : t("block_editor.cluster_expand_aria", {id: String(props.block.id ?? ""), count: totalNestedCount.value}),
+            ? t("block_editor.cluster_collapse_aria", {id: String(displayBlock.value.id ?? "")})
+            : t("block_editor.cluster_expand_aria", {id: String(displayBlock.value.id ?? ""), count: totalNestedCount.value}),
     )
 
     function laneParentPath(laneName: string): string {
         if (laneName.startsWith("cases.")) {
             const caseKey = laneName.slice("cases.".length)
-            return `${props.path}.cases.${caseKey}`
+            return `${taskPath.value}.cases.${caseKey}`
         }
-        return `${props.path}.${laneName}`
+        return `${taskPath.value}.${laneName}`
     }
 
     const newCaseKey = ref("")

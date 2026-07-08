@@ -27,13 +27,13 @@
 
         <KsTaskIcon
             class="leaf-block-card-ico"
-            :cls="String(block.type ?? '')"
+            :cls="String(displayBlock.type ?? '')"
             :icons="icons"
             :onlyIcon="true"
         />
 
         <div class="leaf-block-card-main">
-            <span class="leaf-block-card-id" data-test="block-card-id">{{ block.id }}</span>
+            <span class="leaf-block-card-id" data-test="block-card-id">{{ displayBlock.id }}</span>
             <span class="leaf-block-card-type" data-test="block-card-type">{{ shortType }}</span>
         </div>
 
@@ -72,6 +72,8 @@
 
     import {KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
 
+    import {displayTaskOf} from "../../../utils/flowableBlockOps"
+
     const {t} = useI18n()
 
     const props = defineProps<{
@@ -94,14 +96,18 @@
         (e: "drag-end"): void
     }>()
 
+    // Unwraps a DAG-style {task, dependsOn} lane item so the card always shows
+    // the real task's id/type/icon — the wrapper itself has none of its own.
+    const displayBlock = computed(() => displayTaskOf(props.block))
+
     const shortType = computed(() => {
-        const type = String(props.block.type ?? "")
+        const type = String(displayBlock.value.type ?? "")
         const parts = type.split(".")
         return parts[parts.length - 1] ?? type
     })
 
     const cardAriaLabel = computed(() =>
-        t("block_editor.card_aria_label", {id: String(props.block.id ?? ""), type: shortType.value}),
+        t("block_editor.card_aria_label", {id: String(displayBlock.value.id ?? ""), type: shortType.value}),
     )
 </script>
 

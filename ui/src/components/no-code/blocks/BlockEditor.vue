@@ -114,6 +114,7 @@
                                         @delete="onDeleteAtPath"
                                         @duplicate="onDuplicateAtPath"
                                         @add-at-path="openTaskPickerAtPath"
+                                        @update-depends-on="onUpdateDependsOn"
                                         @dragover.prevent="handleTaskDragOver($event, index)"
                                         @drop.prevent="handleTaskDrop($event, index)"
                                     />
@@ -187,6 +188,7 @@
                                         @delete="onDeleteAtPath"
                                         @duplicate="onDuplicateAtPath"
                                         @add-at-path="openTaskPickerAtPath"
+                                        @update-depends-on="onUpdateDependsOn"
                                     />
                                     <BlockCard
                                         v-else
@@ -247,6 +249,7 @@
                                         @delete="onDeleteAtPath"
                                         @duplicate="onDuplicateAtPath"
                                         @add-at-path="openTaskPickerAtPath"
+                                        @update-depends-on="onUpdateDependsOn"
                                     />
                                     <BlockCard
                                         v-else
@@ -498,13 +501,17 @@
         collectAllIds,
         deleteBlock,
         deleteBlockAtPath,
+        displayTaskOf,
         duplicateBlock,
         duplicateBlockAtPath,
         isFlowableType,
+        isWrapperLane,
         moveBlockAtPath,
         reorderAtPath,
         resolveBlockDomId,
+        taskEditPathFor,
         updateBlockAtPath,
+        wrapAsDagTask,
         type BlockSection,
     } from "../../../utils/flowableBlockOps"
     import {useDragAndDrop} from "../../../composables/useDragAndDrop"
@@ -582,9 +589,20 @@
     // Mirrors useNoCodePanels.ts's getTabFromNoCodeTab: the block currently
     // being edited/created is resolved from parentPath/refPath against the
     // live flow YAML, the same contract NoCode.vue implements via injection.
-    const editingPath = computed<string>(() => {
+    const editingItemPath = computed<string>(() => {
         if (!props.editingTask) return props.parentPath ?? ""
         return props.refPath !== undefined ? `${props.parentPath}[${props.refPath}]` : props.parentPath ?? ""
+    })
+
+    // A DAG lane item is a {task, dependsOn} wrapper — editing/creating always
+    // targets the inner task, so every consumer below reads/writes one level
+    // deeper via taskEditPathFor rather than each re-deriving this on its own.
+    const editingPath = computed<string>(() => {
+        const itemPath = editingItemPath.value
+        if (!props.editingTask || !itemPath) return itemPath
+        const itemYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path: itemPath})
+        const item = itemYaml ? flowYamlUtils.parse<Record<string, unknown>>(itemYaml) : undefined
+        return item ? taskEditPathFor(itemPath, item) : itemPath
     })
 
     const editingTaskData = computed<Record<string, unknown> | undefined>(() => {
@@ -792,20 +810,27 @@
         emit("editTask", section, blockSchemaPathFor(section), index, split)
     }
 
-    function openNestedEdit(path: string, split = false) {
-        const blockYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path})
-        if (!blockYaml) return
+    function openNestedEdit(itemPath: string, split = false) {
+        const itemYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path: itemPath})
+        if (!itemYaml) return
+        const item = flowYamlUtils.parse<Record<string, unknown>>(itemYaml)
+        if (!item) return
 
-        const parsed = flowYamlUtils.parse<Record<string, unknown>>(blockYaml)
+        // A DAG lane item is a {task, dependsOn} wrapper: edit the inner task, not
+        // the wrapper. parentPath/refPath keep describing "the lane array + its
+        // index" exactly like every flat lane (that's what the parent tab label
+        // and the nested editingPath contract both expect) — the nested
+        // BlockEditor/NoCode instance is the one that re-appends `.task`.
+        const parsed = displayTaskOf(item)
         if (!parsed || !parsed.id) return
 
-        const match = path.match(/^(.*)\[(\d+)\]$/)
+        const match = itemPath.match(/^(.*)\[(\d+)\]$/)
         if (!match) return
         const parentPath = match[1]
         const refPath = parseInt(match[2], 10)
         const section = sectionFromParentPath(parentPath)
         activeSelectedId.value = String(parsed.id)
-        activeSelectedPath.value = path
+        activeSelectedPath.value = itemPath
         emit("editTask", parentPath, blockSchemaPathFor(section), refPath, split)
     }
 
@@ -891,6 +916,15 @@
 
     function onDuplicateAtPath(path: string) {
         applyYaml(duplicateBlockAtPath(flowYaml.value, path))
+    }
+
+    // Persists a DAG sub-task's dependsOn at its wrapper's own `.dependsOn` key
+    // (sibling to `.task`), never touching the wrapped task itself. An empty
+    // selection deletes the key instead of writing `dependsOn: []`, since Dag
+    // treats "no dependencies" as the key's absence.
+    function onUpdateDependsOn(itemPath: string, dependsOn: string[]) {
+        const newContent = dependsOn.length > 0 ? flowYamlUtils.stringify(dependsOn) : ""
+        applyYaml(flowYamlUtils.replaceBlockWithPath({source: flowYaml.value, path: `${itemPath}.dependsOn`, newContent}))
     }
 
     const taskPickerVisible = ref(false)
@@ -1265,7 +1299,9 @@
         const block = buildMinimalTask(fqcn, collectAllIds(flowYaml.value))
 
         if (taskPickerParentPath.value !== undefined) {
-            applyYaml(addBlockAtPath(flowYaml.value, taskPickerParentPath.value, block, taskPickerAfterIndex.value, taskPickerPosition.value))
+            const parentPath = taskPickerParentPath.value
+            const blockToInsert = isWrapperLane(flowYaml.value, parentPath) ? wrapAsDagTask(block) : block
+            applyYaml(addBlockAtPath(flowYaml.value, parentPath, blockToInsert, taskPickerAfterIndex.value, taskPickerPosition.value))
         } else {
             const section = taskPickerSection.value
             const list = sectionList(section)
@@ -1616,7 +1652,8 @@
         if (!id) return undefined
         if (activeSelectedPath.value) {
             const blockYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path: activeSelectedPath.value})
-            return blockYaml ? flowYamlUtils.parse<Record<string, unknown>>(blockYaml) : undefined
+            const item = blockYaml ? flowYamlUtils.parse<Record<string, unknown>>(blockYaml) : undefined
+            return item ? displayTaskOf(item) : undefined
         }
         const section = sectionOfSelected(id)
         return section ? sectionList(section).find(item => String(item.id) === id) : undefined
