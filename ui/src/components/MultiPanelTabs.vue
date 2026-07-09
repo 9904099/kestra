@@ -18,13 +18,32 @@
                 @drop.prevent="(e:DragEvent) => panelDrop(e, panelIndex)"
                 :class="{'panel-dragover': panel.dragover, 'panel-maximized': maximizedPanelIndex === panelIndex}"
             >
-                <div
-                    v-if="maximizedPanelIndex === panelIndex"
-                    class="maximized-backdrop"
-                    :title="$t('multi_panel_editor.exit_fullscreen')"
-                    :aria-label="$t('multi_panel_editor.exit_fullscreen')"
-                    @click="toggleMaximize(panelIndex)"
-                />
+                <template v-if="maximizedPanelIndex === panelIndex">
+                    <button
+                        v-if="leftNeighbor?.activeTab"
+                        type="button"
+                        class="maximized-sliver maximized-sliver--left"
+                        :title="$t('multi_panel_editor.exit_fullscreen')"
+                        :aria-label="$t('multi_panel_editor.exit_fullscreen')"
+                        data-test="maximized-sliver-left"
+                        @click="toggleMaximize(panelIndex)"
+                    >
+                        <component :is="leftNeighbor.activeTab.button.icon" class="maximized-sliver-icon" />
+                        <span class="maximized-sliver-label">{{ leftNeighbor.activeTab.button.label }}</span>
+                    </button>
+                    <button
+                        v-if="rightNeighbor?.activeTab"
+                        type="button"
+                        class="maximized-sliver maximized-sliver--right"
+                        :title="$t('multi_panel_editor.exit_fullscreen')"
+                        :aria-label="$t('multi_panel_editor.exit_fullscreen')"
+                        data-test="maximized-sliver-right"
+                        @click="toggleMaximize(panelIndex)"
+                    >
+                        <component :is="rightNeighbor.activeTab.button.icon" class="maximized-sliver-icon" />
+                        <span class="maximized-sliver-label">{{ rightNeighbor.activeTab.button.label }}</span>
+                    </button>
+                </template>
                 <div class="editor-tabs-container">
                     <KsButton
                         :icon="DotsGrid"
@@ -290,6 +309,16 @@
             return [{panel: panels.value[index], panelIndex: index}]
         }
         return panels.value.map((panel, panelIndex) => ({panel, panelIndex}))
+    })
+
+    const leftNeighbor = computed(() => {
+        const index = maximizedPanelIndex.value
+        return index != null && index > 0 ? panels.value[index - 1] : null
+    })
+
+    const rightNeighbor = computed(() => {
+        const index = maximizedPanelIndex.value
+        return index != null && index < panels.value.length - 1 ? panels.value[index + 1] : null
     })
 
     function toggleMaximize(panelIndex: number) {
@@ -741,22 +770,70 @@
 <style scoped lang="scss">
     .panel-maximized {
         position: relative;
+        background: var(--ks-bg-base);
     }
 
-    .maximized-backdrop {
+    .maximized-sliver {
         position: absolute;
-        inset: 0;
-        z-index: 0;
-        background: var(--ks-bg-base);
+        top: var(--ks-spacing-5);
+        bottom: var(--ks-spacing-5);
+        z-index: 2;
+        width: 2vw;
+        min-width: 22px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--ks-spacing-2);
+        padding: var(--ks-spacing-3) 0;
+        background: var(--ks-bg-surface);
+        border: 1px solid var(--ks-border-default);
+        color: var(--ks-icon-muted);
         cursor: pointer;
+        overflow: hidden;
+        transition: background 0.15s ease, color 0.15s ease, width 0.15s ease;
+    }
+
+    .maximized-sliver--left {
+        left: 0;
+        border-left: none;
+        border-top-right-radius: var(--ks-radius-base);
+        border-bottom-right-radius: var(--ks-radius-base);
+    }
+
+    .maximized-sliver--right {
+        right: 0;
+        border-right: none;
+        border-top-left-radius: var(--ks-radius-base);
+        border-bottom-left-radius: var(--ks-radius-base);
+    }
+
+    .maximized-sliver:hover {
+        width: calc(2vw + var(--ks-spacing-3));
+        background: var(--ks-bg-hover-elevated);
+        color: var(--ks-text-primary);
+    }
+
+    .maximized-sliver-icon {
+        flex-shrink: 0;
+        font-size: var(--ks-font-size-md);
+        line-height: 1;
+    }
+
+    .maximized-sliver-label {
+        writing-mode: vertical-rl;
+        font-size: var(--ks-font-size-xs);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-height: 70%;
     }
 
     .panel-maximized .editor-tabs-container,
     .panel-maximized .content-panel {
         position: relative;
         z-index: 1;
-        margin-left: var(--ks-spacing-6);
-        margin-right: var(--ks-spacing-6);
+        margin-left: calc(2vw + var(--ks-spacing-4));
+        margin-right: calc(2vw + var(--ks-spacing-4));
         background: var(--ks-bg-surface);
         border-left: 1px solid var(--ks-border-default);
         border-right: 1px solid var(--ks-border-default);
