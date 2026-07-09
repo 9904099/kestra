@@ -832,8 +832,8 @@
     .panel-maximized .content-panel {
         position: relative;
         z-index: 1;
-        margin-left: calc(2vw + var(--ks-spacing-4));
-        margin-right: calc(2vw + var(--ks-spacing-4));
+        margin-left: calc(2vw + var(--ks-spacing-6));
+        margin-right: calc(2vw + var(--ks-spacing-6));
         background: var(--ks-bg-surface);
         border-left: 1px solid var(--ks-border-default);
         border-right: 1px solid var(--ks-border-default);
