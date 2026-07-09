@@ -1,5 +1,5 @@
 <template>
-    <div v-if="playgroundStore.enabled && isTask && taskModel?.id && !navStack.length" class="flow-playground">
+    <div v-if="!hideRunButton && playgroundStore.enabled && isTask && taskModel?.id && !navStack.length" class="flow-playground">
         <PlaygroundRunTaskButton :taskId="taskModel?.id" />
     </div>
 
@@ -87,6 +87,10 @@
     })
 
     const modelValue = defineModel<string | Record<string, any>>()
+
+    defineProps<{
+        hideRunButton?: boolean
+    }>()
 
     const pluginsStore = usePluginsStore()
     const playgroundStore = usePlaygroundStore()

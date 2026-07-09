@@ -86,6 +86,7 @@
                 :selectedId="selectedId"
                 :focusedId="focusedId"
                 :depth="depth"
+                :playgroundEnabled="playgroundEnabled"
                 @select="(p) => emit('select', p)"
                 @delete="(p) => emit('delete', p)"
                 @duplicate="(p) => emit('duplicate', p)"
@@ -161,6 +162,7 @@
         selectedId?: string
         focusedId?: string
         depth?: number
+        playgroundEnabled?: boolean
     }>()
 
     const emit = defineEmits<{

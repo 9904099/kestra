@@ -132,6 +132,7 @@
                     :readOnly="readOnly"
                     :pluginMarkdown="null"
                     :editorPath="currentTaskId"
+                    :hideRunButton="true"
                     @update:activeTab="activeTabs = $event"
                     @input="onInput"
                     @save="saveTask"
@@ -294,14 +295,15 @@
     const timer = ref<ReturnType<typeof setTimeout>>()
     const lastValidatedValue = ref<string | null>(null)
 
-    const {runTask} = usePlaygroundRun()
+    const {runTask, playgroundStore} = usePlaygroundRun()
 
     const runnableTaskId = computed<string | undefined>(() =>
         props.taskId ?? props.task?.id ?? YAML_UTILS.parse(taskYaml.value)?.id,
     )
 
     const isRunnable = computed(() =>
-        !props.readOnly
+        playgroundStore.enabled
+        && !props.readOnly
         && props.section?.toLowerCase() !== "triggers"
         && Boolean(runnableTaskId.value),
     )

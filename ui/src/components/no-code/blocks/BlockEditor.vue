@@ -108,6 +108,7 @@
                                         :focusedId="focusedId"
                                         :domId="resolveBlockDomId(parsedTasks, index)"
                                         :depth="0"
+                                        :playgroundEnabled="playgroundStore.enabled"
                                         :data-block-id="resolveBlockDomId(parsedTasks, index)"
                                         data-test="block-card"
                                         @select="openNestedEdit"
@@ -126,7 +127,7 @@
                                         :focused="focusedId === resolveBlockDomId(parsedTasks, index)"
                                         :draggable="true"
                                         :dragOver="taskDragOverIndex === index"
-                                        :runnable="true"
+                                        :runnable="playgroundStore.enabled"
                                         :icons="pluginsStore.icons"
                                         :data-block-id="resolveBlockDomId(parsedTasks, index)"
                                         @select="selectBlock('tasks', task)"
@@ -185,6 +186,7 @@
                                         :focusedId="focusedId"
                                         :domId="resolveBlockDomId(flowLevelErrors, index)"
                                         :depth="0"
+                                        :playgroundEnabled="playgroundStore.enabled"
                                         :data-block-id="resolveBlockDomId(flowLevelErrors, index)"
                                         data-test="block-card"
                                         @select="openNestedEdit"
@@ -201,7 +203,7 @@
                                         :focused="focusedId === resolveBlockDomId(flowLevelErrors, index)"
                                         :icons="pluginsStore.icons"
                                         :data-block-id="resolveBlockDomId(flowLevelErrors, index)"
-                                        :runnable="true"
+                                        :runnable="playgroundStore.enabled"
                                         @select="selectBlock('errors', task)"
                                         @delete="onDelete('errors', task.id)"
                                         @duplicate="onDuplicate('errors', task.id)"
@@ -249,6 +251,7 @@
                                         :focusedId="focusedId"
                                         :domId="resolveBlockDomId(flowLevelFinally, index)"
                                         :depth="0"
+                                        :playgroundEnabled="playgroundStore.enabled"
                                         :data-block-id="resolveBlockDomId(flowLevelFinally, index)"
                                         data-test="block-card"
                                         @select="openNestedEdit"
@@ -265,7 +268,7 @@
                                         :focused="focusedId === resolveBlockDomId(flowLevelFinally, index)"
                                         :icons="pluginsStore.icons"
                                         :data-block-id="resolveBlockDomId(flowLevelFinally, index)"
-                                        :runnable="true"
+                                        :runnable="playgroundStore.enabled"
                                         @select="selectBlock('finally', task)"
                                         @delete="onDelete('finally', task.id)"
                                         @duplicate="onDuplicate('finally', task.id)"
@@ -560,7 +563,7 @@
     const flowStore = useFlowStore()
     const coreStore = useCoreStore()
     const pluginsStore = usePluginsStore()
-    const {runTask: onRunTask} = usePlaygroundRun()
+    const {runTask: onRunTask, playgroundStore} = usePlaygroundRun()
 
     const props = defineProps<NoCodeProps & {
         selectedId?: string

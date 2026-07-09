@@ -39,6 +39,7 @@
 
         <div class="leaf-block-card-actions">
             <KsIconButton
+                v-if="runnable"
                 class="leaf-block-card-action leaf-block-card-action--run"
                 :aria-label="t('playground.run_task')"
                 :tooltip="t('playground.run_task')"
@@ -95,6 +96,7 @@
         focused?: boolean
         draggable?: boolean
         dragOver?: boolean
+        runnable?: boolean
         icons?: Record<string, {icon: string; flowable: boolean}>
     }>()
 

@@ -29,6 +29,7 @@
                         :depth="depth + 1"
                         :selectedId="selectedId"
                         :focusedId="focusedId"
+                        :playgroundEnabled="playgroundEnabled"
                         :domId="resolveBlockDomId(tasks, index)"
                         :data-block-id="resolveBlockDomId(tasks, index)"
                         @select="(p) => emit('select', p)"
@@ -46,6 +47,7 @@
                         :focused="focusedId !== undefined && focusedId === resolveBlockDomId(tasks, index)"
                         :draggable="true"
                         :dragOver="dragOverIndex === index"
+                        :runnable="playgroundEnabled"
                         :data-block-id="resolveBlockDomId(tasks, index)"
                         :data-test="`nested-block-card`"
                         @select="emit('select', `${parentPath}[${index}]`)"
@@ -127,6 +129,7 @@
         selectedId?: string
         focusedId?: string
         depth?: number
+        playgroundEnabled?: boolean
     }>()
 
     const emit = defineEmits<{

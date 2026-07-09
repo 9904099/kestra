@@ -5,11 +5,8 @@ export function usePlaygroundRun() {
 
     function runTask(taskId?: string, downstream = false) {
         if (!taskId) return
-        if (!playgroundStore.enabled) {
-            playgroundStore.enabled = true
-        }
         playgroundStore.runUntilTask(taskId, downstream)
     }
 
-    return {runTask}
+    return {runTask, playgroundStore}
 }

@@ -7,6 +7,7 @@
             <TaskEditor
                 :modelValue="modelValue"
                 :section="section"
+                :hideRunButton="hideRunButton"
                 @update:model-value="(v) => emit('input', v ?? '')"
             />
         </KsTabPane>
@@ -49,6 +50,7 @@
         activeTab: string
         readOnly?: boolean
         pluginMarkdown?: string | null
+        hideRunButton?: boolean
         // Gives the Source tab's Monaco model a unique URI per open task. Without
         // it, KsEditor derives the URI from schemaType alone, so two tasks in the
         // same section (e.g. two open dock tabs) resolve to the SAME Monaco model
@@ -58,6 +60,7 @@
     }>(), {
         readOnly: false,
         pluginMarkdown: null,
+        hideRunButton: false,
         editorPath: undefined,
     })
 
