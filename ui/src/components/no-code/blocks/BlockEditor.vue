@@ -43,6 +43,7 @@
                             :icon="TriggerIcon"
                             :count="parsedTriggers.length"
                             :addLabel="t('block_editor.add_trigger')"
+                            addTest="block-editor-add-trigger"
                             @add="(e) => openTaskPicker('triggers', e)"
                         >
                             <div class="block-section-list" data-test="block-editor-trigger-list">
@@ -174,6 +175,7 @@
                             :count="flowLevelErrors.length"
                             :addLabel="t('block_editor.add_error_task')"
                             tone="error"
+                            addTest="block-editor-add-error"
                             @add="(e) => openTaskPicker('errors', e)"
                         >
                             <div class="block-section-list">
@@ -239,6 +241,7 @@
                             :count="flowLevelFinally.length"
                             :addLabel="t('block_editor.add_task')"
                             tone="warning"
+                            addTest="block-editor-add-finally"
                             @add="(e) => openTaskPicker('finally', e)"
                         >
                             <div class="block-section-list">
@@ -1099,6 +1102,22 @@
         openTaskPicker("tasks", undefined, endDrop)
     }
 
+    const SECTION_ADD_TEST: Record<BlockSection, string> = {
+        triggers: "block-editor-add-trigger",
+        tasks: "block-editor-add-task",
+        errors: "block-editor-add-error",
+        finally: "block-editor-add-finally",
+    }
+
+    // Anchor the picker to the target section's own "add" button rather than
+    // leaving it unanchored (which pinned it to the tasks add-point regardless
+    // of the chosen kind).
+    function openTaskPickerForSection(section: BlockSection) {
+        const anchor = editorEl.value?.querySelector<HTMLElement>(`[data-test='${SECTION_ADD_TEST[section]}']`) ?? undefined
+        anchor?.scrollIntoView({block: "nearest"})
+        openTaskPicker(section, undefined, anchor)
+    }
+
     function openTaskPickerAnchoredAfterFocused() {
         const sentinelSection = sectionFromSentinel(focusedId.value)
         if (sentinelSection) {
@@ -1897,20 +1916,16 @@
             })
         }
 
-        const insertKinds: {section: BlockSection; labelKey: string}[] = [
-            {section: "tasks", labelKey: "no_code.sections.tasks"},
-            {section: "errors", labelKey: "block_editor.lane_errors"},
-            {section: "triggers", labelKey: "no_code.sections.triggers"},
-        ]
-        for (const {section, labelKey} of insertKinds) {
+        const insertKinds: BlockSection[] = ["triggers", "tasks", "errors", "finally"]
+        for (const section of insertKinds) {
             items.push({
                 id: `insert-${section}`,
                 group: t("block_editor.command_menu.group_insert"),
-                title: t("block_editor.command_menu.insert_kind", {kind: t(labelKey)}),
+                title: t("block_editor.command_menu.insert_kind", {kind: sectionDisplayLabel(section)}),
                 icon: PlusCircleOutline,
                 run: () => {
                     commandMenuOpen.value = false
-                    openTaskPicker(section)
+                    openTaskPickerForSection(section)
                 },
             })
         }

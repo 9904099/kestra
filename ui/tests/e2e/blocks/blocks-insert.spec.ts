@@ -55,6 +55,24 @@ test.describe("Block editor — insertions", () => {
         await page.keyboard.press("Escape")
     })
 
+    test("command-menu Insert <kind> offers every section and opens the picker on that section", async ({page}) => {
+        await page.keyboard.press("ControlOrMeta+Shift+P")
+        const menu = page.locator("[data-test='block-command-menu']")
+        await expect(menu).toBeVisible()
+
+        for (const kind of ["Insert Triggers", "Insert Tasks", "Insert Errors", "Insert Finally"]) {
+            await expect(menu.getByText(kind, {exact: false})).toBeVisible()
+        }
+
+        await menu.getByText("Insert Errors", {exact: false}).click()
+        await expect(page.getByText("Inserting into Errors", {exact: true})).toBeVisible()
+        await page.keyboard.press("Escape")
+
+        await page.keyboard.press("ControlOrMeta+Shift+P")
+        await menu.getByText("Insert Finally", {exact: false}).click()
+        await expect(page.getByText("Inserting into Finally", {exact: true})).toBeVisible()
+    })
+
     test("inserts the first task into an empty top-level section", async ({page, request, baseURL}) => {
         await walkTo(page, "__section:errors")
         await page.keyboard.press("a")
