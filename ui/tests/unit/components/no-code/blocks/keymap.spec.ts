@@ -76,7 +76,7 @@ describe("keymap", () => {
         expect(byId.get("step-into")?.keys).toEqual(["ArrowRight"])
         expect(byId.get("step-out")?.keys).toEqual(["ArrowLeft"])
         expect(byId.get("open")?.keys).toEqual(["Enter"])
-        expect(byId.get("focus-panel")?.keys).toEqual(["Tab"])
+        expect(byId.get("open-split")?.keys).toEqual(["Meta+Enter", "Control+Enter"])
         expect(byId.get("clear")?.keys).toEqual(["Escape"])
         expect(byId.get("insert-after")?.keys).toEqual(["a"])
         expect(byId.get("insert-before")?.keys).toEqual(["Shift+a"])
