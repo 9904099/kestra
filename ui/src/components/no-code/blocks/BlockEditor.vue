@@ -113,6 +113,7 @@
                                         @select="openNestedEdit"
                                         @delete="onDeleteAtPath"
                                         @duplicate="onDuplicateAtPath"
+                                        @run="onRunTask"
                                         @add-at-path="openTaskPickerAtPath"
                                         @update-depends-on="onUpdateDependsOn"
                                         @dragover.prevent="handleTaskDragOver($event, index)"
@@ -125,12 +126,14 @@
                                         :focused="focusedId === resolveBlockDomId(parsedTasks, index)"
                                         :draggable="true"
                                         :dragOver="taskDragOverIndex === index"
+                                        :runnable="true"
                                         :icons="pluginsStore.icons"
                                         :data-block-id="resolveBlockDomId(parsedTasks, index)"
                                         @select="selectBlock('tasks', task)"
                                         @delete="onDelete('tasks', task.id)"
                                         @duplicate="onDuplicate('tasks', task.id)"
                                         @open-split="selectBlock('tasks', task, true)"
+                                        @run="onRunTask(String(task.id))"
                                         @drag-start="handleTaskDragStart($event, index)"
                                         @drag-over="handleTaskDragOver($event, index)"
                                         @drop="handleTaskDrop($event, index)"
@@ -187,6 +190,7 @@
                                         @select="openNestedEdit"
                                         @delete="onDeleteAtPath"
                                         @duplicate="onDuplicateAtPath"
+                                        @run="onRunTask"
                                         @add-at-path="openTaskPickerAtPath"
                                         @update-depends-on="onUpdateDependsOn"
                                     />
@@ -197,10 +201,12 @@
                                         :focused="focusedId === resolveBlockDomId(flowLevelErrors, index)"
                                         :icons="pluginsStore.icons"
                                         :data-block-id="resolveBlockDomId(flowLevelErrors, index)"
+                                        :runnable="true"
                                         @select="selectBlock('errors', task)"
                                         @delete="onDelete('errors', task.id)"
                                         @duplicate="onDuplicate('errors', task.id)"
                                         @open-split="selectBlock('errors', task, true)"
+                                        @run="onRunTask(String(task.id))"
                                     />
                                 </template>
                                 <BlockEmptyDrop
@@ -248,6 +254,7 @@
                                         @select="openNestedEdit"
                                         @delete="onDeleteAtPath"
                                         @duplicate="onDuplicateAtPath"
+                                        @run="onRunTask"
                                         @add-at-path="openTaskPickerAtPath"
                                         @update-depends-on="onUpdateDependsOn"
                                     />
@@ -258,10 +265,12 @@
                                         :focused="focusedId === resolveBlockDomId(flowLevelFinally, index)"
                                         :icons="pluginsStore.icons"
                                         :data-block-id="resolveBlockDomId(flowLevelFinally, index)"
+                                        :runnable="true"
                                         @select="selectBlock('finally', task)"
                                         @delete="onDelete('finally', task.id)"
                                         @duplicate="onDuplicate('finally', task.id)"
                                         @open-split="selectBlock('finally', task, true)"
+                                        @run="onRunTask(String(task.id))"
                                     />
                                 </template>
                                 <BlockEmptyDrop
@@ -526,9 +535,12 @@
     import type {NoCodeProps} from "../../flows/noCodeTypes"
     import {
         BLOCK_SCHEMA_PATH_INJECTION_KEY,
+        CLOSE_TASK_FUNCTION_INJECTION_KEY,
+        CREATE_TASK_FUNCTION_INJECTION_KEY,
         CREATING_FLOW_INJECTION_KEY,
         CREATING_TASK_INJECTION_KEY,
         DEFAULT_NAMESPACE_INJECTION_KEY,
+        EDIT_TASK_FUNCTION_INJECTION_KEY,
         EDITING_TASK_INJECTION_KEY,
         FIELDNAME_INJECTION_KEY,
         FULL_SCHEMA_INJECTION_KEY,
@@ -539,13 +551,16 @@
         REF_PATH_INJECTION_KEY,
         ROOT_SCHEMA_INJECTION_KEY,
         SCHEMA_DEFINITIONS_INJECTION_KEY,
+        UPDATE_YAML_FUNCTION_INJECTION_KEY,
     } from "../injectionKeys"
     import {defaultNamespace} from "../../../composables/useNamespaces"
+    import {usePlaygroundRun} from "../../../composables/playground/usePlaygroundRun"
 
     const {t} = useI18n()
     const flowStore = useFlowStore()
     const coreStore = useCoreStore()
     const pluginsStore = usePluginsStore()
+    const {runTask: onRunTask} = usePlaygroundRun()
 
     const props = defineProps<NoCodeProps & {
         selectedId?: string
@@ -577,6 +592,14 @@
     provide(FULL_SCHEMA_INJECTION_KEY, computed(() => pluginsStore.flowSchema ?? {}))
     provide(ROOT_SCHEMA_INJECTION_KEY, computed(() => pluginsStore.flowRootSchema ?? {}))
     provide(SCHEMA_DEFINITIONS_INJECTION_KEY, computed(() => pluginsStore.flowDefinitions ?? {}))
+    provide(CREATE_TASK_FUNCTION_INJECTION_KEY, (parentPath, blockSchemaPath, refPath) => {
+        emit("createTask", parentPath, blockSchemaPath, refPath, "after")
+    })
+    provide(EDIT_TASK_FUNCTION_INJECTION_KEY, (parentPath, blockSchemaPath, refPath) => {
+        emit("editTask", parentPath, blockSchemaPath, refPath)
+    })
+    provide(CLOSE_TASK_FUNCTION_INJECTION_KEY, () => emit("closeTask"))
+    provide(UPDATE_YAML_FUNCTION_INJECTION_KEY, (yaml: string) => applyYaml(yaml))
 
     const parsedFlow = computed(() => {
         try {

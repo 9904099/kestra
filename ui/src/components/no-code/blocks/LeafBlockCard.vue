@@ -39,6 +39,17 @@
 
         <div class="leaf-block-card-actions">
             <KsIconButton
+                class="leaf-block-card-action leaf-block-card-action--run"
+                :aria-label="t('playground.run_task')"
+                :tooltip="t('playground.run_task')"
+                data-test="block-card-run"
+                tabindex="-1"
+                @click.stop="emit('run')"
+            >
+                <Play />
+            </KsIconButton>
+
+            <KsIconButton
                 class="leaf-block-card-action"
                 :aria-label="t('block_editor.duplicate')"
                 :tooltip="`${t('block_editor.duplicate')} (d)`"
@@ -69,6 +80,7 @@
     import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import DragVertical from "vue-material-design-icons/DragVertical.vue"
+    import Play from "vue-material-design-icons/Play.vue"
 
     import {KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
 
@@ -90,6 +102,7 @@
         (e: "select"): void
         (e: "delete"): void
         (e: "duplicate"): void
+        (e: "run"): void
         (e: "drag-start", event: DragEvent): void
         (e: "drag-over", event: DragEvent): void
         (e: "drop", event: DragEvent): void
@@ -221,6 +234,10 @@
     }
 
     .leaf-block-card-action {
+        &--run:hover {
+            color: var(--ks-text-success);
+        }
+
         &--danger:hover {
             color: var(--ks-text-error);
         }

@@ -106,6 +106,15 @@
             <div class="task-edit-col task-edit-col-params">
                 <div class="task-edit-params-toolbar">
                     <KsButton
+                        v-if="isRunnable"
+                        size="small"
+                        :icon="Play"
+                        data-test="task-edit-run"
+                        @click="runTask(runnableTaskId)"
+                    >
+                        {{ $t("playground.run_task") }}
+                    </KsButton>
+                    <KsButton
                         size="small"
                         :type="docOpen ? 'primary' : 'default'"
                         :icon="BookOpenPageVariantOutline"
@@ -179,6 +188,7 @@
     import ContentSave from "vue-material-design-icons/ContentSave.vue"
     import Close from "vue-material-design-icons/Close.vue"
     import BookOpenPageVariantOutline from "vue-material-design-icons/BookOpenPageVariantOutline.vue"
+    import Play from "vue-material-design-icons/Play.vue"
     import TaskEditPanes from "./TaskEditPanes.vue"
     import TaskEditData from "./TaskEditData.vue"
     import {canSaveFlowTemplate} from "../../utils/flowTemplate"
@@ -187,6 +197,7 @@
     import {useAuthStore} from "override/stores/auth"
     import {useFlowStore} from "../../stores/flow"
     import {useDiscardGuard} from "../../composables/useDiscardGuard"
+    import {usePlaygroundRun} from "../../composables/playground/usePlaygroundRun"
 
     interface Props {
         component?: string;
@@ -282,6 +293,18 @@
     const revisions = ref<any[]>()
     const timer = ref<ReturnType<typeof setTimeout>>()
     const lastValidatedValue = ref<string | null>(null)
+
+    const {runTask} = usePlaygroundRun()
+
+    const runnableTaskId = computed<string | undefined>(() =>
+        props.taskId ?? props.task?.id ?? YAML_UTILS.parse(taskYaml.value)?.id,
+    )
+
+    const isRunnable = computed(() =>
+        !props.readOnly
+        && props.section?.toLowerCase() !== "triggers"
+        && Boolean(runnableTaskId.value),
+    )
 
     const taskType = computed(() => {
         try {

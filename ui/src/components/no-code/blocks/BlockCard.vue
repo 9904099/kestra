@@ -43,6 +43,18 @@
             (that would defeat the composite's single stop) — they stay
             reachable via the d / Backspace shortcuts and the mouse. -->
             <KsIconButton
+                v-if="runnable"
+                class="block-card-action block-card-action--run"
+                :aria-label="t('playground.run_task')"
+                :tooltip="t('playground.run_task')"
+                data-test="block-card-run"
+                tabindex="-1"
+                @click.stop="emit('run')"
+            >
+                <Play />
+            </KsIconButton>
+
+            <KsIconButton
                 class="block-card-action"
                 :aria-label="t('block_editor.open_in_split')"
                 :tooltip="t('block_editor.open_in_split')"
@@ -84,6 +96,7 @@
     import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import DragVertical from "vue-material-design-icons/DragVertical.vue"
+    import Play from "vue-material-design-icons/Play.vue"
     import ViewSplitVertical from "vue-material-design-icons/ViewSplitVertical.vue"
 
     import {KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
@@ -96,6 +109,7 @@
         focused?: boolean
         draggable?: boolean
         dragOver?: boolean
+        runnable?: boolean
         icons?: Record<string, {icon: string; flowable: boolean}>
     }>()
 
@@ -104,6 +118,7 @@
         (e: "delete"): void
         (e: "duplicate"): void
         (e: "open-split"): void
+        (e: "run"): void
         (e: "drag-start", event: DragEvent): void
         (e: "drag-over", event: DragEvent): void
         (e: "drop", event: DragEvent): void
@@ -231,6 +246,10 @@
     }
 
     .block-card-action {
+        &--run:hover {
+            color: var(--ks-text-success);
+        }
+
         &--danger:hover {
             color: var(--ks-text-error);
         }

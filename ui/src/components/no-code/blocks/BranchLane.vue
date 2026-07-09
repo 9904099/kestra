@@ -34,6 +34,7 @@
                         @select="(p) => emit('select', p)"
                         @delete="(p) => emit('delete', p)"
                         @duplicate="(p) => emit('duplicate', p)"
+                        @run="(id) => emit('run', id)"
                         @add-at-path="(p, afterIdx) => emit('add-at-path', p, afterIdx)"
                     />
                     <LeafBlockCard
@@ -50,6 +51,7 @@
                         @select="emit('select', `${parentPath}[${index}]`)"
                         @delete="emit('delete', `${parentPath}[${index}]`)"
                         @duplicate="emit('duplicate', `${parentPath}[${index}]`)"
+                        @run="emit('run', String(displayTaskOf(task).id))"
                         @drag-start="handleDragStart($event, index)"
                         @drag-over="handleDragOver($event, index)"
                         @drop="handleDrop($event, index)"
@@ -131,6 +133,7 @@
         (e: "select", path: string): void
         (e: "delete", path: string): void
         (e: "duplicate", path: string): void
+        (e: "run", taskId: string): void
         (e: "add-at-path", parentPath: string, afterIndex: number, evt?: Event): void
         (e: "reorder", parentPath: string, fromIndex: number, toIndex: number): void
         (e: "update-depends-on", itemPath: string, dependsOn: string[]): void

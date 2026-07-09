@@ -89,6 +89,7 @@
                 @select="(p) => emit('select', p)"
                 @delete="(p) => emit('delete', p)"
                 @duplicate="(p) => emit('duplicate', p)"
+                @run="(id) => emit('run', id)"
                 @add-at-path="(p, afterIdx, evt) => emit('add-at-path', p, afterIdx, evt)"
                 @update-depends-on="(p, dependsOn) => emit('update-depends-on', p, dependsOn)"
             />
@@ -166,6 +167,7 @@
         (e: "select", path: string): void
         (e: "delete", path: string): void
         (e: "duplicate", path: string): void
+        (e: "run", taskId: string): void
         (e: "add-at-path", parentPath: string, afterIndex: number, evt?: Event): void
         (e: "update-depends-on", itemPath: string, dependsOn: string[]): void
     }>()
