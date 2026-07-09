@@ -59,11 +59,6 @@
         <template #label>
             <div class="inline-wrapper">
                 <div class="inline-start">
-                    <TaskLabelWithBoolean
-                        :type="simpleType"
-                        :isBoolean="isBoolean"
-                        :componentProps="componentProps"
-                    />
                     <span v-if="props.fieldKey" class="label">
                         {{ props.fieldKey }}
                     </span>
@@ -96,6 +91,12 @@
                     </template>
                     <Help />
                 </KsTooltip>
+                <TaskLabelWithBoolean
+                    class="inline-boolean"
+                    :type="simpleType"
+                    :isBoolean="isBoolean"
+                    :componentProps="componentProps"
+                />
             </div>
         </template>
         <TaskObjectTaskInline
@@ -320,6 +321,11 @@
         color: var(--ks-text-secondary);
         cursor: pointer;
     }
+}
+
+.inline-boolean {
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .type-pill {
