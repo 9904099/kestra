@@ -70,6 +70,9 @@ import static io.kestra.core.utils.Rethrow.throwFunction;
 public class PluginController {
     private static final String CACHE_DIRECTIVE = "public, max-age=3600";
     private static final String ICON_CACHE_DIRECTIVE = "public, max-age=31536000, immutable";
+    // Merged responses can go stale the moment a plugin finishes auto-installing — a full-hour
+    // cache would hide the newly-installed type from the editor for up to an hour afterwards.
+    private static final String CATALOG_CACHE_DIRECTIVE = "public, max-age=60";
 
     @Inject
     protected JsonSchemaGenerator jsonSchemaGenerator;
@@ -118,13 +121,14 @@ public class PluginController {
 
         Map<String, Object> schema = jsonSchemaCache.getSchemaForType(type, arrayOf);
 
-        if (Boolean.TRUE.equals(includeCatalog)) {
+        boolean merged = Boolean.TRUE.equals(includeCatalog);
+        if (merged) {
             schema = pluginSchemaBundleService.mergeWithBundle(type, schema);
         }
 
         return HttpResponse.ok()
             .body(schema)
-            .header(HttpHeaders.CACHE_CONTROL, CACHE_DIRECTIVE);
+            .header(HttpHeaders.CACHE_CONTROL, merged ? CATALOG_CACHE_DIRECTIVE : CACHE_DIRECTIVE);
     }
 
     @Post(uri = "install")
