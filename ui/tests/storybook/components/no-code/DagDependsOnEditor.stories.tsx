@@ -67,7 +67,7 @@ export const F3DagDependsOnLongSiblingList: Story = {
     parameters: {
         docs: {
             description: {
-                story: "Problem: a DAG with many sub-tasks had no way to review a long dependency list at a glance. Fix: with four dependencies selected out of six siblings, the select's tag-collapse kicks in, keeping the control compact.",
+                story: "Problem: a DAG with many sub-tasks had no way to review a long dependency list at a glance. Fix: with four dependencies selected out of six siblings, every selected value stays visible, wrapping across rows as the list grows instead of collapsing to a +N counter.",
             },
         },
     },

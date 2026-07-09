@@ -6,8 +6,6 @@
             :modelValue="dependsOn ?? []"
             multiple
             filterable
-            collapseTags
-            collapseTagsTooltip
             size="small"
             class="dag-depends-on-select"
             :placeholder="t('block_editor.depends_on_placeholder')"
