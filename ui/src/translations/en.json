@@ -185,6 +185,7 @@
       "picker_more_results": "{count} more, refine your search",
       "plugin_default": "default: {value}",
       "plugin_default_tooltip": "Default value from the flow's pluginDefaults",
+      "required_missing": "Required field not set",
       "save_blocked": {
         "message": "Fix the errors before saving.",
         "title": "Cannot save the flow"

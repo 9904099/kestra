@@ -185,6 +185,7 @@
       "picker_more_results": "{count} więcej, zawęź wyszukiwanie",
       "plugin_default": "domyślnie: {value}",
       "plugin_default_tooltip": "Wartość domyślna z pluginDefaults flow",
+      "required_missing": "Wymagane pole nie zostało ustawione",
       "save_blocked": {
         "message": "Napraw błędy przed zapisaniem.",
         "title": "Nie można zapisać flow"

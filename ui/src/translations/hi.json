@@ -185,6 +185,7 @@
       "picker_more_results": "{count} और, अपनी खोज को परिष्कृत करें",
       "plugin_default": "डिफ़ॉल्ट: {value}",
       "plugin_default_tooltip": "फ़्लो के pluginDefaults से डिफ़ॉल्ट मान",
+      "required_missing": "आवश्यक फ़ील्ड सेट नहीं है",
       "save_blocked": {
         "message": "सहेजने से पहले त्रुटियों को ठीक करें।",
         "title": "फ़्लो सहेजा नहीं जा सकता"

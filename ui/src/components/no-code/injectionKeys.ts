@@ -115,3 +115,10 @@ export const DEFAULT_NAMESPACE_INJECTION_KEY = Symbol("default-namespace-injecti
  * defaults, where fields never drill.
  */
 export const FIELD_NAV_INJECTION_KEY = Symbol("field-nav-injection-key") as InjectionKey<FieldNavigation>
+
+/**
+ * Reactive map of task id -> validation issue messages for the current flow.
+ * Lets block cards flag tasks with missing/invalid required fields without
+ * threading the flow's validation result through every lane.
+ */
+export const BLOCK_VALIDATION_ISSUES_INJECTION_KEY = Symbol("block-validation-issues-injection-key") as InjectionKey<ComputedRef<Map<string, string[]>>>

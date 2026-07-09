@@ -185,6 +185,7 @@
       "picker_more_results": "{count} altri, affina la ricerca",
       "plugin_default": "predefinito: {value}",
       "plugin_default_tooltip": "Valore predefinito dai pluginDefaults del flow",
+      "required_missing": "Campo obbligatorio non impostato",
       "save_blocked": {
         "message": "Correggi gli errori prima di salvare.",
         "title": "Impossibile salvare il flow"

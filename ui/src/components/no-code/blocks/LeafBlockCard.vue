@@ -33,7 +33,15 @@
         />
 
         <div class="leaf-block-card-main">
-            <span class="leaf-block-card-id" data-test="block-card-id">{{ displayBlock.id }}</span>
+            <div class="leaf-block-card-idrow">
+                <span class="leaf-block-card-id" data-test="block-card-id">{{ displayBlock.id }}</span>
+                <KsTooltip v-if="issues.length" :persistent="false">
+                    <template #content>
+                        <div v-for="issue in issues" :key="issue">{{ issue }}</div>
+                    </template>
+                    <AlertCircle class="leaf-block-card-warning" data-test="block-card-warning" />
+                </KsTooltip>
+            </div>
             <span class="leaf-block-card-type" data-test="block-card-type">{{ shortType }}</span>
         </div>
 
@@ -76,16 +84,18 @@
 </template>
 
 <script setup lang="ts">
-    import {computed} from "vue"
+    import {computed, inject} from "vue"
     import {useI18n} from "vue-i18n"
     import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import DragVertical from "vue-material-design-icons/DragVertical.vue"
     import Play from "vue-material-design-icons/Play.vue"
+    import AlertCircle from "vue-material-design-icons/AlertCircle.vue"
 
-    import {KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
+    import {KsTaskIcon, KsIconButton, KsTooltip} from "@kestra-io/design-system"
 
     import {displayTaskOf} from "../../../utils/flowableBlockOps"
+    import {BLOCK_VALIDATION_ISSUES_INJECTION_KEY} from "../injectionKeys"
 
     const {t} = useI18n()
 
@@ -114,6 +124,11 @@
     // Unwraps a DAG-style {task, dependsOn} lane item so the card always shows
     // the real task's id/type/icon — the wrapper itself has none of its own.
     const displayBlock = computed(() => displayTaskOf(props.block))
+
+    const validationIssues = inject(BLOCK_VALIDATION_ISSUES_INJECTION_KEY, undefined)
+    const issues = computed<string[]>(() =>
+        validationIssues?.value?.get(String(displayBlock.value.id ?? "")) ?? [],
+    )
 
     const shortType = computed(() => {
         const type = String(displayBlock.value.type ?? "")
@@ -194,6 +209,13 @@
         gap: 1px;
     }
 
+    .leaf-block-card-idrow {
+        display: flex;
+        align-items: center;
+        gap: var(--ks-spacing-2);
+        min-width: 0;
+    }
+
     .leaf-block-card-id {
         font-size: var(--ks-font-size-sm);
         font-weight: 600;
@@ -202,6 +224,14 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    .leaf-block-card-warning {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: var(--ks-text-error);
+        font-size: var(--ks-font-size-sm);
+        cursor: help;
     }
 
     .leaf-block-card-type {

@@ -118,6 +118,14 @@
             class="field-help"
             :content="inlineHelpText"
         />
+        <span
+            v-if="isMissingRequired"
+            class="required-missing"
+            data-test="field-required-missing"
+        >
+            <AlertCircleOutline class="required-missing-icon" />
+            {{ t("block_editor.required_missing") }}
+        </span>
     </KsFormItem>
 </template>
 
@@ -130,6 +138,7 @@
     import ClearButton from "./ClearButton.vue"
     import {KsMarkdown} from "@kestra-io/design-system"
     import Help from "vue-material-design-icons/Information.vue"
+    import AlertCircleOutline from "vue-material-design-icons/AlertCircleOutline.vue"
     import TaskLabelWithBoolean from "./TaskLabelWithBoolean.vue"
     import TaskObjectListInline from "../../../plugins/plugin-default/TaskObjectListInline.vue"
     import TaskObjectTaskInline from "../../../plugins/plugin-default/TaskObjectTaskInline.vue"
@@ -152,6 +161,12 @@
 
     const isRequired = computed(() => {
         return !props.disabled && props.required?.includes(props.fieldKey)// && props.schema.$required;
+    })
+
+    const isMissingRequired = computed(() => {
+        if (!isRequired.value) return false
+        const value = modelValue.value
+        return value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0)
     })
 
     const hasSelectedASchema = ref(false)
@@ -262,6 +277,20 @@
         align-items: center;
         padding: 0;
     }
+}
+
+.required-missing {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ks-spacing-1);
+    margin-top: var(--ks-spacing-1);
+    font-size: var(--ks-font-size-xs);
+    color: var(--ks-text-error);
+}
+
+.required-missing-icon {
+    display: inline-flex;
+    font-size: var(--ks-font-size-sm);
 }
 
 .field-help {

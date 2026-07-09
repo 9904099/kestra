@@ -517,6 +517,7 @@
         displayTaskOf,
         duplicateBlock,
         duplicateBlockAtPath,
+        groupValidationIssuesByTask,
         isFlowableType,
         isWrapperLane,
         moveBlockAtPath,
@@ -539,6 +540,7 @@
     import type {NoCodeProps} from "../../flows/noCodeTypes"
     import {
         BLOCK_SCHEMA_PATH_INJECTION_KEY,
+        BLOCK_VALIDATION_ISSUES_INJECTION_KEY,
         CLOSE_TASK_FUNCTION_INJECTION_KEY,
         CREATE_TASK_FUNCTION_INJECTION_KEY,
         CREATING_FLOW_INJECTION_KEY,
@@ -581,8 +583,15 @@
     const flowId = computed<string>(() => flowStore.flow?.id ?? "")
     const namespace = computed<string>(() => flowStore.flow?.namespace ?? "")
 
+    // Each block card surfaces its own missing/invalid fields, grouped from the
+    // flow's validation constraints by task id.
+    const validationIssuesByTask = computed<Map<string, string[]>>(() =>
+        groupValidationIssuesByTask(flowStore.flowErrors),
+    )
+
     const inlineEditPanel = ref()
     provide(FULL_SOURCE_INJECTION_KEY, flowYaml)
+    provide(BLOCK_VALIDATION_ISSUES_INJECTION_KEY, validationIssuesByTask)
     provide(PARENT_PATH_INJECTION_KEY, props.parentPath ?? "")
     provide(REF_PATH_INJECTION_KEY, props.refPath)
     provide(PANEL_INJECTION_KEY, inlineEditPanel)
@@ -1105,7 +1114,7 @@
     // to the right-aligned add button (which pushed it off to the right). Scroll
     // the header into view first so the picker opens inside a section below the fold.
     function openTaskPickerForSection(section: BlockSection) {
-        const anchor = editorEl.value?.querySelector<HTMLElement>(`[data-test='block-section-head-${section}']`) ?? undefined
+        const anchor = editorEl.value?.querySelector<HTMLElement>(`[data-test='block-editor-section-head-${section}']`) ?? undefined
         anchor?.scrollIntoView({block: "nearest"})
         openTaskPicker(section, undefined, anchor)
     }

@@ -9,6 +9,7 @@ import {
     displayTaskOf,
     duplicateBlock,
     duplicateBlockAtPath,
+    groupValidationIssuesByTask,
     isWrappedLaneItem,
     isWrapperLane,
     moveBlockAtPath,
@@ -1015,6 +1016,45 @@ tasks:
             const parsed = flowYamlUtils.parse(result)
             const ids = parsed.tasks.map((t: Record<string, unknown>) => String(t.id))
             expect(new Set(ids).size).toBe(ids.length)
+        })
+    })
+
+    describe("groupValidationIssuesByTask", () => {
+        it("groups a plain 'id.field: message' constraint under the task id", () => {
+            const grouped = groupValidationIssuesByTask(["fetch_data.uri: must not be null"])
+
+            expect(grouped.get("fetch_data")).toEqual(["uri: must not be null"])
+        })
+
+        it("parses a constraint behind a 'Validation error: ' prefix", () => {
+            const grouped = groupValidationIssuesByTask(["Validation error: fetch_data.uri: must not be null"])
+
+            expect(grouped.get("fetch_data")).toEqual(["uri: must not be null"])
+        })
+
+        it("keys a nested field path under its top-level task id", () => {
+            const grouped = groupValidationIssuesByTask(["send.headers.Authorization: must not be blank"])
+
+            expect(grouped.get("send")).toEqual(["headers.Authorization: must not be blank"])
+        })
+
+        it("collects several constraints for the same task", () => {
+            const grouped = groupValidationIssuesByTask([
+                "send.uri: must not be null",
+                "send.method: must not be null",
+            ])
+
+            expect(grouped.get("send")).toEqual(["uri: must not be null", "method: must not be null"])
+        })
+
+        it("skips flow-level errors that carry no 'id.field' shape", () => {
+            const grouped = groupValidationIssuesByTask(["flow must not be empty"])
+
+            expect(grouped.size).toBe(0)
+        })
+
+        it("returns an empty map for undefined input", () => {
+            expect(groupValidationIssuesByTask(undefined).size).toBe(0)
         })
     })
 

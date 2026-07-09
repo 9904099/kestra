@@ -33,6 +33,13 @@
 
             <span class="flowable-cluster-id" data-test="block-card-id">{{ displayBlock.id }}</span>
 
+            <KsTooltip v-if="issues.length" :persistent="false">
+                <template #content>
+                    <div v-for="issue in issues" :key="issue">{{ issue }}</div>
+                </template>
+                <AlertCircle class="flowable-cluster-warning" data-test="block-card-warning" />
+            </KsTooltip>
+
             <KsTag size="small" class="flowable-cluster-kind-tag" data-test="block-card-type">
                 {{ shortType }}
             </KsTag>
@@ -121,8 +128,9 @@
 </template>
 
 <script setup lang="ts">
-    import {computed, defineAsyncComponent, ref} from "vue"
+    import {computed, defineAsyncComponent, inject, ref} from "vue"
     import {useI18n} from "vue-i18n"
+    import AlertCircle from "vue-material-design-icons/AlertCircle.vue"
     import ChevronDown from "vue-material-design-icons/ChevronDown.vue"
     import ChevronRight from "vue-material-design-icons/ChevronRight.vue"
     import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
@@ -130,9 +138,10 @@
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
 
-    import {KsTag, KsTaskIcon, KsIconButton, KsInput} from "@kestra-io/design-system"
+    import {KsTag, KsTaskIcon, KsIconButton, KsInput, KsTooltip} from "@kestra-io/design-system"
 
     import {displayTaskOf, taskEditPathFor} from "../../../utils/flowableBlockOps"
+    import {BLOCK_VALIDATION_ISSUES_INJECTION_KEY} from "../injectionKeys"
 
     const BranchLane = defineAsyncComponent(() => import("./BranchLane.vue"))
 
@@ -180,6 +189,11 @@
     // wrapper so every other computed below (id, type, lanes...) reads the
     // real task regardless of whether this card sits in a flat or wrapped lane.
     const displayBlock = computed(() => displayTaskOf(props.block))
+
+    const validationIssues = inject(BLOCK_VALIDATION_ISSUES_INJECTION_KEY, undefined)
+    const issues = computed<string[]>(() =>
+        validationIssues?.value?.get(String(displayBlock.value.id ?? "")) ?? [],
+    )
 
     // Where that task's own branches (then/else/tasks/cases/...) actually live
     // — one level deeper than props.path for a wrapper, the same path otherwise.
@@ -334,6 +348,14 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    .flowable-cluster-warning {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: var(--ks-text-error);
+        font-size: var(--ks-font-size-sm);
+        cursor: help;
     }
 
     .flowable-cluster-kind-tag {

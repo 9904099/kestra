@@ -34,7 +34,15 @@
         />
 
         <div class="block-card-main">
-            <span class="block-card-id" data-test="block-card-id">{{ block.id }}</span>
+            <div class="block-card-idrow">
+                <span class="block-card-id" data-test="block-card-id">{{ block.id }}</span>
+                <KsTooltip v-if="issues.length" :persistent="false">
+                    <template #content>
+                        <div v-for="issue in issues" :key="issue">{{ issue }}</div>
+                    </template>
+                    <AlertCircle class="block-card-warning" data-test="block-card-warning" />
+                </KsTooltip>
+            </div>
             <span class="block-card-type" data-test="block-card-type">{{ shortType }}</span>
         </div>
 
@@ -91,15 +99,18 @@
 </template>
 
 <script setup lang="ts">
-    import {computed} from "vue"
+    import {computed, inject} from "vue"
     import {useI18n} from "vue-i18n"
     import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import DragVertical from "vue-material-design-icons/DragVertical.vue"
     import Play from "vue-material-design-icons/Play.vue"
     import ViewSplitVertical from "vue-material-design-icons/ViewSplitVertical.vue"
+    import AlertCircle from "vue-material-design-icons/AlertCircle.vue"
 
-    import {KsTaskIcon, KsIconButton} from "@kestra-io/design-system"
+    import {KsTaskIcon, KsIconButton, KsTooltip} from "@kestra-io/design-system"
+
+    import {BLOCK_VALIDATION_ISSUES_INJECTION_KEY} from "../injectionKeys"
 
     const {t} = useI18n()
 
@@ -112,6 +123,11 @@
         runnable?: boolean
         icons?: Record<string, {icon: string; flowable: boolean}>
     }>()
+
+    const validationIssues = inject(BLOCK_VALIDATION_ISSUES_INJECTION_KEY, undefined)
+    const issues = computed<string[]>(() =>
+        validationIssues?.value?.get(String(props.block.id ?? "")) ?? [],
+    )
 
     const emit = defineEmits<{
         (e: "select"): void
@@ -204,6 +220,13 @@
         gap: 1px;
     }
 
+    .block-card-idrow {
+        display: flex;
+        align-items: center;
+        gap: var(--ks-spacing-2);
+        min-width: 0;
+    }
+
     .block-card-id {
         font-size: var(--ks-font-size-sm);
         font-weight: 600;
@@ -212,6 +235,14 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    .block-card-warning {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: var(--ks-text-error);
+        font-size: var(--ks-font-size-sm);
+        cursor: help;
     }
 
     .block-card-type {

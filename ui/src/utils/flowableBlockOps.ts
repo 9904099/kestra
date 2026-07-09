@@ -449,4 +449,24 @@ export function wrapAsDagTask(task: Record<string, unknown>): Record<string, unk
     return {task}
 }
 
+// Groups a flow's validation constraint strings by the task id they concern so
+// block cards can flag their own issues. Constraints come in a couple of shapes
+// ("uri: must not be null" prefixed by an id, sometimes behind a
+// "Validation error: " label), so the id.field pattern is matched anywhere in
+// the string rather than anchored at the start. Strings without a "id.field:"
+// shape (flow-level errors) are skipped.
+export function groupValidationIssuesByTask(errors: string[] | undefined): Map<string, string[]> {
+    const grouped = new Map<string, string[]>()
+    for (const raw of errors ?? []) {
+        const match = /([A-Za-z0-9_-]+)\.([A-Za-z0-9_.[\]-]+)\s*:\s*(.+)/s.exec(raw)
+        if (!match) continue
+        const [, id, field, message] = match
+        const entry = `${field}: ${message.trim()}`
+        const existing = grouped.get(id) ?? []
+        existing.push(entry)
+        grouped.set(id, existing)
+    }
+    return grouped
+}
+
 export {collectAllIds}

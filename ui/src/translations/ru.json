@@ -185,6 +185,7 @@
       "picker_more_results": "ещё {count}, уточните поиск",
       "plugin_default": "по умолчанию: {value}",
       "plugin_default_tooltip": "Значение по умолчанию из pluginDefaults flow",
+      "required_missing": "Обязательное поле не заполнено",
       "save_blocked": {
         "message": "Исправьте ошибки перед сохранением.",
         "title": "Не удалось сохранить flow"
