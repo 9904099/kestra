@@ -1053,6 +1053,12 @@ tasks:
             expect(grouped.get("my_dag")).toEqual(["Cyclic dependency detected: a, b"])
         })
 
+        it("keys a nested DAG sub-task constraint under the sub-task id (leading segment)", () => {
+            const grouped = groupValidationIssuesByTask(["task1.task1.task.message: must not be null"])
+
+            expect(grouped.get("task1")).toEqual(["task1.task.message: must not be null"])
+        })
+
         it("skips flow-level errors that carry no 'id:' head", () => {
             const grouped = groupValidationIssuesByTask(["flow must not be empty"])
 
