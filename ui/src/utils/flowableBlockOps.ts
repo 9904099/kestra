@@ -450,18 +450,20 @@ export function wrapAsDagTask(task: Record<string, unknown>): Record<string, unk
 }
 
 // Groups a flow's validation constraint strings by the task id they concern so
-// block cards can flag their own issues. Constraints come in a couple of shapes
-// ("uri: must not be null" prefixed by an id, sometimes behind a
-// "Validation error: " label), so the id.field pattern is matched anywhere in
-// the string rather than anchored at the start. Strings without a "id.field:"
-// shape (flow-level errors) are skipped.
+// block cards (leaf tasks and flowables alike) can flag their own issues.
+// Constraints come in a few shapes, optionally behind a "Validation error: "
+// label:
+//   - "<id>.<field>: <message>"  a specific field (e.g. "fetch_data.uri: must not be null")
+//   - "<id>: <message>"          a task/flowable-level error (e.g. a DAG's "my_dag: Cyclic dependency detected: a, b")
+// Anything without an "<id>:" head (pure flow-level errors) is skipped.
 export function groupValidationIssuesByTask(errors: string[] | undefined): Map<string, string[]> {
     const grouped = new Map<string, string[]>()
     for (const raw of errors ?? []) {
-        const match = /([A-Za-z0-9_-]+)\.([A-Za-z0-9_.[\]-]+)\s*:\s*(.+)/s.exec(raw)
+        const cleaned = raw.replace(/^\s*validation error\s*:\s*/i, "").trim()
+        const match = /^([A-Za-z0-9_-]+)(?:\.([A-Za-z0-9_.[\]-]+))?\s*:\s*(.+)$/s.exec(cleaned)
         if (!match) continue
         const [, id, field, message] = match
-        const entry = `${field}: ${message.trim()}`
+        const entry = field ? `${field}: ${message.trim()}` : message.trim()
         const existing = grouped.get(id) ?? []
         existing.push(entry)
         grouped.set(id, existing)

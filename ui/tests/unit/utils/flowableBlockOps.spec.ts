@@ -1047,7 +1047,13 @@ tasks:
             expect(grouped.get("send")).toEqual(["uri: must not be null", "method: must not be null"])
         })
 
-        it("skips flow-level errors that carry no 'id.field' shape", () => {
+        it("keys a flowable-level 'id: message' error (a DAG cycle) under the flowable id", () => {
+            const grouped = groupValidationIssuesByTask(["Validation error: my_dag: Cyclic dependency detected: a, b"])
+
+            expect(grouped.get("my_dag")).toEqual(["Cyclic dependency detected: a, b"])
+        })
+
+        it("skips flow-level errors that carry no 'id:' head", () => {
             const grouped = groupValidationIssuesByTask(["flow must not be empty"])
 
             expect(grouped.size).toBe(0)
