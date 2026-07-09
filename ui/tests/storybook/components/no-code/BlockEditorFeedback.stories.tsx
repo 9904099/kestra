@@ -546,7 +546,8 @@ export const F3ConfigureFlowableProperties: Story = {
         })
 
         await waitFor(() => {
-            expect(within(taskEdit).getByText("condition", {exact: false})).toBeInTheDocument()
+            const fieldLabel = [...taskEdit.querySelectorAll(".label")].find(el => el.textContent?.trim() === "condition")
+            expect(fieldLabel).toBeTruthy()
         }, {timeout: 5000})
     },
 }
@@ -776,6 +777,10 @@ export const F7QuickInsertCommandMenu: Story = {
         expect(search.placeholder).toBe("Type a command or search a task…")
 
         await userEvent.type(search, "trigger")
+
+        await waitFor(() => {
+            expect(search.value).toBe("trigger")
+        })
 
         await waitFor(() => {
             expect(canvas.getByText("Insert Triggers")).toBeInTheDocument()
