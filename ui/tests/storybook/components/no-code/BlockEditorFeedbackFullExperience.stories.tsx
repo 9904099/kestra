@@ -4,7 +4,7 @@ import {vueRouter} from "storybook-vue3-router"
 
 import MultiPanelFlowEditorView from "../../../../src/components/flows/MultiPanelFlowEditorView.vue"
 import {useFlowStore} from "../../../../src/stores/flow"
-import {CICD_PIPELINE_YAML, mockNoCodeTransport} from "./BlockEditorFeedback.stories"
+import {CICD_PIPELINE_YAML, mockNoCodeTransport} from "./blockEditorFeedbackFixtures"
 
 const meta: Meta = {
     title: "No-code/Feedback fixes",
