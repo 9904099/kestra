@@ -832,8 +832,9 @@
     .panel-maximized .content-panel {
         position: relative;
         z-index: 1;
-        margin-left: calc(2vw + var(--ks-spacing-6));
-        margin-right: calc(2vw + var(--ks-spacing-6));
+        height: calc(100% - var(--ks-spacing-5));
+        margin-left: calc(2vw + var(--ks-spacing-4));
+        margin-right: calc(2vw + var(--ks-spacing-4));
         background: var(--ks-bg-surface);
         border-left: 1px solid var(--ks-border-default);
         border-right: 1px solid var(--ks-border-default);
@@ -848,7 +849,6 @@
     }
 
     .panel-maximized .content-panel {
-        margin-bottom: var(--ks-spacing-5);
         border-bottom: 1px solid var(--ks-border-default);
         border-bottom-left-radius: var(--ks-radius-base);
         border-bottom-right-radius: var(--ks-radius-base);
