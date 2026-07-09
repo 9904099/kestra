@@ -13,7 +13,7 @@ import {usePlaygroundStore} from "../../../../src/stores/playground"
 import {usePluginsStore} from "../../../../src/stores/plugins"
 import {setMockClient} from "@kestra-io/kestra-sdk"
 import type {Panel} from "../../../../src/utils/multiPanelTypes"
-import {CICD_PIPELINE_YAML, mockNoCodeTransport} from "./blockEditorFeedbackFixtures"
+import {CICD_PIPELINE_YAML, mockNoCodeTransport, seedIfTaskSchema} from "./blockEditorFeedbackFixtures"
 
 const meta: Meta = {
     title: "No-code/Feedback fixes",
@@ -511,6 +511,7 @@ export const F3ConfigureFlowableProperties: Story = {
     render: () => ({
         setup() {
             mockNoCodeTransport()
+            seedIfTaskSchema()
             const flowStore = useFlowStore()
             flowStore.flowYaml = CICD_PIPELINE_YAML
             return () => <BlockEditorHost />

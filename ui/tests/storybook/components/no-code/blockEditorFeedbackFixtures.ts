@@ -1,5 +1,6 @@
 import {setMockClient} from "@kestra-io/kestra-sdk"
 import InitialSchema from "../../../../src/stores/flow-schema.json"
+import {usePluginsStore} from "../../../../src/stores/plugins"
 
 // A real CI/CD pipeline: checkout the repo, run a build script, run tests in
 // parallel across two suites, then deploy — with realistic core task types
@@ -109,4 +110,34 @@ export function mockNoCodeTransport() {
         return Promise.resolve({data: []})
     }
     setMockClient(axios)
+}
+
+// The fixture flow-schema.json only carries the Flow root and Log (used by the
+// other stories' schema-driven fields) — it has no If/Switch/Parallel/Dag
+// definitions, so a flowable's OWN properties (e.g. If's `condition`) can't
+// render without one. Grafting a minimal If definition onto the schema cache
+// mirrors how the real backend would serve it, without needing every flowable
+// type's full schema for a single "configure the block itself" story.
+export function seedIfTaskSchema() {
+    const pluginsStore = usePluginsStore()
+    const flowSchemaWithIf = {
+        ...InitialSchema,
+        definitions: {
+            ...InitialSchema.definitions,
+            "io.kestra.plugin.core.flow.If": {
+                type: "object",
+                required: ["id", "type", "condition"],
+                properties: {
+                    id: InitialSchema.definitions["io.kestra.plugin.core.log.Log"].properties.id,
+                    type: {const: "io.kestra.plugin.core.flow.If"},
+                    condition: {
+                        title: "The condition to branch on, evaluated as a boolean.",
+                        type: "string",
+                        "$dynamic": true,
+                    },
+                },
+            },
+        },
+    }
+    pluginsStore.schemaType = {flow: flowSchemaWithIf}
 }
