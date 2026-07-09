@@ -297,125 +297,6 @@
             </KsSplitterPanel>
         </KsSplitter>
 
-        <Teleport to="body">
-            <div
-                v-if="taskPickerVisible"
-                class="block-editor-picker-overlay"
-                @click="taskPickerVisible = false"
-            >
-                <div
-                    class="block-editor-picker"
-                    :style="pickerStyle"
-                    data-test="block-editor-picker"
-                    @click.stop
-                    @keydown="onPickerKeydown"
-                >
-                    <p class="block-editor-picker-context">{{ t('block_editor.inserting_into', {section: sectionLabel}) }}</p>
-
-                    <KsInput
-                        ref="pickerSearchInput"
-                        v-model="taskPickerSearch"
-                        :placeholder="t('block_editor.search_task_placeholder')"
-                        :aria-label="t('block_editor.search_task_placeholder')"
-                        aria-controls="block-editor-picker-listbox"
-                        :aria-activedescendant="pickerFocusedIndex >= 0 ? `block-editor-picker-option-${pickerFocusedIndex}` : undefined"
-                        clearable
-                        data-test="block-editor-picker-search"
-                    />
-
-                    <div v-if="!hasSearch" class="block-editor-picker-tabs" role="tablist">
-                        <button
-                            v-for="tab in PICKER_TABS"
-                            :key="tab.id"
-                            type="button"
-                            role="tab"
-                            class="block-editor-picker-tab"
-                            :class="{'block-editor-picker-tab--active': pickerTab === tab.id}"
-                            :aria-selected="pickerTab === tab.id"
-                            :data-test="`block-editor-picker-tab-${tab.id}`"
-                            @click="setPickerTab(tab.id)"
-                        >
-                            <component :is="tab.icon" class="block-editor-picker-tab-ico" />
-                            {{ t(tab.labelKey) }}
-                            <span v-if="tab.id === 'apps'" class="block-editor-picker-tab-count">{{ appGroups.length }}</span>
-                        </button>
-                    </div>
-
-                    <div
-                        id="block-editor-picker-listbox"
-                        v-ks-loading="pluginsLoading"
-                        class="block-editor-picker-list"
-                        :class="{'block-editor-picker-list--loading': pluginsLoading}"
-                        :aria-label="t('block_editor.pick_task_type')"
-                        data-test="block-editor-picker-list"
-                        role="listbox"
-                    >
-                        <template v-if="!hasSearch && pickerTab === 'apps' && !appFilter">
-                            <button
-                                v-for="grp in appGroups"
-                                :key="grp.group"
-                                type="button"
-                                class="block-editor-picker-app"
-                                @click="appFilter = grp.group"
-                            >
-                                <KsTaskIcon class="block-editor-picker-icon" :cls="grp.sampleFqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
-                                <span class="block-editor-picker-app-name">{{ grp.group }}</span>
-                                <span class="block-editor-picker-app-count">{{ t('block_editor.app_actions', {count: grp.count}) }}</span>
-                            </button>
-                        </template>
-
-                        <template v-else>
-                            <div
-                                v-if="appFilter && !hasSearch"
-                                class="block-editor-picker-back"
-                                role="button"
-                                tabindex="0"
-                                @click="appFilter = undefined"
-                                @keydown.enter="appFilter = undefined"
-                            >
-                                <ChevronLeft class="block-editor-picker-back-ico" />
-                                {{ t('block_editor.all_apps') }}
-                            </div>
-
-                            <button
-                                v-for="(type, idx) in displayedEntries"
-                                :id="`block-editor-picker-option-${idx}`"
-                                :key="type.fqcn"
-                                class="block-editor-picker-row"
-                                :class="{'block-editor-picker-row--focused': pickerFocusedIndex === idx}"
-                                type="button"
-                                role="option"
-                                :aria-selected="pickerFocusedIndex === idx"
-                                @click="insertTask(type.fqcn)"
-                                @mouseenter="pickerFocusedIndex = idx"
-                            >
-                                <KsTaskIcon class="block-editor-picker-icon" :cls="type.fqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
-                                <span class="block-editor-picker-main">
-                                    <span class="block-editor-picker-name">{{ type.name }}</span>
-                                    <span class="block-editor-picker-desc">{{ type.label }}</span>
-                                </span>
-                                <span class="block-editor-picker-app-badge">{{ type.group }}</span>
-                            </button>
-
-                            <p v-if="!pluginsLoading && displayedEntries.length === 0" class="block-editor-picker-empty">
-                                {{ (!hasSearch && pickerTab === "recent") ? t("block_editor.no_recent") : t("block_editor.no_task_results") }}
-                            </p>
-
-                            <p v-else-if="hasSearch && pickerHiddenCount > 0" class="block-editor-picker-more">
-                                {{ t("block_editor.picker_more_results", {count: pickerHiddenCount}) }}
-                            </p>
-                        </template>
-                    </div>
-
-                    <div class="block-editor-picker-footer" aria-hidden="true">
-                        <span><kbd>↑</kbd><kbd>↓</kbd> {{ t('block_editor.kbd_navigate') }}</span>
-                        <span><kbd>↵</kbd> {{ t('block_editor.kbd_add') }}</span>
-                        <span><kbd>esc</kbd> {{ t('block_editor.kbd_close') }}</span>
-                    </div>
-                </div>
-            </div>
-        </Teleport>
-
         <KsDialog v-model="shortcutsOpen" :title="t('block_editor.shortcuts.title')" data-test="block-editor-shortcuts">
             <div class="block-editor-shortcuts">
                 <div v-for="group in shortcutGroups" :key="group.group" class="block-editor-shortcuts-col">
@@ -475,6 +356,125 @@
             @close="commandMenuOpen = false"
         />
     </div>
+
+    <Teleport to="body">
+        <div
+            v-if="taskPickerVisible"
+            class="block-editor-picker-overlay"
+            @click="taskPickerVisible = false"
+        >
+            <div
+                class="block-editor-picker"
+                :style="pickerStyle"
+                data-test="block-editor-picker"
+                @click.stop
+                @keydown="onPickerKeydown"
+            >
+                <p class="block-editor-picker-context">{{ t('block_editor.inserting_into', {section: sectionLabel}) }}</p>
+
+                <KsInput
+                    ref="pickerSearchInput"
+                    v-model="taskPickerSearch"
+                    :placeholder="t('block_editor.search_task_placeholder')"
+                    :aria-label="t('block_editor.search_task_placeholder')"
+                    aria-controls="block-editor-picker-listbox"
+                    :aria-activedescendant="pickerFocusedIndex >= 0 ? `block-editor-picker-option-${pickerFocusedIndex}` : undefined"
+                    clearable
+                    data-test="block-editor-picker-search"
+                />
+
+                <div v-if="!hasSearch" class="block-editor-picker-tabs" role="tablist">
+                    <button
+                        v-for="tab in PICKER_TABS"
+                        :key="tab.id"
+                        type="button"
+                        role="tab"
+                        class="block-editor-picker-tab"
+                        :class="{'block-editor-picker-tab--active': pickerTab === tab.id}"
+                        :aria-selected="pickerTab === tab.id"
+                        :data-test="`block-editor-picker-tab-${tab.id}`"
+                        @click="setPickerTab(tab.id)"
+                    >
+                        <component :is="tab.icon" class="block-editor-picker-tab-ico" />
+                        {{ t(tab.labelKey) }}
+                        <span v-if="tab.id === 'apps'" class="block-editor-picker-tab-count">{{ appGroups.length }}</span>
+                    </button>
+                </div>
+
+                <div
+                    id="block-editor-picker-listbox"
+                    v-ks-loading="pluginsLoading"
+                    class="block-editor-picker-list"
+                    :class="{'block-editor-picker-list--loading': pluginsLoading}"
+                    :aria-label="t('block_editor.pick_task_type')"
+                    data-test="block-editor-picker-list"
+                    role="listbox"
+                >
+                    <template v-if="!hasSearch && pickerTab === 'apps' && !appFilter">
+                        <button
+                            v-for="grp in appGroups"
+                            :key="grp.group"
+                            type="button"
+                            class="block-editor-picker-app"
+                            @click="appFilter = grp.group"
+                        >
+                            <KsTaskIcon class="block-editor-picker-icon" :cls="grp.sampleFqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
+                            <span class="block-editor-picker-app-name">{{ grp.group }}</span>
+                            <span class="block-editor-picker-app-count">{{ t('block_editor.app_actions', {count: grp.count}) }}</span>
+                        </button>
+                    </template>
+
+                    <template v-else>
+                        <div
+                            v-if="appFilter && !hasSearch"
+                            class="block-editor-picker-back"
+                            role="button"
+                            tabindex="0"
+                            @click="appFilter = undefined"
+                            @keydown.enter="appFilter = undefined"
+                        >
+                            <ChevronLeft class="block-editor-picker-back-ico" />
+                            {{ t('block_editor.all_apps') }}
+                        </div>
+
+                        <button
+                            v-for="(type, idx) in displayedEntries"
+                            :id="`block-editor-picker-option-${idx}`"
+                            :key="type.fqcn"
+                            class="block-editor-picker-row"
+                            :class="{'block-editor-picker-row--focused': pickerFocusedIndex === idx}"
+                            type="button"
+                            role="option"
+                            :aria-selected="pickerFocusedIndex === idx"
+                            @click="insertTask(type.fqcn)"
+                            @mouseenter="pickerFocusedIndex = idx"
+                        >
+                            <KsTaskIcon class="block-editor-picker-icon" :cls="type.fqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
+                            <span class="block-editor-picker-main">
+                                <span class="block-editor-picker-name">{{ type.name }}</span>
+                                <span class="block-editor-picker-desc">{{ type.label }}</span>
+                            </span>
+                            <span class="block-editor-picker-app-badge">{{ type.group }}</span>
+                        </button>
+
+                        <p v-if="!pluginsLoading && displayedEntries.length === 0" class="block-editor-picker-empty">
+                            {{ (!hasSearch && pickerTab === "recent") ? t("block_editor.no_recent") : t("block_editor.no_task_results") }}
+                        </p>
+
+                        <p v-else-if="hasSearch && pickerHiddenCount > 0" class="block-editor-picker-more">
+                            {{ t("block_editor.picker_more_results", {count: pickerHiddenCount}) }}
+                        </p>
+                    </template>
+                </div>
+
+                <div class="block-editor-picker-footer" aria-hidden="true">
+                    <span><kbd>↑</kbd><kbd>↓</kbd> {{ t('block_editor.kbd_navigate') }}</span>
+                    <span><kbd>↵</kbd> {{ t('block_editor.kbd_add') }}</span>
+                    <span><kbd>esc</kbd> {{ t('block_editor.kbd_close') }}</span>
+                </div>
+            </div>
+        </div>
+    </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -592,8 +592,8 @@
     provide(FULL_SCHEMA_INJECTION_KEY, computed(() => pluginsStore.flowSchema ?? {}))
     provide(ROOT_SCHEMA_INJECTION_KEY, computed(() => pluginsStore.flowRootSchema ?? {}))
     provide(SCHEMA_DEFINITIONS_INJECTION_KEY, computed(() => pluginsStore.flowDefinitions ?? {}))
-    provide(CREATE_TASK_FUNCTION_INJECTION_KEY, (parentPath, blockSchemaPath, refPath) => {
-        emit("createTask", parentPath, blockSchemaPath, refPath, "after")
+    provide(CREATE_TASK_FUNCTION_INJECTION_KEY, (parentPath, _blockSchemaPath, refPath, anchorEl) => {
+        openTaskPickerAtPath(parentPath, refPath ?? -1, undefined, "after", anchorEl)
     })
     provide(EDIT_TASK_FUNCTION_INJECTION_KEY, (parentPath, blockSchemaPath, refPath) => {
         emit("editTask", parentPath, blockSchemaPath, refPath)
@@ -1063,8 +1063,9 @@
         refIndex: number,
         evt?: Event,
         position: "before" | "after" = "after",
+        anchorEl?: HTMLElement,
     ) {
-        anchorFrom(evt)
+        anchorFrom(evt, anchorEl)
         taskPickerSection.value = sectionFromParentPath(parentPath)
         taskPickerParentPath.value = parentPath
         taskPickerAfterIndex.value = refIndex >= 0 ? refIndex : undefined
