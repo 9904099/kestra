@@ -1,6 +1,6 @@
 <template>
     <section class="block-section" :class="`block-section--${tone}`" :data-test="`block-section-${name}`">
-        <header class="block-section-head">
+        <header class="block-section-head" :data-test="`block-section-head-${name}`">
             <div class="block-section-title">
                 <component :is="icon" class="block-section-ico" />
                 <span class="block-section-title-text">{{ title }}</span>

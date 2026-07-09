@@ -43,7 +43,6 @@
                             :icon="TriggerIcon"
                             :count="parsedTriggers.length"
                             :addLabel="t('block_editor.add_trigger')"
-                            addTest="block-editor-add-trigger"
                             @add="(e) => openTaskPicker('triggers', e)"
                         >
                             <div class="block-section-list" data-test="block-editor-trigger-list">
@@ -175,7 +174,6 @@
                             :count="flowLevelErrors.length"
                             :addLabel="t('block_editor.add_error_task')"
                             tone="error"
-                            addTest="block-editor-add-error"
                             @add="(e) => openTaskPicker('errors', e)"
                         >
                             <div class="block-section-list">
@@ -241,7 +239,6 @@
                             :count="flowLevelFinally.length"
                             :addLabel="t('block_editor.add_task')"
                             tone="warning"
-                            addTest="block-editor-add-finally"
                             @add="(e) => openTaskPicker('finally', e)"
                         >
                             <div class="block-section-list">
@@ -1102,18 +1099,13 @@
         openTaskPicker("tasks", undefined, endDrop)
     }
 
-    const SECTION_ADD_TEST: Record<BlockSection, string> = {
-        triggers: "block-editor-add-trigger",
-        tasks: "block-editor-add-task",
-        errors: "block-editor-add-error",
-        finally: "block-editor-add-finally",
-    }
-
-    // Anchor the picker to the target section's own "add" button rather than
-    // leaving it unanchored (which pinned it to the tasks add-point regardless
-    // of the chosen kind).
+    // Anchor the picker to the target section's header — its left edge is the
+    // start of the section field, and it sits at the field's top — rather than
+    // leaving it unanchored (which pinned it to the tasks add-point) or anchoring
+    // to the right-aligned add button (which pushed it off to the right). Scroll
+    // the header into view first so the picker opens inside a section below the fold.
     function openTaskPickerForSection(section: BlockSection) {
-        const anchor = editorEl.value?.querySelector<HTMLElement>(`[data-test='${SECTION_ADD_TEST[section]}']`) ?? undefined
+        const anchor = editorEl.value?.querySelector<HTMLElement>(`[data-test='block-section-head-${section}']`) ?? undefined
         anchor?.scrollIntoView({block: "nearest"})
         openTaskPicker(section, undefined, anchor)
     }
@@ -1174,11 +1166,17 @@
         const anchor = pickerAnchor.value
         if (!anchor) return {}
         const rect = anchor.getBoundingClientRect()
-        const width = 440
         const gap = 4
         const margin = 8
         const maxHeight = 420
-        const left = Math.max(margin, Math.min(rect.left, window.innerWidth - width - margin))
+        const preferredWidth = 440
+        const minWidth = 280
+        const maxRight = window.innerWidth - margin
+        // Keep the picker's left edge at the anchor's start (the field's left) and
+        // shrink its width to fit the viewport, rather than sliding it left off the
+        // field. Only pull it left when even the minimum width would overflow.
+        const left = Math.max(margin, Math.min(rect.left, maxRight - minWidth))
+        const width = Math.max(minWidth, Math.min(preferredWidth, maxRight - left))
         const spaceBelow = window.innerHeight - rect.bottom - gap - margin
         const spaceAbove = rect.top - gap - margin
         const openUp = spaceBelow < Math.min(maxHeight, 280) && spaceAbove > spaceBelow
