@@ -169,10 +169,49 @@ const makeRender = (yaml: string): Story["render"] => () => ({
     },
 })
 
+const YAML_DAG_INVALID_SUBTASK = `id: my_flow
+namespace: company.team
+tasks:
+  - id: my_dag
+    type: io.kestra.plugin.core.flow.Dag
+    tasks:
+      - task:
+          id: a
+          type: io.kestra.plugin.core.log.Log
+          message: a
+      - task:
+          id: b
+          type: io.kestra.plugin.core.log.Log
+          message: b
+        dependsOn:
+          - a
+      - task:
+          id: log
+          type: io.kestra.plugin.core.log.Log
+`
+
 export const Empty: Story = {
     render: makeRender(EMPTY_YAML),
     parameters: {
         docs: {description: {story: "Empty flow — no tasks or triggers yet."}},
+    },
+}
+
+export const DagWithInvalidSubtask: Story = {
+    render: () => ({
+        setup() {
+            const flowStore = useFlowStore()
+            flowStore.flowYaml = YAML_DAG_INVALID_SUBTASK
+            flowStore.flowValidation = {constraints: "Validation error: log.log.task.message: must not be null\n"}
+            return () => (
+                <div style="height: 600px; border: 1px solid var(--ks-border-default); border-radius: var(--ks-radius-base); overflow: hidden;">
+                    <BlockEditor />
+                </div>
+            )
+        },
+    }),
+    parameters: {
+        docs: {description: {story: "A DAG whose inner 'log' sub-task is missing its required message. The nested sub-task card surfaces the validation helper (red marker), grouped from the flow's constraints by task id — proving the helper reaches tasks inside a flowable, not just the flowable itself."}},
     },
 }
 
