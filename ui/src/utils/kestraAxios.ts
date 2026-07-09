@@ -161,7 +161,9 @@ export function setupKestraAxios(
         const {status} = errorResponse.response
 
         if (status === 404) {
-            onError("error", errorResponse)
+            if (errorResponse?.config?.showErrorPageOn404 !== false) {
+                onError("error", errorResponse)
+            }
             return Promise.reject(errorResponse)
         }
 

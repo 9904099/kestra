@@ -69,6 +69,10 @@ interface LoadOptions {
     all?: boolean;
     commit?: boolean;
     hash?: number;
+    // Best-effort lookups (e.g. as-you-type task type documentation) expect a 404 as a normal
+    // outcome for a not-yet-known type — set this to avoid tripping the shared HTTP client's
+    // global error handling, which otherwise blanks the whole page for any 404 response.
+    silentOn404?: boolean;
 }
 
 interface JsonSchemaDef {
@@ -367,12 +371,10 @@ export const usePluginsStore = defineStore("plugins", () => {
             `${apiUrlWithoutTenants()}/plugins/${options.cls}/versions/${options.version}` :
             `${apiUrlWithoutTenants()}/plugins/${options.cls}`
 
-        const response = await axios.get<PluginComponent>(url, options.all ? {
-            params: {
-                all: options.all,
-                hash: options.hash,
-            },
-        } : {})
+        const response = await axios.get<PluginComponent>(url, {
+            ...(options.all ? {params: {all: options.all, hash: options.hash}} : {}),
+            ...(options.silentOn404 ? {showErrorPageOn404: false} : {}),
+        })
 
         if (options.commit !== false) {
             if (options.all === true) {
