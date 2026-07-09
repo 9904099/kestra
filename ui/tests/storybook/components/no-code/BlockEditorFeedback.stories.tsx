@@ -769,22 +769,27 @@ export const F7QuickInsertCommandMenu: Story = {
         await userEvent.keyboard("/")
 
         const search = await waitFor(() => {
-            const el = canvasElement.querySelector("[data-test='block-command-menu-search'] input") as HTMLInputElement
+            // KsInput forwards $attrs straight onto ElInput's native <input>, so
+            // data-test lands on the input itself — not on a wrapper around it.
+            const el = canvasElement.querySelector("[data-test='block-command-menu-search']") as HTMLInputElement
             expect(el).toBeInTheDocument()
             return el
         })
         expect(document.activeElement).toBe(search)
         expect(search.placeholder).toBe("Type a command or search a task…")
 
+        await userEvent.click(search)
         await userEvent.type(search, "trigger")
 
         await waitFor(() => {
             expect(search.value).toBe("trigger")
         })
 
+        // The command menu teleports to <body>, outside canvasElement — scope
+        // the assertion there rather than through the (canvas-scoped) `canvas`.
         await waitFor(() => {
-            expect(canvas.getByText("Insert Triggers")).toBeInTheDocument()
-        })
+            expect(within(document.body).getByText("Insert Triggers")).toBeInTheDocument()
+        }, {timeout: 5000})
     },
 }
 
