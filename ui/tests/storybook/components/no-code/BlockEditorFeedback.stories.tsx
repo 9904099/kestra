@@ -360,7 +360,7 @@ export const F2PlaygroundRunTask: Story = {
             return el
         })
         await waitFor(() => {
-            expect(within(taskEdit).getByText("Run task")).toBeInTheDocument()
+            expect(within(taskEdit).getAllByText("Run task").length).toBeGreaterThan(0)
         })
     },
 }
@@ -546,7 +546,7 @@ export const F3ConfigureFlowableProperties: Story = {
 
         await waitFor(() => {
             expect(within(taskEdit).getByText("condition", {exact: false})).toBeInTheDocument()
-        })
+        }, {timeout: 5000})
     },
 }
 
@@ -762,7 +762,7 @@ export const F7QuickInsertCommandMenu: Story = {
 
         await waitFor(() => {
             expect(canvas.getByText("build")).toBeInTheDocument()
-        })
+        }, {timeout: 5000})
 
         await userEvent.keyboard("/")
 

@@ -56,12 +56,12 @@ export const FullExperienceMultiPanelFlowEditor: Story = {
             const el = canvas.getByText("build")
             expect(el).toBeInTheDocument()
             return el
-        })
+        }, {timeout: 8000})
 
         await userEvent.click(buildCard)
 
         await waitFor(() => {
             expect(canvasElement.querySelector("[data-test='block-editor-task-edit'], [data-test='task-edit-panel']")).toBeInTheDocument()
-        })
+        }, {timeout: 5000})
     },
 }

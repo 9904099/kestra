@@ -1,5 +1,5 @@
 import type {Meta, StoryObj} from "@storybook/vue3-vite"
-import {within, userEvent, expect} from "storybook/test"
+import {userEvent, expect, waitFor} from "storybook/test"
 import {ref} from "vue"
 import DagDependsOnEditor from "../../../../src/components/no-code/blocks/DagDependsOnEditor.vue"
 
@@ -83,13 +83,21 @@ export const F3DagDependsOnInteraction: Story = {
         },
     },
     play: async ({canvasElement}) => {
-        const canvas = within(canvasElement)
         const select = canvasElement.querySelector("[data-test='dag-depends-on-select']") as HTMLElement
         await userEvent.click(select)
 
-        const option = await canvas.findByText("extract")
+        // The option list teleports to document.body (Element Plus popper),
+        // so it is searched for outside canvasElement's own subtree.
+        const option = await waitFor(() => {
+            const optionEl = [...document.querySelectorAll<HTMLElement>("[role='option']")]
+                .find(el => el.textContent?.trim() === "extract")
+            expect(optionEl).toBeTruthy()
+            return optionEl as HTMLElement
+        })
         await userEvent.click(option)
 
-        await expect(select.textContent).toContain("extract")
+        await waitFor(() => {
+            expect(select.textContent).toContain("extract")
+        })
     },
 }
