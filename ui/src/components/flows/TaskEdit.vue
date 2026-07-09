@@ -59,6 +59,8 @@
         ref="panelRef"
         class="task-edit-panel"
         data-test="task-edit-panel"
+        @focusin="onPanelFocusIn"
+        @focusout="onPanelFocusOut"
         @dragover.prevent
         @drop="emit('tab-drop')"
     >
@@ -251,6 +253,17 @@
 
     const panelRef = ref<HTMLElement>()
     const isStacked = ref(false)
+    const panelHasFocus = ref(false)
+
+    const onPanelFocusIn = () => {
+        panelHasFocus.value = true
+    }
+    const onPanelFocusOut = (event: FocusEvent) => {
+        const next = event.relatedTarget as Node | null
+        if (!next || !panelRef.value?.contains(next)) {
+            panelHasFocus.value = false
+        }
+    }
 
     watch(panelRef, (el, _previous, onCleanup) => {
         if (!el) return
@@ -479,7 +492,17 @@
         // Prefer the raw slice (comments + exact quoting preserved) over
         // re-serializing the parsed task, which drops both.
         const incoming = raw ?? YAML_UTILS.stringify(newTask)
-        if (normalizeYaml(incoming) !== normalizeYaml(taskBaseline.value)) {
+        // In the block editor the Source tab shares its flow document with the
+        // Flow Code pane, so an edit in either must surface live in the other.
+        // While the panel holds focus the incoming value is only the echo of the
+        // user's own commit — adopting it would reset Monaco and their cursor —
+        // so it is kept out. Once focus is elsewhere the shared document wins and
+        // the slice is adopted verbatim, including the comment / quoting /
+        // formatting-only changes the drawer's semantic guard swallows.
+        const keepLocalEdit = props.presentation === "panel"
+            ? panelHasFocus.value
+            : normalizeYaml(incoming) === normalizeYaml(taskBaseline.value)
+        if (incoming !== taskYaml.value && !keepLocalEdit) {
             taskYaml.value = incoming
             taskBaseline.value = incoming
         }
