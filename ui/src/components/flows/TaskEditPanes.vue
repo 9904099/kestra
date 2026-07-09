@@ -4,12 +4,14 @@
             <template #label>
                 <span>{{ $t("form") }}</span>
             </template>
-            <TaskEditor
-                :modelValue="modelValue"
-                :section="section"
-                :hideRunButton="hideRunButton"
-                @update:model-value="(v) => emit('input', v ?? '')"
-            />
+            <div class="task-editor-pane">
+                <TaskEditor
+                    :modelValue="modelValue"
+                    :section="section"
+                    :hideRunButton="hideRunButton"
+                    @update:model-value="(v) => emit('input', v ?? '')"
+                />
+            </div>
         </KsTabPane>
         <KsTabPane name="source">
             <template #label>
@@ -76,5 +78,9 @@
 <style scoped lang="scss">
     .documentation {
         padding: var(--ks-spacing-4);
+    }
+
+    .task-editor-pane {
+        padding-right: var(--ks-spacing-3);
     }
 </style>
