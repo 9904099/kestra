@@ -408,14 +408,19 @@ function parsePath(path: string): string[] {
     return segments
 }
 
-let taskCounter = 0
-
 export function buildMinimalTask(fqcn: string, existingIds?: Set<string>): Record<string, unknown> {
     const parts = fqcn.split(".")
     const shortName = parts[parts.length - 1] ?? "task"
-    const baseId = shortName.toLowerCase().replace(/[^a-z0-9]+/g, "_") + "_" + Date.now().toString(36) + (++taskCounter).toString(36)
-    const id = existingIds ? uniqueId(baseId, existingIds) : baseId
+    const baseId = shortName.toLowerCase().replace(/[^a-z0-9]+/g, "_") || "task"
+    const id = existingIds ? nextAvailableId(baseId, existingIds) : baseId
     return {id, type: fqcn}
+}
+
+function nextAvailableId(baseId: string, existingIds: Set<string>): string {
+    if (!existingIds.has(baseId)) return baseId
+    let counter = 1
+    while (existingIds.has(`${baseId}_${counter}`)) counter++
+    return `${baseId}_${counter}`
 }
 
 // Whether the lane at parentPath is DAG-style (its items are {task, dependsOn}

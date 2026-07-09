@@ -957,26 +957,25 @@ tasks:
             expect(task.type).toBe("io.kestra.plugin.core.log.Log")
         })
 
-        it("generates an id based on the short class name", () => {
+        it("generates a clean id from the short class name", () => {
             // Given
 
             // When
             const task = buildMinimalTask("io.kestra.plugin.core.log.Log")
 
             // Then
-            expect(typeof task.id).toBe("string")
-            expect(String(task.id)).toMatch(/^log_/)
+            expect(task.id).toBe("log")
         })
 
-        it("generates a unique id on each call", () => {
+        it("suffixes with an incrementing number when the base id is taken", () => {
             // Given
+            const existingIds = new Set(["log", "log_1"])
 
             // When
-            const a = buildMinimalTask("io.kestra.plugin.core.log.Log")
-            const b = buildMinimalTask("io.kestra.plugin.core.log.Log")
+            const task = buildMinimalTask("io.kestra.plugin.core.log.Log", existingIds)
 
             // Then
-            expect(a.id).not.toBe(b.id)
+            expect(task.id).toBe("log_2")
         })
 
         it("inserted task produces valid YAML that parses correctly", () => {
@@ -994,17 +993,17 @@ tasks:
         })
 
         it("avoids id collisions against existing flow ids when existingIds is provided", () => {
-            // Given — craft a flow where the generated base id would collide
+            // Given — craft a flow that already owns the base id
             const collisionFlow = `
 id: my_flow
 namespace: company.team
 tasks:
-  - id: log_mqyyq7rf1
+  - id: log
     type: io.kestra.plugin.core.log.Log
 `.trim()
-            const existingIds = new Set(["log_mqyyq7rf1"])
+            const existingIds = new Set(["log"])
 
-            // When — build with the same base to force uniqueId to kick in
+            // When — build with the same base to force a numeric suffix
             const task = buildMinimalTask("io.kestra.plugin.core.log.Log", existingIds)
 
             // Then — the generated id is distinct from every id in existingIds
