@@ -700,7 +700,7 @@
     .task-edit-panes {
         flex: 1;
         min-height: 0;
-        padding: var(--ks-spacing-5) var(--ks-spacing-5) var(--ks-spacing-6);
+        padding: var(--ks-spacing-5) 0 var(--ks-spacing-6);
     }
 
     .task-edit-doc-body {

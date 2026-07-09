@@ -81,6 +81,7 @@
     }
 
     .task-editor-pane {
-        padding-right: var(--ks-spacing-3);
+        padding-left: var(--ks-spacing-5);
+        padding-right: var(--ks-spacing-5);
     }
 </style>

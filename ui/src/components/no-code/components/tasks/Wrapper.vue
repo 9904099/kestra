@@ -13,9 +13,9 @@
 
 <style scoped lang="scss">
 .schema-wrapper {
-    width: calc(100% + var(--ks-spacing-3));
-    padding-right: var(--ks-spacing-3);
-    padding-bottom: var(--ks-spacing-3);
+    margin-left: calc(-1 * var(--ks-spacing-5));
+    margin-right: calc(-1 * var(--ks-spacing-5));
+    padding: 0 var(--ks-spacing-5) var(--ks-spacing-3);
     margin-bottom: var(--ks-spacing-3);
     border-bottom: 1px solid var(--ks-border-subtle);
 }
