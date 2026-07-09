@@ -1,5 +1,5 @@
 <template>
-    <div class="wrapper" :class="{'wrapper--toggle': hasToggle}">
+    <div class="wrapper" :class="{'wrapper--toggle': hasToggle, 'wrapper--boolean': schema?.type === 'boolean'}">
         <KsDatePicker
             v-if="!pebble && schema?.format === 'date-time'"
             :modelValue="modelValue"
@@ -81,7 +81,7 @@
     const pebble = ref(false)
 
     const hasToggle = computed(() =>
-        ["duration", "date-time"].includes(props.schema?.format ?? "") || props.schema?.type === "boolean",
+        ["duration", "date-time"].includes(props.schema?.format ?? ""),
     )
 
     // Computed property for editor language
@@ -101,9 +101,7 @@
         const schema = props.schema
         if (!schema) return
 
-        if (schema.type === "boolean") {
-            pebble.value = typeof props.modelValue === "string" && props.modelValue !== ""
-        } else if (!["duration", "date-time"].includes(schema.format ?? "") || !props.modelValue) {
+        if (!["duration", "date-time"].includes(schema.format ?? "") || !props.modelValue) {
             pebble.value = false
         } else if (schema.format === "duration" && values.value) {
             pebble.value = !$moment.duration(props.modelValue as string).isValid()
@@ -160,6 +158,13 @@
 .wrapper:not(.wrapper--toggle):focus-within {
     border-color: var(--ks-border-focus);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--ks-border-focus) 22%, transparent);
+}
+
+.wrapper--boolean {
+    border: none;
+    overflow: visible;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .wrapper--toggle {
