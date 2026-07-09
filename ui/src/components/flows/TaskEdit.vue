@@ -685,6 +685,16 @@
         top: var(--ks-spacing-5);
         right: var(--ks-spacing-5);
         z-index: 1;
+        display: flex;
+        gap: var(--ks-spacing-2);
+    }
+
+    @container (max-width: 550px) {
+        .task-edit-params-toolbar {
+            position: static;
+            justify-content: flex-end;
+            padding: var(--ks-spacing-3) var(--ks-spacing-5) 0;
+        }
     }
 
     .task-edit-panes {
