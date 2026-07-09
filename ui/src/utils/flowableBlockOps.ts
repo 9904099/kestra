@@ -458,9 +458,13 @@ export function wrapAsDagTask(task: Record<string, unknown>): Record<string, unk
 // Anything without an "<id>:" head (pure flow-level errors) is skipped.
 export function groupValidationIssuesByTask(errors: string[] | undefined): Map<string, string[]> {
     const grouped = new Map<string, string[]>()
-    for (const raw of errors ?? []) {
-        const cleaned = raw.replace(/^\s*validation error\s*:\s*/i, "").trim()
-        const match = /^([A-Za-z0-9_-]+)(?:\.([A-Za-z0-9_.[\]-]+))?\s*:\s*(.+)$/s.exec(cleaned)
+    // A single entry can bundle several constraints separated by newlines (the
+    // backend joins them that way), so flatten to individual lines first.
+    const lines = (errors ?? []).flatMap(raw => raw.split(/[\r\n]+/))
+    for (const line of lines) {
+        const cleaned = line.replace(/^\s*validation error\s*:\s*/i, "").trim()
+        if (!cleaned) continue
+        const match = /^([A-Za-z0-9_-]+)(?:\.([A-Za-z0-9_.[\]-]+))?\s*:\s*(.+)$/.exec(cleaned)
         if (!match) continue
         const [, id, field, message] = match
         const entry = field ? `${field}: ${message.trim()}` : message.trim()
