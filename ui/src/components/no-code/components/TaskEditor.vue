@@ -336,6 +336,8 @@
                     version: taskModel.value?.version,
                 })
                 versionedSchema.value = schema?.properties
+            } catch {
+                versionedSchema.value = undefined
             } finally {
                 isPluginSchemaLoading.value = false
             }

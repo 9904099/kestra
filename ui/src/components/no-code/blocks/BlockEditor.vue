@@ -8,6 +8,7 @@
         :section="editingSection"
         :flowId="flowId"
         :namespace="namespace"
+        :editorKey="editingItemPath"
         :isHidden="true"
         presentation="panel"
         :hideTabstrip="true"

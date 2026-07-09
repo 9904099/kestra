@@ -46,7 +46,7 @@
                 :section="section"
                 :readOnly="readOnly"
                 :pluginMarkdown="pluginMarkdown"
-                :editorPath="currentTaskId"
+                :editorPath="editorUri"
                 @update:activeTab="activeTabs = $event"
                 @input="onInput"
                 @save="saveTask"
@@ -131,7 +131,7 @@
                     :section="section"
                     :readOnly="readOnly"
                     :pluginMarkdown="null"
-                    :editorPath="currentTaskId"
+                    :editorPath="editorUri"
                     :hideRunButton="true"
                     @update:activeTab="activeTabs = $event"
                     @input="onInput"
@@ -217,6 +217,7 @@
         size?: string;
         presentation?: "drawer" | "panel";
         hideTabstrip?: boolean;
+        editorKey?: string;
     }
 
     const props = withDefaults(defineProps<Props>(), {
@@ -234,6 +235,7 @@
         size: undefined,
         presentation: "drawer",
         hideTabstrip: false,
+        editorKey: undefined,
     })
 
     const emit = defineEmits<{
@@ -337,6 +339,11 @@
     }
 
     const currentTaskId = computed(() => String(props.taskId ?? props.task?.id ?? ""))
+
+    // Monaco keys its model off this: it must stay stable while the id is being
+    // edited (otherwise the model is swapped mid-edit and the cursor resets), so
+    // prefer the caller's stable key (the block's path) over the mutable id.
+    const editorUri = computed(() => props.editorKey || currentTaskId.value)
 
     const inputSections = computed(() => {
         const flow = flowStore.flowParsed ?? {}
@@ -457,7 +464,7 @@
         }
         taskBaseline.value = taskYaml.value
         if (props.task?.type) {
-            pluginsStore.load({cls: props.task.type})
+            pluginsStore.load({cls: props.task.type}).catch(() => {})
         }
     }
 
@@ -533,7 +540,7 @@
         }
         const taskType = newTask?.type ?? YAML_UTILS.parse(incoming)?.type
         if (taskType) {
-            await pluginsStore.load({cls: taskType})
+            await pluginsStore.load({cls: taskType}).catch(() => {})
         }
     }, {immediate: true})
 
@@ -545,7 +552,7 @@
             // Debounced: typing the type in Source changes it per keystroke, and
             // loading each partial fqcn ("io", "io.k", …) 404s.
             clearTimeout(typeLoadTimer.value)
-            typeLoadTimer.value = setTimeout(() => pluginsStore.load({cls: task.type}), 500)
+            typeLoadTimer.value = setTimeout(() => pluginsStore.load({cls: task.type}).catch(() => {}), 500)
         }
     })
 
