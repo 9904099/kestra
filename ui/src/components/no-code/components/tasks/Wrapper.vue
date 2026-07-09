@@ -13,7 +13,8 @@
 
 <style scoped lang="scss">
 .schema-wrapper {
-    width: 100%;
+    width: calc(100% + var(--ks-spacing-3));
+    padding-right: var(--ks-spacing-3);
     padding-bottom: var(--ks-spacing-3);
     margin-bottom: var(--ks-spacing-3);
     border-bottom: 1px solid var(--ks-border-subtle);
