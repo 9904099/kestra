@@ -192,7 +192,12 @@
     })
 
     const isBoolean = computed(() => {
-        return type.value === "boolean"
+        if (simpleType.value === "boolean") return true
+        // A boolean is usually declared as anyOf[boolean, string] so it can also
+        // hold an expression; render it as a plain switch on the label line too.
+        const anyOf = props.schema?.anyOf
+        if (!Array.isArray(anyOf) || anyOf.length !== 2) return false
+        return anyOf.some(s => s.type === "boolean") && anyOf.some(s => s.type === "string" && !s.format)
     })
 
     const simpleType = computed(() => {
