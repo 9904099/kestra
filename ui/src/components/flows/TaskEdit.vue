@@ -181,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-    import {ref, computed, watch, onMounted} from "vue"
+    import {ref, computed, watch, onMounted, onBeforeUnmount, onDeactivated} from "vue"
     import {useI18n} from "vue-i18n"
     import {SECTIONS, KsTaskIcon, KsIconButton, KsMarkdown, KsDrawer} from "@kestra-io/design-system"
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
@@ -566,6 +566,12 @@
     onMounted(() => {
         if (props.presentation === "panel") onShow()
     })
+
+    // Switching tabs (or closing the pane) within the 500ms input debounce
+    // would silently drop the user's last keystrokes — commit them on the way
+    // out, exactly like a save does.
+    onBeforeUnmount(flushPendingEdit)
+    onDeactivated(flushPendingEdit)
 
     defineExpose({open: onShow, flushPendingEdit})
 </script>
