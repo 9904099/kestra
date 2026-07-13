@@ -27,7 +27,11 @@
     <div v-else-if="isNestedObject" class="nested-card">
         <div class="nested-card-head">
             <span class="nested-card-label">{{ fieldKey }}</span>
-            <span class="type-pill">{{ simpleType }}</span>
+            <ClearButton
+                v-if="isAnyOf && !isRequired && hasSelectedASchema"
+                @click="modelValue = undefined; taskComponent?.resetSelectType?.();"
+            />
+            <span v-if="!isAnyOf" class="type-pill">{{ simpleType }}</span>
             <KsTooltip
                 v-if="hasTooltip && !inlineHelp"
                 placement="left-start"
@@ -243,10 +247,21 @@
     const inlineHelp = computed(() => Boolean(fieldNav))
     const inlineHelpText = computed(() => props.schema?.description || props.schema?.title || "")
 
+    // An anyOf whose variants are all objects (e.g. retry's
+    // Constant/Exponential/Random) is structurally an object: contain it in
+    // the same nested card as complex/object fields. Scalar anyOf (e.g. a
+    // string/array message) keeps the plain label-row presentation.
+    const isObjectAnyOf = computed(() => {
+        const anyOf = props.schema?.anyOf
+        if (!Array.isArray(anyOf) || anyOf.length === 0) return false
+        return anyOf.every((s: any) => s.$ref || s.allOf || s.type === "object")
+    })
+
     const isNestedObject = computed(() =>
         Boolean(props.fieldKey)
         && !inlineMode
-        && (simpleType.value === "complex" || simpleType.value === "object"),
+        && (simpleType.value === "complex" || simpleType.value === "object"
+            || (simpleType.value === "any-of" && isObjectAnyOf.value)),
     )
 
     /**
