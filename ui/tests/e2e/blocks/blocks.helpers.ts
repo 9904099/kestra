@@ -19,6 +19,22 @@ export async function waitForMonacoStable(page: Page, scope: Page | Locator = pa
     }).toPass({timeout: 10000})
 }
 
+// Click a Monaco field and PROVE the click took the focus before typing —
+// the dock's async side-effects (plugin-doc auto-open, schema re-render) can
+// steal focus right between a click and the first keystroke, silently sending
+// the whole edit nowhere.
+export async function replaceMonacoContent(page: Page, editor: Locator, text: string) {
+    await expect(async () => {
+        await editor.click()
+        await expect(editor.locator("textarea.inputarea")).toBeFocused({timeout: 1000})
+        await page.keyboard.press("ControlOrMeta+a")
+        await page.keyboard.insertText(text)
+        // Prove the edit LANDED — an async form re-render can recreate the
+        // editor right under a keystroke and silently swallow it.
+        await expect(editor).toContainText(text.split("\n")[0], {timeout: 1000})
+    }).toPass({timeout: 15000})
+}
+
 export async function login(page: Page) {
     await page.goto("/ui")
     await page.getByRole("textbox", {name: "Email"}).fill(shared.username)
@@ -106,7 +122,20 @@ export async function pickTask(page: Page, search: string, optionTitle: string) 
     await expect(input).toBeHidden()
 }
 
+// Opening a block lands it as a same-place tab in the shared dock (the
+// intended default — see "opening blocks by default lands them as same-place
+// tabs"), hiding the canvas behind its own "No-code" tab. This returns the
+// user to the canvas, like clicking that tab for real.
+export async function backToCanvas(page: Page) {
+    await page.getByRole("tab", {name: /No-code/}).click()
+    await expect(page.locator("[data-test='block-editor-canvas']")).toBeVisible()
+}
+
 export async function saveFlow(page: Page) {
+    // A toast from an earlier save could satisfy the visibility check before
+    // this save's round-trip completes — let it dismiss first.
+    await page.getByText("Successfully saved", {exact: false}).first()
+        .waitFor({state: "hidden", timeout: 10000}).catch(() => {})
     await page.keyboard.press("ControlOrMeta+s")
     await expect(page.getByText("Successfully saved", {exact: false}).first()).toBeVisible()
 }
@@ -130,10 +159,18 @@ export async function canvasCardIds(page: Page): Promise<string[]> {
 // Top-level task ids in persisted YAML order — scoped to the `tasks:` block so
 // a same-indent `triggers:`/`errors:`/`finally:` entry is never mistaken for one.
 export function taskIdsInOrder(source: string): string[] {
-    const start = source.indexOf("\ntasks:")
+    return sectionTaskIds(source, "tasks")
+}
+
+// Same, generalized to any top-level task-list section (errors, finally,
+// afterExecution, triggers).
+export function sectionTaskIds(source: string, section: string): string[] {
+    const withLeadingNewline = `\n${source}`
+    const start = withLeadingNewline.indexOf(`\n${section}:`)
     if (start < 0) return []
-    const rest = source.slice(start + 1)
-    const nextTopLevelKey = rest.slice(6).search(/\n\S/)
-    const block = nextTopLevelKey < 0 ? rest : rest.slice(0, nextTopLevelKey + 6)
+    const rest = withLeadingNewline.slice(start + 1)
+    const headerLength = section.length + 1
+    const nextTopLevelKey = rest.slice(headerLength).search(/\n\S/)
+    const block = nextTopLevelKey < 0 ? rest : rest.slice(0, nextTopLevelKey + headerLength)
     return [...block.matchAll(/^ {2}- id: (\S+)/gm)].map(m => m[1])
 }

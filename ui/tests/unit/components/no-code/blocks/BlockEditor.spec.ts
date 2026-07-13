@@ -374,7 +374,7 @@ describe("BlockEditor", () => {
             expect(ids).toContain("webhook")
         })
 
-        it("renders all four section cards even when the flow is empty", () => {
+        it("renders all six section cards even when the flow is empty", () => {
             // Given
             mockFlowYaml.value = EMPTY_YAML
 
@@ -382,7 +382,8 @@ describe("BlockEditor", () => {
             wrapper = mount(BlockEditor, makeConfig())
 
             // Then
-            expect(wrapper.findAll("[data-test^='block-section-']").length).toBe(4)
+            // flow, triggers, tasks, errors, finally, afterExecution
+            expect(wrapper.findAll("[data-test^='block-section-']").length).toBe(6)
             expect(wrapper.findAll("[data-test='block-card']").length).toBe(0)
             expect(wrapper.find("[data-test='block-editor-add-task']").exists()).toBe(true)
         })

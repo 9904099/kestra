@@ -125,8 +125,9 @@ test.describe("Block editor — mutations & split view", () => {
         await expect(menuInput).toBeFocused()
 
         await menuInput.fill("errors")
-        await expect(page.getByText("Go to Errors", {exact: true})).toBeVisible()
-        await page.keyboard.press("Enter")
+        // "errors" also matches "Insert Errors" (which now precedes goto in the
+        // list) — activate the goto entry itself, like a user clicking it.
+        await page.getByText("Go to Errors", {exact: true}).click()
 
         await expectRing(page, "__section:errors")
     })

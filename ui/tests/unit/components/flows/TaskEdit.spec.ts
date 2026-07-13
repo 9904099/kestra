@@ -32,6 +32,13 @@ vi.mock("../../../../src/stores/flow", () => ({
     }),
 }))
 
+vi.mock("../../../../src/composables/playground/usePlaygroundRun", () => ({
+    usePlaygroundRun: () => ({
+        runTask: vi.fn(),
+        playgroundStore: {enabled: false},
+    }),
+}))
+
 vi.mock("../../../../src/components/flows/TaskEditPanes.vue", () => ({
     default: {name: "TaskEditPanes", props: ["modelValue", "activeTab", "section", "readOnly", "pluginMarkdown", "editorPath"], template: "<div data-test='task-edit-panes' />"},
 }))

@@ -1,6 +1,6 @@
 import {expect, test, type Page} from "@playwright/test"
 import {FlowsApi} from "../api/flows.api"
-import {fetchFlowSource, login, openBlockEditor, saveFlow, walkTo, waitForMonacoStable} from "./blocks.helpers"
+import {backToCanvas, fetchFlowSource, login, openBlockEditor, replaceMonacoContent, saveFlow, walkTo, waitForMonacoStable} from "./blocks.helpers"
 
 // Editing a task through the dock: every input family of the generated form
 // (text via the inline Monaco fields, enum select, segmented String/Array,
@@ -55,11 +55,11 @@ test.describe("Block editor — form editing", () => {
     test("renames the task id from the form and the canvas card follows", async ({page, request, baseURL}) => {
         await openDock(page, "middle_task")
 
-        const idField = formMonacoField(page, 0)
-        await idField.click()
-        await page.keyboard.press("ControlOrMeta+a")
-        await page.keyboard.type("renamed_task")
+        await replaceMonacoContent(page, formMonacoField(page, 0), "renamed_task")
 
+        // The canvas sits behind its own tab while the task is open — coming
+        // back to it shows the renamed card
+        await backToCanvas(page)
         await expect(page.locator("[data-block-id='renamed_task']")).toBeVisible()
 
         await saveFlow(page)
@@ -71,10 +71,7 @@ test.describe("Block editor — form editing", () => {
     test("edits the message field and persists it", async ({page, request, baseURL}) => {
         await openDock(page, "middle_task")
 
-        const messageField = formMonacoField(page, 1)
-        await messageField.click()
-        await page.keyboard.press("ControlOrMeta+a")
-        await page.keyboard.type("changed by e2e")
+        await replaceMonacoContent(page, formMonacoField(page, 1), "changed by e2e")
 
         await saveFlow(page)
         const source = await fetchFlowSource(request, baseURL!, flowId)
@@ -88,7 +85,7 @@ test.describe("Block editor — form editing", () => {
         // The radio input itself is a zero-size a11y node — its .kel-segmented
         // wrapper label is the visible, clickable surface.
         await pane.getByRole("radio", {name: "Array"}).locator("..").click()
-        await expect(pane.getByRole("button", {name: "+ Add a new value"}).first()).toBeVisible()
+        await expect(pane.getByRole("button", {name: "+ Add to message"}).first()).toBeVisible()
 
         await pane.getByRole("radio", {name: "String"}).locator("..").click()
         await expect(pane.getByRole("radio", {name: "String"})).toBeChecked()
@@ -137,12 +134,11 @@ test.describe("Block editor — form editing", () => {
 
         await pane.getByText("Source", {exact: true}).click()
         await waitForMonacoStable(page, pane)
-        const editor = pane.locator(".task-edit-col-params .monaco-editor:visible").first()
-        await editor.click()
-        await page.keyboard.press("ControlOrMeta+a")
-        await page.keyboard.insertText("id: source_edited\ntype: io.kestra.plugin.core.log.Log\nmessage: from source tab")
+        await replaceMonacoContent(page, pane.locator(".task-edit-col-params .monaco-editor:visible").first(),
+            "id: source_edited\ntype: io.kestra.plugin.core.log.Log\nmessage: from source tab")
 
         // The canvas card renames once the debounced sync lands
+        await backToCanvas(page)
         await expect(page.locator("[data-block-id='source_edited']")).toBeVisible()
 
         await saveFlow(page)
@@ -155,15 +151,15 @@ test.describe("Block editor — form editing", () => {
         // Regression: the Source tabs of two open tasks used to share one
         // Monaco model, silently overwriting each other.
         await openDock(page, "middle_task")
+        await backToCanvas(page)
         await page.locator("[data-block-id='last_task']").click()
         await expect(page.getByRole("tab", {name: /last_task/})).toBeVisible()
 
         const lastPane = page.locator("[data-test='block-editor-task-edit']")
         await lastPane.getByText("Source", {exact: true}).click()
         await waitForMonacoStable(page, lastPane)
-        await lastPane.locator(".task-edit-col-params .monaco-editor:visible").first().click()
-        await page.keyboard.press("ControlOrMeta+a")
-        await page.keyboard.insertText("id: last_task\ntype: io.kestra.plugin.core.log.Log\nmessage: only last changed")
+        await replaceMonacoContent(page, lastPane.locator(".task-edit-col-params .monaco-editor:visible").first(),
+            "id: last_task\ntype: io.kestra.plugin.core.log.Log\nmessage: only last changed")
 
         await saveFlow(page)
         const source = await fetchFlowSource(request, baseURL!, flowId)
@@ -179,21 +175,17 @@ test.describe("Block editor — form editing", () => {
         const pane = page.locator("[data-test='block-editor-task-edit']")
         await pane.getByText("Source", {exact: true}).click()
         await waitForMonacoStable(page, pane)
-        await pane.locator(".task-edit-col-params .monaco-editor:visible").first().click()
-        await page.keyboard.press("ControlOrMeta+a")
-        await page.keyboard.insertText("id: middle_task\ntype: io.kestra.plugin.core.log.Log\nmessage: duplicate id")
+        await replaceMonacoContent(page, pane.locator(".task-edit-col-params .monaco-editor:visible").first(),
+            "id: middle_task\ntype: io.kestra.plugin.core.log.Log\nmessage: duplicate id")
 
         // Both cards render, disambiguated by 0-based tasks[] index (last_task
-        // sits at index 2) — wait for the debounced sync before backing out,
-        // or Escape can close the pane before the rename commits
+        // sits at index 2)
+        await backToCanvas(page)
         await expect(page.locator("[data-block-id='middle_task#2']")).toBeVisible()
-        await page.keyboard.press("Escape")
-        await page.keyboard.press("Escape")
-
         await expect(page.locator("[data-block-id='middle_task']")).toBeVisible()
 
-        // Focusing one via click rings only that one, not the other
-        await page.locator("[data-block-id='middle_task#2']").click()
+        // Walking the ring onto one rings only that one, not the other
+        await walkTo(page, "middle_task#2")
         await expect(page.locator(".block-kbd-focused")).toHaveCount(1)
     })
 })

@@ -1,6 +1,6 @@
 import {expect, test} from "@playwright/test"
 import {FlowsApi} from "../api/flows.api"
-import {expectRing, login, openBlockEditor, ringId, walkTo} from "./blocks.helpers"
+import {backToCanvas, expectRing, login, openBlockEditor, ringId, walkTo} from "./blocks.helpers"
 
 // Keyboard-only navigation across the whole block editor canvas: the flow is
 // the blocks-canvas fixture (trigger, Sequential with two children plus its
@@ -33,6 +33,7 @@ test.describe("Block editor — keyboard navigation", () => {
             "last_task",
             "__section:errors",
             "__section:finally",
+            "__section:afterExecution",
             "schedule_trigger", // wrap-around
         ]
         for (const stop of expected) {
@@ -42,6 +43,8 @@ test.describe("Block editor — keyboard navigation", () => {
     })
 
     test("walks backwards from the bottom with ArrowUp", async ({page}) => {
+        await page.keyboard.press("ArrowUp")
+        await expectRing(page, "__section:afterExecution")
         await page.keyboard.press("ArrowUp")
         await expectRing(page, "__section:finally")
         await page.keyboard.press("ArrowUp")
@@ -92,7 +95,11 @@ test.describe("Block editor — keyboard navigation", () => {
     })
 
     test("clicking a card syncs the keyboard focus ring onto it", async ({page}) => {
+        // Clicking selects AND opens the block as a same-place tab; the ring
+        // is the canvas's memory of the click once the user comes back to it.
         await page.locator("[data-block-id='middle_task']").click()
+        await expect(page.getByRole("tab", {name: /middle_task/})).toBeVisible()
+        await backToCanvas(page)
         await expectRing(page, "middle_task")
 
         // and keyboard navigation continues from there

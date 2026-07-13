@@ -31,6 +31,9 @@ canvas shape the suite needs to walk and mutate:
 | `blocks-insert.spec.ts` | Every insertion entry point |
 | `blocks-edit-forms.spec.ts` | Every generated-form input family |
 | `blocks-mutations.spec.ts` | Duplicate, delete, reorder, split view, command menu, save |
+| `blocks-dag.spec.ts` | DAG `{task, dependsOn}` wrapper rendering and editing |
+| `blocks-after-execution.spec.ts` | The afterExecution section: render, walk, insert, edit, duplicate/delete, command-menu goto |
+| `blocks-flow-properties.spec.ts` | The flow properties panel: every flow-level field, per-family edits, disabled tooltip, add-to labels |
 | `blocks.helpers.ts` | Shared login/open/ring/insert/save/fetch-YAML helpers |
 
 ## Coverage detail
@@ -129,6 +132,27 @@ to.
   `useKeyboardSave()` isn't mounted on this route, so the footer's
   advertised shortcut did nothing. Added a `save` case to
   `dispatchBlockEditorAction`.
+
+## Suite-hardening lessons (2026-07-13)
+
+- **Opening a block lands it as a same-place tab** (the intended default,
+  asserted by its own test) — the canvas hides behind its own "No-code" tab.
+  Any assertion about the canvas after opening/editing a block must go through
+  `backToCanvas()` first; the pre-merge tests assumed a permanently visible
+  canvas and rotted silently.
+- **Cold-load form re-render swallows fast typing**: on a fresh browser
+  context the plugin schema loads after the form first paints; the re-render
+  recreates the Monaco fields and DISCARDS anything typed in the gap. A warm
+  browser never reproduces it — only fresh test contexts do.
+  `replaceMonacoContent()` types, verifies the text landed, and retries;
+  app-side, `TaskEdit` now flushes its pending edit on tab deactivation.
+- **`saveFlow()` waits out any previous "Successfully saved" toast** before
+  saving, otherwise a stale toast satisfies the check while the new save is
+  still in flight and the follow-up YAML fetch reads the previous revision.
+- **quotas** is advertised by the OSS flow schema but rejected by the OSS
+  executor at runtime (EE feature) in a way that poison-pills the queue and
+  crash-loops the server on every boot — the flow properties panel
+  deliberately does not offer it, and a test pins that.
 
 ## Known gaps / follow-ups
 
