@@ -55,7 +55,9 @@
         "retry",
         "sla",
         "checks",
-        "quotas",
+        // quotas is deliberately absent: the OSS schema advertises it but the
+        // OSS executor rejects it at runtime (EE feature) in a way that
+        // crash-loops the server — don't offer it until the backend guards it.
         "pluginDefaults",
         "workerSelector",
         "disabled",
