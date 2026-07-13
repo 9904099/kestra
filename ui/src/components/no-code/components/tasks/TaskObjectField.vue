@@ -193,17 +193,20 @@
     })
 
     const hasTooltip = computed(() => {
-        return props.schema?.title || props.schema?.description
+        return props.schema?.title || props.schema?.description || props.schema?.markdownDescription
     })
 
+    // The JSON-schema generator emits descriptions as markdownDescription;
+    // plain description only exists on hand-written schemas.
     const helpText = computed(() => {
         const schema = props.schema
         if (!schema) return ""
 
+        const description = schema.description || schema.markdownDescription
         return (
             (schema.title ? "**" + schema.title + "**" : "") +
-            (schema.title && schema.description ? "\n" : "") +
-            (schema.description ? schema.description : "")
+            (schema.title && description ? "\n" : "") +
+            (description ? description : "")
         )
     })
 
@@ -245,7 +248,7 @@
     const fieldNav = inject(FIELD_NAV_INJECTION_KEY, undefined)
 
     const inlineHelp = computed(() => Boolean(fieldNav))
-    const inlineHelpText = computed(() => props.schema?.description || props.schema?.title || "")
+    const inlineHelpText = computed(() => props.schema?.description || props.schema?.markdownDescription || props.schema?.title || "")
 
     // An anyOf whose variants are all objects (e.g. retry's
     // Constant/Exponential/Random) is structurally an object: contain it in
