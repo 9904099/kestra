@@ -13,7 +13,6 @@
                     v-for="field in fields"
                     :key="field.fieldKey"
                     :merge="shouldMerge(field.schema)"
-                    :transparent="field.fieldKey === 'inputs'"
                 >
                     <template #tasks>
                         <TaskObjectField
