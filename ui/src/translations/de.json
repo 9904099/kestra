@@ -1438,6 +1438,7 @@
           "labels": "Labels",
           "listeners": "Listener",
           "outputs": "Ausgaben",
+          "quotas": "Kontingente",
           "retry": "Wiederholen",
           "sla": "SLA",
           "taskDefaults": "Standardwerte für Tasks",
@@ -1474,6 +1475,7 @@
         "deprecated": "Veraltete Eigenschaften",
         "errors": "Fehlerbehandler",
         "finally": "Schließlich",
+        "flow": "Flow",
         "pluginDefaults": "Plugin-Standardeinstellungen",
         "tasks": "Aufgaben",
         "triggers": "Trigger"

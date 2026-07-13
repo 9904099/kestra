@@ -1,32 +1,34 @@
 <template>
-    <div @click="handleClick" class="d-flex my-2 p-2 rounded element" :class="{'moved': moved}">
-        <div v-if="!['inputs', 'layout'].includes(props.parentPathComplete)" class="me-2 icon">
+    <div @click="handleClick" class="d-flex align-items-center my-2 p-2 rounded element" :class="{'moved': moved}">
+        <div v-if="!['inputs', 'layout'].includes(props.parentPathComplete)" class="icon">
             <TaskIcon v-if="!isPlaceholder" :cls="element.type" :loadIcon="pluginsStore.loadIcon" onlyIcon />
             <PlusBoxOutline v-else class="placeholder-icon" />
         </div>
 
-        <div class="flex-grow-1 label" :class="{placeholder: isPlaceholder}">
-            {{ isPlaceholder ? placeholderLabel : (title ?? identifier) }}
+        <div class="flex-grow-1 body" :class="{placeholder: isPlaceholder}">
+            <span class="label">{{ mainLabel }}</span>
+            <span v-if="showType" class="type">{{ typeLabel }}</span>
         </div>
 
-        <button v-if="playgroundStore.enabled && element.id && isTask" @click.stop="playgroundStore.runUntilTask(element.id)" type="button" class="playground-run-task">
-            <PlayIcon :size="4" />
-        </button>
-
-        <button
-            v-if="!isPlaceholder"
-            class="delete-element"
-            type="button"
-            @click.prevent.stop="emits('removeElement')"
-        >
-            <DeleteOutline />
-        </button>
-        <div v-if="elementIndex !== undefined" class="d-flex flex-column">
-            <KsIconButton :tooltip="t('block_editor.move_up')" @click.prevent.stop="emits('moveElement', 'up')">
-                <ChevronUp />
+        <div v-if="!isPlaceholder" class="actions">
+            <KsIconButton
+                v-if="playgroundStore.enabled && element.id && isTask"
+                :tooltip="t('playground.run_task')"
+                type="primary"
+                @click.prevent.stop="playgroundStore.runUntilTask(element.id)"
+            >
+                <PlayIcon />
             </KsIconButton>
-            <KsIconButton :tooltip="t('block_editor.move_down')" @click.prevent.stop="emits('moveElement', 'down')">
-                <ChevronDown />
+            <template v-if="elementIndex !== undefined">
+                <KsIconButton :tooltip="t('block_editor.move_up')" @click.prevent.stop="emits('moveElement', 'up')">
+                    <ChevronUp />
+                </KsIconButton>
+                <KsIconButton :tooltip="t('block_editor.move_down')" @click.prevent.stop="emits('moveElement', 'down')">
+                    <ChevronDown />
+                </KsIconButton>
+            </template>
+            <KsIconButton class="delete-action" :tooltip="t('delete')" @click.prevent.stop="emits('removeElement')">
+                <DeleteOutline class="delete-icon" />
             </KsIconButton>
         </div>
     </div>
@@ -92,6 +94,15 @@
         return human ? t("no_code.add_field", {field: human}) : t("add")
     })
 
+    const mainLabel = computed(() => isPlaceholder.value ? placeholderLabel.value : (props.title ?? identifier.value))
+
+    const typeLabel = computed(() => {
+        const value = elementValue.value
+        return typeof value === "string" ? value.split(".").pop() : undefined
+    })
+
+    const showType = computed(() => !isPlaceholder.value && !!typeLabel.value && typeLabel.value !== mainLabel.value)
+
     const handleClick = () => {
         editTask(
             props.parentPathComplete,
@@ -106,6 +117,7 @@
 
 .element {
     cursor: pointer;
+    gap: var(--ks-spacing-2);
     background-color: $code-card-color;
     border: 1px solid $code-border-color;
     transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
@@ -115,7 +127,9 @@
     }
 
     & > .icon {
-        width: 1.25rem;
+        flex: 0 0 auto;
+        width: 1.75rem;
+        height: 1.75rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -127,11 +141,26 @@
         }
     }
 
-    & > .label {
-        color: inherit;
-        font-size: $code-font-sm;
+    & > .body {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
 
-        &.placeholder {
+        .label {
+            color: inherit;
+            font-size: $code-font-sm;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .type {
+            color: var(--ks-text-secondary);
+            font-size: var(--ks-font-size-xs);
+        }
+
+        &.placeholder .label {
             color: var(--ks-text-link);
         }
     }
@@ -141,23 +170,24 @@
         border-color: var(--ks-border-focus);
     }
 
-    .playground-run-task{
-        color: var(--ks-btn-primary-text);
-        background-color: var(--ks-btn-primary-bg-default);
-        height: 16px;
-        width: 16px;
+    .actions {
+        flex: 0 0 auto;
         display: flex;
         align-items: center;
-        justify-content: center;
-        margin-top: 4px;
-        padding: 0;
-        border: none;
+        gap: var(--ks-spacing-1);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s ease-in-out;
     }
 
-    .delete-element {
-        color: var(--ks-btn-primary-text);
-        border: none;
-        background-color: transparent;
+    &:hover .actions,
+    &:focus-within .actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .delete-action:hover .delete-icon {
+        color: var(--ks-text-error);
     }
 }
 </style>

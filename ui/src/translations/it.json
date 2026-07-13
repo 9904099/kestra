@@ -1438,6 +1438,7 @@
           "labels": "Etichette",
           "listeners": "Ascoltatori",
           "outputs": "Output",
+          "quotas": "Quote",
           "retry": "Riprova",
           "sla": "SLA",
           "taskDefaults": "Predefiniti Task",
@@ -1474,6 +1475,7 @@
         "deprecated": "Proprietà deprecate",
         "errors": "Gestori degli Errori",
         "finally": "Infine",
+        "flow": "Flow",
         "pluginDefaults": "Predefiniti del Plugin",
         "tasks": "Attività",
         "triggers": "Trigger"

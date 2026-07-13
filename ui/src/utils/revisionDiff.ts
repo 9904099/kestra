@@ -1,6 +1,6 @@
 import {flowYamlUtils} from "@kestra-io/topology"
 
-export type BlockSection = "tasks" | "triggers" | "errors" | "finally"
+export type BlockSection = "tasks" | "triggers" | "errors" | "finally" | "afterExecution"
 
 export type BlockChangeType = "added" | "removed" | "modified" | "unchanged"
 
@@ -23,7 +23,7 @@ export interface RevisionDiff {
     hasChanges: boolean
 }
 
-const SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally"]
+const SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally", "afterExecution"]
 
 function blockListFromSection(flow: Record<string, unknown>, section: BlockSection): Record<string, unknown>[] {
     const raw = flow[section]

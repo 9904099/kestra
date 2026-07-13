@@ -101,6 +101,19 @@ finally:
     message: cleanup
 `.trim()
 
+const FLOW_WITH_AFTER_EXECUTION = `
+id: my_flow
+namespace: company.team
+tasks:
+  - id: log
+    type: io.kestra.plugin.core.log.Log
+    message: ok
+afterExecution:
+  - id: notify
+    type: io.kestra.plugin.core.log.Log
+    message: done
+`.trim()
+
 describe("computeRevisionDiff", () => {
     describe("identical revisions", () => {
         it("shouldReturnNoChangesWhenSourcesAreIdentical", () => {
@@ -220,6 +233,21 @@ describe("computeRevisionDiff", () => {
             const cleanupDiff = result.blockDiffs.find(d => d.id === "cleanup")
             expect(cleanupDiff?.section).toBe("finally")
             expect(cleanupDiff?.changeType).toBe("added")
+        })
+    })
+
+    describe("afterExecution section", () => {
+        it("shouldDetectBlocksInAfterExecutionSection", () => {
+            // Given
+            const flowWithoutAfterExecution = FLOW_WITH_AFTER_EXECUTION.replace(/afterExecution:[\s\S]*$/, "").trim()
+
+            // When
+            const result = computeRevisionDiff(flowWithoutAfterExecution, FLOW_WITH_AFTER_EXECUTION)
+
+            // Then
+            const notifyDiff = result.blockDiffs.find(d => d.id === "notify")
+            expect(notifyDiff?.section).toBe("afterExecution")
+            expect(notifyDiff?.changeType).toBe("added")
         })
     })
 

@@ -1438,6 +1438,7 @@
           "labels": "Étiquettes",
           "listeners": "Auditeurs",
           "outputs": "Sorties",
+          "quotas": "Quotas",
           "retry": "Réessayer",
           "sla": "SLA",
           "taskDefaults": "Paramètres par défaut des Tasks",
@@ -1474,6 +1475,7 @@
         "deprecated": "Propriétés obsolètes",
         "errors": "Gestionnaires d'erreurs",
         "finally": "Enfin",
+        "flow": "Flow",
         "pluginDefaults": "Paramètres par défaut du plugin",
         "tasks": "Tâches",
         "triggers": "Déclencheurs"

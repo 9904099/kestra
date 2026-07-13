@@ -4,7 +4,7 @@
             <div class="block-section-title">
                 <component :is="icon" class="block-section-ico" />
                 <span class="block-section-title-text">{{ title }}</span>
-                <span class="block-section-count" :class="{'block-section-count--active': count > 0}">{{ count }}</span>
+                <span v-if="!hideCount" class="block-section-count" :class="{'block-section-count--active': count > 0}">{{ count }}</span>
             </div>
 
             <button
@@ -15,7 +15,7 @@
                 :title="addLabel"
                 @click="emit('add', $event)"
             >
-                <Plus class="block-section-add-ico" />
+                <component :is="actionIcon ?? Plus" class="block-section-add-ico" />
                 <span class="block-section-add-label">{{ addLabel }}</span>
             </button>
         </header>
@@ -38,8 +38,11 @@
         addLabel: string
         tone?: "default" | "error" | "warning"
         addTest?: string
+        actionIcon?: Component
+        hideCount?: boolean
     }>(), {
         tone: "default",
+        hideCount: false,
     })
 
     const emit = defineEmits<{

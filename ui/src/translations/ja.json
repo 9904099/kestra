@@ -1438,6 +1438,7 @@
           "labels": "ラベル",
           "listeners": "リスナー",
           "outputs": "出力",
+          "quotas": "クォータ",
           "retry": "リトライ",
           "sla": "SLA",
           "taskDefaults": "タスクデフォルト",
@@ -1474,6 +1475,7 @@
         "deprecated": "非推奨プロパティ",
         "errors": "エラーハンドラー",
         "finally": "最後に",
+        "flow": "Flow",
         "pluginDefaults": "プラグインデフォルト",
         "tasks": "タスク",
         "triggers": "トリガー"

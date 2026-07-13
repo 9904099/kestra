@@ -1,6 +1,6 @@
 import {flowYamlUtils} from "@kestra-io/topology"
 
-export type BlockSection = "tasks" | "triggers" | "errors" | "finally"
+export type BlockSection = "tasks" | "triggers" | "errors" | "finally" | "afterExecution"
 
 const FLOWABLE_BRANCH_KEYS = ["tasks", "then", "else", "errors", "finally", "defaults", "cases"] as const
 

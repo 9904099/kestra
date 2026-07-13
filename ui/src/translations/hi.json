@@ -1438,6 +1438,7 @@
           "labels": "लेबल्स",
           "listeners": "श्रोता",
           "outputs": "आउटपुट्स",
+          "quotas": "कोटा",
           "retry": "पुनः प्रयास करें",
           "sla": "SLA",
           "taskDefaults": "डिफ़ॉल्ट Task",
@@ -1474,6 +1475,7 @@
         "deprecated": "अप्रचलित गुण",
         "errors": "त्रुटि हैंडलर्स",
         "finally": "अंत में",
+        "flow": "Flow",
         "pluginDefaults": "डिफ़ॉल्ट प्लगइन",
         "tasks": "कार्य",
         "triggers": "ट्रिगर्स"

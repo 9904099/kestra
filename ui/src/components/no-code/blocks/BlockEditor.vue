@@ -16,6 +16,11 @@
         @update:task="onInlineTaskEdited"
         @close="emit('closeTask')"
     />
+    <FlowPropertiesEdit
+        v-else-if="editingFlow"
+        class="block-editor-inline-edit"
+        @close="editingFlow = false"
+    />
     <div
         v-else
         ref="editorEl"
@@ -37,6 +42,31 @@
                         :aria-label="t('block_editor.canvas_aria')"
                         @focus="onCanvasEntryFocus"
                     >
+                        <BlockSectionCard
+                            name="flow"
+                            :title="t('no_code.sections.flow')"
+                            :icon="FlowIcon"
+                            :actionIcon="Cog"
+                            hideCount
+                            :count="0"
+                            :addLabel="t('block_editor.configure')"
+                            addTest="block-editor-configure-flow"
+                            @add="editingFlow = true"
+                        >
+                            <button
+                                type="button"
+                                class="flow-summary"
+                                data-test="block-editor-flow-summary"
+                                @click="editingFlow = true"
+                            >
+                                <span class="flow-summary-path">{{ namespace }} / {{ flowId }}</span>
+                                <span v-if="flowDescription" class="flow-summary-desc">{{ flowDescription }}</span>
+                                <span v-if="flowLabelEntries.length" class="flow-summary-labels">
+                                    <KsTag v-for="[key, value] in flowLabelEntries" :key="key">{{ key }}: {{ value }}</KsTag>
+                                </span>
+                            </button>
+                        </BlockSectionCard>
+
                         <BlockSectionCard
                             name="triggers"
                             :title="t('no_code.sections.triggers')"
@@ -296,6 +326,70 @@
                                 />
                             </div>
                         </BlockSectionCard>
+
+                        <BlockSectionCard
+                            name="afterExecution"
+                            :title="t('no_code.sections.afterExecution')"
+                            :icon="AfterExecutionIcon"
+                            :count="flowLevelAfterExecution.length"
+                            :addLabel="t('block_editor.add_task')"
+                            @add="(e) => openTaskPicker('afterExecution', e)"
+                        >
+                            <div class="block-section-list">
+                                <template v-for="(task, index) in flowLevelAfterExecution" :key="resolveBlockDomId(flowLevelAfterExecution, index)">
+                                    <FlowableClusterCard
+                                        v-if="isFlowable(task)"
+                                        :block="task"
+                                        :path="`afterExecution[${index}]`"
+                                        :icons="pluginsStore.icons"
+                                        :selectedId="activeSelectedId"
+                                        :focusedId="focusedId"
+                                        :domId="resolveBlockDomId(flowLevelAfterExecution, index)"
+                                        :depth="0"
+                                        :playgroundEnabled="playgroundStore.enabled"
+                                        :data-block-id="resolveBlockDomId(flowLevelAfterExecution, index)"
+                                        data-test="block-card"
+                                        @select="openNestedEdit"
+                                        @delete="onDeleteAtPath"
+                                        @duplicate="onDuplicateAtPath"
+                                        @run="onRunTask"
+                                        @add-at-path="openTaskPickerAtPath"
+                                        @update-depends-on="onUpdateDependsOn"
+                                    />
+                                    <BlockCard
+                                        v-else
+                                        :block="task"
+                                        :selected="activeSelectedId === String(task.id)"
+                                        :focused="focusedId === resolveBlockDomId(flowLevelAfterExecution, index)"
+                                        :icons="pluginsStore.icons"
+                                        :data-block-id="resolveBlockDomId(flowLevelAfterExecution, index)"
+                                        :runnable="playgroundStore.enabled"
+                                        @select="selectBlock('afterExecution', task)"
+                                        @delete="onDelete('afterExecution', task.id)"
+                                        @duplicate="onDuplicate('afterExecution', task.id)"
+                                        @open-split="selectBlock('afterExecution', task, true)"
+                                        @run="onRunTask(String(task.id))"
+                                    />
+                                </template>
+                                <BlockEmptyDrop
+                                    v-if="flowLevelAfterExecution.length === 0"
+                                    variant="empty"
+                                    :label="t('block_editor.task_noun')"
+                                    :data-block-id="sectionSentinelId('afterExecution')"
+                                    :class="{'block-kbd-focused': focusedId === sectionSentinelId('afterExecution')}"
+                                    :tabindex="focusedId === sectionSentinelId('afterExecution') ? 0 : -1"
+                                    :aria-selected="focusedId === sectionSentinelId('afterExecution')"
+                                    @add="(e) => openTaskPicker('afterExecution', e)"
+                                />
+                                <BlockEmptyDrop
+                                    v-else
+                                    variant="inline"
+                                    tabindex="-1"
+                                    :label="t('block_editor.task_noun')"
+                                    @add="(e) => openTaskPicker('afterExecution', e)"
+                                />
+                            </div>
+                        </BlockSectionCard>
                     </div>
                 </div>
             </KsSplitterPanel>
@@ -484,10 +578,13 @@
 <script setup lang="ts">
     import {computed, nextTick, provide, ref, watch, type Component} from "vue"
     import {useI18n} from "vue-i18n"
+    import FlowIcon from "vue-material-design-icons/FileDocumentOutline.vue"
+    import Cog from "vue-material-design-icons/Cog.vue"
     import TriggerIcon from "vue-material-design-icons/LightningBoltOutline.vue"
     import TasksIcon from "vue-material-design-icons/FormatListBulleted.vue"
     import ErrorIcon from "vue-material-design-icons/AlertCircleOutline.vue"
     import FinallyIcon from "vue-material-design-icons/FlagOutline.vue"
+    import AfterExecutionIcon from "vue-material-design-icons/FlagCheckered.vue"
     import SuggestedIcon from "vue-material-design-icons/Creation.vue"
     import AppsIcon from "vue-material-design-icons/ViewGridOutline.vue"
     import RecentIcon from "vue-material-design-icons/History.vue"
@@ -500,7 +597,7 @@
     import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
     import OpenInNew from "vue-material-design-icons/OpenInNew.vue"
 
-    import {KsTaskIcon, KsInput, KsMessageBox, vKsLoading} from "@kestra-io/design-system"
+    import {KsTaskIcon, KsInput, KsMessageBox, KsTag, vKsLoading} from "@kestra-io/design-system"
     import {flowYamlUtils} from "@kestra-io/topology"
 
     import {useFlowStore} from "../../../stores/flow"
@@ -531,6 +628,7 @@
     import {useDragAndDrop} from "../../../composables/useDragAndDrop"
     import BlockCard from "./BlockCard.vue"
     import BlockSectionCard from "./BlockSectionCard.vue"
+    import FlowPropertiesEdit from "./FlowPropertiesEdit.vue"
     import BlockEmptyDrop from "./BlockEmptyDrop.vue"
     import BlockCommandMenu, {type BlockCommandMenuItem} from "./BlockCommandMenu.vue"
     import FlowableClusterCard from "./FlowableClusterCard.vue"
@@ -583,6 +681,8 @@
     const flowId = computed<string>(() => flowStore.flow?.id ?? "")
     const namespace = computed<string>(() => flowStore.flow?.namespace ?? "")
 
+    const editingFlow = ref(false)
+
     // Each block card surfaces its own missing/invalid fields, grouped from the
     // flow's validation constraints by task id.
     const validationIssuesByTask = computed<Map<string, string[]>>(() =>
@@ -620,6 +720,24 @@
         } catch {
             return undefined
         }
+    })
+
+    const flowDescription = computed<string | undefined>(() => {
+        const description = parsedFlow.value?.description
+        return typeof description === "string" ? description : undefined
+    })
+
+    const flowLabelEntries = computed<[string, string][]>(() => {
+        const labels = parsedFlow.value?.labels
+        if (Array.isArray(labels)) {
+            return labels
+                .filter((label): label is {key: string; value: unknown} => Boolean(label) && typeof label === "object" && "key" in label)
+                .map((label) => [String(label.key), String(label.value ?? "")])
+        }
+        if (labels && typeof labels === "object") {
+            return Object.entries(labels).map(([key, value]) => [key, String(value ?? "")])
+        }
+        return []
     })
 
     // Mirrors useNoCodePanels.ts's getTabFromNoCodeTab: the block currently
@@ -693,10 +811,16 @@
         return Array.isArray(fin) ? fin : []
     })
 
+    const flowLevelAfterExecution = computed<Record<string, unknown>[]>(() => {
+        const after = parsedFlow.value?.afterExecution
+        return Array.isArray(after) ? after : []
+    })
+
     function sectionList(section: BlockSection): Record<string, unknown>[] {
         if (section === "triggers") return parsedTriggers.value
         if (section === "errors") return flowLevelErrors.value
         if (section === "finally") return flowLevelFinally.value
+        if (section === "afterExecution") return flowLevelAfterExecution.value
         return parsedTasks.value
     }
 
@@ -704,6 +828,7 @@
         if (section === "triggers") return t("no_code.sections.triggers")
         if (section === "errors") return t("block_editor.lane_errors")
         if (section === "finally") return t("block_editor.lane_finally")
+        if (section === "afterExecution") return t("no_code.sections.afterExecution")
         return t("no_code.sections.tasks")
     }
 
@@ -716,7 +841,7 @@
         return `__section:${section}`
     }
 
-    const ALL_SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally"]
+    const ALL_SECTIONS: BlockSection[] = ["tasks", "triggers", "errors", "finally", "afterExecution"]
 
     function sectionFromSentinel(id: string | undefined): BlockSection | undefined {
         if (!id?.startsWith("__section:")) return undefined
@@ -1023,6 +1148,10 @@
             "io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles",
             "io.kestra.plugin.core.http.Request",
         ],
+        afterExecution: [
+            "io.kestra.plugin.core.log.Log",
+            "io.kestra.plugin.core.http.Request",
+        ],
     }
 
     function anchorFrom(evt?: Event, explicitEl?: HTMLElement) {
@@ -1064,6 +1193,7 @@
         const lane = parentPath.split(".").pop() ?? ""
         if (lane === "errors") return "errors"
         if (lane === "finally") return "finally"
+        if (lane === "afterExecution") return "afterExecution"
         // Without this, pressing "a" on a focused trigger anchored the picker on
         // path "triggers[i]" but offered TASK types — inserting a task into the
         // triggers array and producing an invalid flow.
@@ -1923,7 +2053,7 @@
             })
         }
 
-        const insertKinds: BlockSection[] = ["triggers", "tasks", "errors", "finally"]
+        const insertKinds: BlockSection[] = ["triggers", "tasks", "errors", "finally", "afterExecution"]
         for (const section of insertKinds) {
             items.push({
                 id: `insert-${section}`,
@@ -1979,6 +2109,7 @@
             {section: "tasks", labelKey: "no_code.sections.tasks"},
             {section: "errors", labelKey: "block_editor.lane_errors"},
             {section: "finally", labelKey: "block_editor.lane_finally"},
+            {section: "afterExecution", labelKey: "no_code.sections.afterExecution"},
         ]
         for (const {section, labelKey} of sections) {
             items.push({
@@ -2032,6 +2163,53 @@
         height: 100%;
         min-width: 0;
         min-height: 0;
+    }
+
+    .flow-summary {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--ks-spacing-2);
+        width: 100%;
+        padding: var(--ks-spacing-2) var(--ks-spacing-3);
+        text-align: left;
+        background: transparent;
+        border: 1px solid var(--ks-border-subtle);
+        border-radius: var(--ks-radius-base);
+        cursor: pointer;
+        transition: background-color 0.12s, border-color 0.12s;
+
+        &:hover {
+            background: var(--ks-bg-hover);
+            border-color: var(--ks-border-default);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--ks-border-focus);
+            outline-offset: 1px;
+        }
+    }
+
+    .flow-summary-path {
+        font-size: var(--ks-font-size-sm);
+        font-weight: 600;
+        color: var(--ks-text-primary);
+    }
+
+    .flow-summary-desc {
+        font-size: var(--ks-font-size-xs);
+        color: var(--ks-text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .flow-summary-labels {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--ks-spacing-1);
     }
 
     .block-editor-canvas {
