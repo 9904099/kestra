@@ -45,6 +45,7 @@
                 v-if="currentSchema"
                 :modelValue="modelValue"
                 :schema="currentSchema"
+                :root="root"
                 :properties="Object.fromEntries(filteredProperties)"
                 @update:model-value="onAnyOfInput"
                 merge
@@ -63,7 +64,8 @@
 
     const props = defineProps<{
         schema: Schema,
-        required?: boolean
+        required?: boolean,
+        root?: string
     }>()
 
     defineOptions({inheritAttrs: false})
