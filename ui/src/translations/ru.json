@@ -1403,6 +1403,7 @@
       "add_field": "Добавить {field}",
       "adding": "+ Добавить {what}",
       "adding_default": "+ Добавить новое value",
+      "adding_to": "+ Добавить в {what}",
       "choose_placeholder": "Выберите {field}",
       "clearSelection": "Очистить выбор",
       "creation": {

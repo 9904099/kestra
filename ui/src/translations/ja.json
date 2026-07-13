@@ -1403,6 +1403,7 @@
       "add_field": "{field}を追加",
       "adding": "+ {what}を追加",
       "adding_default": "+ 新しいvalueを追加",
+      "adding_to": "+ {what} に追加",
       "choose_placeholder": "{field} を選択",
       "clearSelection": "選択をクリア",
       "creation": {

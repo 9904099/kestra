@@ -1403,6 +1403,7 @@
       "add_field": "添加{field}",
       "adding": "+ 添加{what}",
       "adding_default": "+ 添加新value",
+      "adding_to": "+ 添加到 {what}",
       "choose_placeholder": "选择 {field}",
       "clearSelection": "清除选择",
       "creation": {

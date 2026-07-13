@@ -1403,6 +1403,7 @@
       "add_field": "{field} 추가",
       "adding": "+ {what} 추가",
       "adding_default": "+ 새 value 추가",
+      "adding_to": "+ {what}에 추가",
       "choose_placeholder": "{field} 선택",
       "clearSelection": "선택 해제",
       "creation": {

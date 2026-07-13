@@ -1403,6 +1403,7 @@
       "add_field": "Aggiungi {field}",
       "adding": "+ Aggiungi un {what}",
       "adding_default": "+ Aggiungi un nuovo value",
+      "adding_to": "+ Aggiungi a {what}",
       "choose_placeholder": "Scegli {field}",
       "clearSelection": "Cancella selezione",
       "creation": {

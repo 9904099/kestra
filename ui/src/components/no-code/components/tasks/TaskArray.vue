@@ -148,7 +148,7 @@
             </KsRow>
         </template>
 
-        <Add @add="addItem()" />
+        <Add :to="addTargetName" @add="addItem()" />
     </div>
 </template>
 
@@ -188,6 +188,10 @@
     const {getBlockComponent} = useBlockComponent()
 
     const {t} = useI18n()
+
+    const addTargetName = computed(() =>
+        props.root?.split(".").pop()?.replace(/\[\d+\]$/, "") || undefined)
+
     const fieldNav = inject(FIELD_NAV_INJECTION_KEY, undefined)
     const definitions = inject(SCHEMA_DEFINITIONS_INJECTION_KEY, ref<Record<string, any>>({}))
 

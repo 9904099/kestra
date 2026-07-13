@@ -1403,6 +1403,7 @@
       "add_field": "{field} जोड़ें",
       "adding": "+ एक {what} जोड़ें",
       "adding_default": "+ एक नया value जोड़ें",
+      "adding_to": "+ {what} में जोड़ें",
       "choose_placeholder": "{field} चुनें",
       "clearSelection": "चयन साफ़ करें",
       "creation": {

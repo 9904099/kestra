@@ -66,7 +66,7 @@
                 </KsCol>
             </KsRow>
         </template>
-        <Add v-if="!props.disabled" @add="addItem()" />
+        <Add v-if="!props.disabled" :to="addTargetName" @add="addItem()" />
     </div>
 </template>
 
@@ -101,6 +101,9 @@
     })
 
     const {getBlockComponent} = useBlockComponent()
+
+    const addTargetName = computed(() =>
+        props.root?.split(".").pop()?.replace(/\[\d+\]$/, "") || undefined)
 
     const componentType = computed(() => {
         return props.schema?.additionalProperties ? getBlockComponent.value(

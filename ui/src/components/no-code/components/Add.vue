@@ -3,7 +3,9 @@
         {{
             what
                 ? $t("no_code.adding", {what})
-                : $t("no_code.adding_default")
+                : to
+                    ? $t("no_code.adding_to", {what: to})
+                    : $t("no_code.adding_default")
         }}
     </button>
 </template>
@@ -15,6 +17,7 @@
 
     defineProps<{
         what?: string;
+        to?: string;
     }>()
 </script>
 
