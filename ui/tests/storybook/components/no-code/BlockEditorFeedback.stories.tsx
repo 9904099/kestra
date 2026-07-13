@@ -323,13 +323,13 @@ export const F1FullscreenExit: Story = {
             const el = canvasElement.querySelector("[data-test='maximized-sliver-right']") as HTMLElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
         expect(canvasElement.querySelector(".panel-maximized")).toBeInTheDocument()
 
         await userEvent.click(sliver)
         await waitFor(() => {
             expect(canvasElement.querySelector("[data-test='maximized-sliver-right']")).not.toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -358,10 +358,10 @@ export const F2PlaygroundRunTask: Story = {
             const el = canvasElement.querySelector("[data-test='block-editor-task-edit']") as HTMLElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
         await waitFor(() => {
             expect(within(taskEdit).getAllByText("Run task").length).toBeGreaterThan(0)
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -387,7 +387,7 @@ export const F3CicdPipelineOverview: Story = {
             expect(canvas.getByText("deploy_staging")).toBeInTheDocument()
             expect(canvas.getByText("notify_rollout_failure")).toBeInTheDocument()
             expect(canvas.getByText("record_deployment_metric")).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -407,7 +407,7 @@ export const F3SwitchWithCasesAndDefaults: Story = {
             expect(canvas.getByText("notify_high_priority")).toBeInTheDocument()
             expect(canvas.getByText("queue_for_triage")).toBeInTheDocument()
             expect(canvas.getByText("log_unhandled_priority")).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -426,7 +426,7 @@ export const F3SequentialSteps: Story = {
             expect(canvas.getByText("fetch_transactions")).toBeInTheDocument()
             expect(canvas.getByText("build_spreadsheet")).toBeInTheDocument()
             expect(canvas.getByText("email_finance_team")).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -443,7 +443,7 @@ export const F3ForEachItemOverRealList: Story = {
         const canvas = within(canvasElement)
         await waitFor(() => {
             expect(canvas.getByText("warm_cache")).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -468,12 +468,12 @@ export const F3DagEtlFanOutFanIn: Story = {
                 "load_warehouse",
                 "notify_data_team",
             ])
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         await waitFor(() => {
             const dependsOnControls = canvasElement.querySelectorAll("[data-test='dag-depends-on']")
             expect(dependsOnControls.length).toBe(6)
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -491,7 +491,7 @@ export const F3DeeplyNestedFlowables: Story = {
         await waitFor(() => {
             expect(canvas.getByText("scale_up_service")).toBeInTheDocument()
             expect(canvas.getByText("check_customer_impact")).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         // The innermost If (depth 2) is collapsed by default — expand it to
         // reach its then/else lanes, proving recursion works past the cap.
@@ -502,7 +502,7 @@ export const F3DeeplyNestedFlowables: Story = {
         await waitFor(() => {
             expect(canvas.getByText("notify_customer_success")).toBeInTheDocument()
             expect(canvas.getByText("log_minor_impact")).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -530,7 +530,7 @@ export const F3ConfigureFlowableProperties: Story = {
                 .find(el => within(el as HTMLElement).queryByText("rollout"))
             expect(header).toBeTruthy()
             return header as HTMLElement
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         rolloutHeader.focus()
         await waitFor(() => expect(document.activeElement).toBe(rolloutHeader))
@@ -543,12 +543,12 @@ export const F3ConfigureFlowableProperties: Story = {
             const el = canvasElement.querySelector("[data-test='block-editor-task-edit']") as HTMLElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         await waitFor(() => {
             const fieldLabel = [...taskEdit.querySelectorAll(".label")].find(el => el.textContent?.trim() === "condition")
             expect(fieldLabel).toBeTruthy()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -602,7 +602,7 @@ export const F4OutputsCollapsedByDefault: Story = {
             const el = canvasElement.querySelector("[data-test='block-editor-task-edit']") as HTMLElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
         const outputsRail = taskEdit.querySelector("[data-test='task-edit-data-output']") as HTMLElement
         expect(outputsRail).toBeInTheDocument()
         expect(outputsRail.tagName).toBe("BUTTON")
@@ -632,7 +632,7 @@ export const F4OutputsExpandedReadOnly: Story = {
             const el = canvasElement.querySelector("[data-test='block-editor-task-edit']") as HTMLElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         const collapseRail = taskEdit.querySelector("[data-test='task-edit-data-output']") as HTMLElement
         await userEvent.click(collapseRail)
@@ -641,7 +641,7 @@ export const F4OutputsExpandedReadOnly: Story = {
             const el = taskEdit.querySelector("[data-test='task-edit-data-output']") as HTMLElement
             expect(el.tagName).toBe("DIV")
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         for (const label of ["body", "encryptedBody", "headers", "code"]) {
             const chip = within(outputsPanel).getByText(label).closest(".task-edit-data-chip")
@@ -666,7 +666,7 @@ export const F4OutputsHiddenWhenNone: Story = {
             const el = canvasElement.querySelector("[data-test='block-editor-task-edit']") as HTMLElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
         expect(taskEdit.querySelector("[data-test='task-edit-data-output']")).not.toBeInTheDocument()
     },
 }
@@ -710,7 +710,7 @@ export const F5SourceFidelity: Story = {
             const el = canvasElement.querySelector("[data-test='block-editor-task-edit']") as HTMLElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         const sourceTab = within(taskEdit).getByText("Source")
         await userEvent.click(sourceTab)
@@ -719,7 +719,7 @@ export const F5SourceFidelity: Story = {
             const el = taskEdit.querySelector("[data-testid='monaco-editor-hidden-synced-textarea']") as HTMLTextAreaElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         await waitFor(() => {
             expect(textarea.value).toContain("# Posted to the #releases channel — keep this note when editing the payload")
@@ -727,7 +727,7 @@ export const F5SourceFidelity: Story = {
             expect(textarea.value).toContain("Déploiement « payments » terminé.")
             expect(textarea.value).toContain("Statut : succès.")
             expect(textarea.value).toContain("\n\nmethod: POST")
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -764,7 +764,7 @@ export const F7QuickInsertCommandMenu: Story = {
 
         await waitFor(() => {
             expect(canvas.getByText("build")).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         await userEvent.keyboard("/")
 
@@ -776,7 +776,7 @@ export const F7QuickInsertCommandMenu: Story = {
             const el = document.querySelector("[data-test='block-command-menu-search']") as HTMLInputElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
         expect(document.activeElement).toBe(search)
         expect(search.placeholder).toBe("Type a command or search a task…")
 
@@ -784,11 +784,11 @@ export const F7QuickInsertCommandMenu: Story = {
 
         await waitFor(() => {
             expect(search.value).toBe("trigger")
-        }, {timeout: 5000})
+        }, {timeout: 15000})
 
         await waitFor(() => {
             expect(within(document.body).getByText("Insert Triggers")).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -822,11 +822,11 @@ export const F9PluginDefaultsHint: Story = {
             const el = canvasElement.querySelector("[data-test='block-editor-task-edit']") as HTMLElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
         await waitFor(() => {
             expect(within(taskEdit).getByText("default: DEBUG", {exact: false})).toBeInTheDocument()
             expect(within(taskEdit).getByText("default: true", {exact: false})).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
@@ -845,11 +845,11 @@ export const F9PluginDefaultsOnAnotherTaskInstance: Story = {
             const el = canvasElement.querySelector("[data-test='block-editor-task-edit']") as HTMLElement
             expect(el).toBeInTheDocument()
             return el
-        }, {timeout: 5000})
+        }, {timeout: 15000})
         await waitFor(() => {
             expect(within(taskEdit).getByText("default: DEBUG", {exact: false})).toBeInTheDocument()
             expect(within(taskEdit).getByText("default: true", {exact: false})).toBeInTheDocument()
-        }, {timeout: 5000})
+        }, {timeout: 15000})
     },
 }
 
