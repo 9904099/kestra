@@ -308,17 +308,18 @@
 
     useRouteContext(routeInfo)
 
+    function pushQuery(mutate: (query: Record<string, any>) => void) {
+        const routeQuery = {...route.query}
+        mutate(routeQuery)
+        router.push({query: routeQuery})
+    }
+
     const query = computed({
         get: () => (route.query.q as string) ?? "",
-        set: (value: string) => {
-            const routeQuery = {...route.query}
-            if (value) {
-                routeQuery.q = value
-            } else {
-                delete routeQuery.q
-            }
-            router.push({query: routeQuery})
-        },
+        set: (value: string) => pushQuery((q) => {
+            if (value) q.q = value
+            else delete q.q
+        }),
     })
 
     const namespace = computed({
@@ -334,20 +335,19 @@
 
     const scope = computed({
         get: () => (route.query.scope as string) ?? "all",
-        set: (value: string) => {
-            const routeQuery = {...route.query, scope: value}
-            router.push({query: routeQuery})
-        },
+        set: (value: string) => pushQuery((q) => {
+            q.scope = value
+        }),
     })
 
     function onNamespaceChange(val: any) {
-        const routeQuery = {...route.query}
-        if (val === undefined || val === "" || val === null || (Array.isArray(val) && val.length === 0)) {
-            delete routeQuery["namespace"]
-        } else {
-            routeQuery["namespace"] = val
-        }
-        router.push({query: routeQuery})
+        pushQuery((q) => {
+            if (val === undefined || val === "" || val === null || (Array.isArray(val) && val.length === 0)) {
+                delete q.namespace
+            } else {
+                q.namespace = val
+            }
+        })
     }
 
     const results = computed(() => flowStore.search ?? [])
@@ -444,16 +444,20 @@
         await triggerReplacePreview()
     }
 
+    const searchFilters = computed(() => ({
+        caseSensitive: caseSensitive.value,
+        wholeWord: wholeWord.value,
+        regex: regexEnabled.value,
+        scope: scope.value,
+    }))
+
     async function triggerReplacePreview() {
         if (!query.value) return
         previewLoading.value = true
         try {
             previewResponse.value = await flowStore.previewSourceSearchReplace({
+                ...searchFilters.value,
                 query: query.value,
-                caseSensitive: caseSensitive.value,
-                wholeWord: wholeWord.value,
-                regex: regexEnabled.value,
-                scope: scope.value,
                 namespace: namespaceFilter.value,
                 replacement: replacement.value,
             })
@@ -473,11 +477,8 @@
 
         try {
             const response = await flowStore.applySourceSearchReplace({
+                ...searchFilters.value,
                 query: query.value,
-                caseSensitive: caseSensitive.value,
-                wholeWord: wholeWord.value,
-                regex: regexEnabled.value,
-                scope: scope.value,
                 replacement: replacement.value,
                 flows: flowsToApply,
             })
@@ -504,14 +505,11 @@
 
         try {
             await flowStore.searchFlows({
+                ...searchFilters.value,
                 page: 1,
                 size: 200,
                 q: query.value,
                 namespace: namespaceFilter.value,
-                caseSensitive: caseSensitive.value,
-                wholeWord: wholeWord.value,
-                regex: regexEnabled.value,
-                scope: scope.value,
             })
         } catch (e: any) {
             errorMessage.value = e?.response?.data?.message ?? t("source_search.search_failed")
@@ -524,7 +522,7 @@
     const debouncedFetch = debounce(fetchResults, 300)
 
     watch(
-        () => [query.value, namespace.value, scope.value, caseSensitive.value, wholeWord.value, regexEnabled.value].join("|"),
+        () => [query.value, namespace.value, JSON.stringify(searchFilters.value)].join("|"),
         () => debouncedFetch(),
     )
 
