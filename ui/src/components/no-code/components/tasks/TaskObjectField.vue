@@ -101,6 +101,24 @@
                     :isBoolean="isBoolean"
                     :componentProps="componentProps"
                 />
+                <component
+                    v-if="isNumber"
+                    ref="taskComponent"
+                    :is="type"
+                    v-bind="componentProps"
+                    :disabled
+                    class="inline-number"
+                />
+                <KsButton
+                    v-if="hasToggle"
+                    :icon="IconCodeTags"
+                    size="small"
+                    class="inline-code-toggle"
+                    :type="pebbleState ? 'primary' : 'default'"
+                    :title="t('no_code.toggle_pebble')"
+                    :aria-label="t('no_code.toggle_pebble')"
+                    @click="pebbleState = !pebbleState"
+                />
             </div>
         </template>
         <TaskObjectTaskInline
@@ -110,7 +128,7 @@
             :taskSchemaPath
         />
         <component
-            v-else-if="!isBoolean"
+            v-else-if="!isBoolean && !isNumber"
             ref="taskComponent"
             :is="type"
             v-bind="componentProps"
@@ -118,7 +136,7 @@
             class="mt-1 mb-2 wrapper"
         />
         <KsMarkdown
-            v-if="inlineHelp && inlineHelpText && !isBoolean"
+            v-if="inlineHelp && inlineHelpText && !isBoolean && !isNumber"
             class="field-help"
             :content="inlineHelpText"
         />
@@ -143,6 +161,7 @@
     import {KsMarkdown} from "@kestra-io/design-system"
     import Help from "vue-material-design-icons/Information.vue"
     import AlertCircleOutline from "vue-material-design-icons/AlertCircleOutline.vue"
+    import IconCodeTags from "vue-material-design-icons/CodeTags.vue"
     import TaskLabelWithBoolean from "./TaskLabelWithBoolean.vue"
     import TaskObjectListInline from "../../../plugins/plugin-default/TaskObjectListInline.vue"
     import TaskObjectTaskInline from "../../../plugins/plugin-default/TaskObjectTaskInline.vue"
@@ -175,6 +194,8 @@
 
     const hasSelectedASchema = ref(false)
 
+    const pebbleState = ref(false)
+
 
     const componentProps = computed(() => {
         return {
@@ -184,6 +205,10 @@
             },
             "onUpdate:selectedSchema": (value: any) => {
                 hasSelectedASchema.value = value !== undefined
+            },
+            pebble: pebbleState.value,
+            "onUpdate:pebble": (value: boolean) => {
+                pebbleState.value = value
             },
             task: props.task,
             root: props.rootOverride ?? (props.root ? `${props.root}.${props.fieldKey}` : props.fieldKey),
@@ -226,6 +251,12 @@
     const simpleType = computed(() => {
         return type.value.ksTaskName
     })
+
+    const isNumber = computed(() => simpleType.value === "number")
+
+    const hasToggle = computed(() =>
+        ["duration", "date-time"].includes(props.schema?.format ?? ""),
+    )
 
     const {getBlockComponent} = useBlockComponent()
 
@@ -371,6 +402,17 @@
 }
 
 .inline-boolean {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.inline-number {
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 8rem;
+}
+
+.inline-code-toggle {
     margin-left: auto;
     flex-shrink: 0;
 }

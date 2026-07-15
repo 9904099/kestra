@@ -148,6 +148,7 @@
                                         @run="onRunTask"
                                         @add-at-path="openTaskPickerAtPath"
                                         @update-depends-on="onUpdateDependsOn"
+                                        @reorder="onNestedReorder"
                                         @dragover.prevent="handleTaskDragOver($event, index)"
                                         @drop.prevent="handleTaskDrop($event, index)"
                                     />
@@ -226,6 +227,7 @@
                                         @run="onRunTask"
                                         @add-at-path="openTaskPickerAtPath"
                                         @update-depends-on="onUpdateDependsOn"
+                                        @reorder="onNestedReorder"
                                     />
                                     <BlockCard
                                         v-else
@@ -291,6 +293,7 @@
                                         @run="onRunTask"
                                         @add-at-path="openTaskPickerAtPath"
                                         @update-depends-on="onUpdateDependsOn"
+                                        @reorder="onNestedReorder"
                                     />
                                     <BlockCard
                                         v-else
@@ -355,6 +358,7 @@
                                         @run="onRunTask"
                                         @add-at-path="openTaskPickerAtPath"
                                         @update-depends-on="onUpdateDependsOn"
+                                        @reorder="onNestedReorder"
                                     />
                                     <BlockCard
                                         v-else
@@ -1541,6 +1545,11 @@
         handleTriggerDropBase(event, targetIndex, (from, to) => {
             applyYaml(reorderAtPath(flowYaml.value, "triggers", from, to))
         })
+    }
+
+    function onNestedReorder(parentPath: string, from: number, to: number) {
+        clearSelectionIfPathStale(parentPath, from, to)
+        applyYaml(reorderAtPath(flowYaml.value, parentPath, from, to))
     }
 
     function navigableCards(): HTMLElement[] {

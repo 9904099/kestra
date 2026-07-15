@@ -104,24 +104,14 @@
             />
 
             <div class="task-edit-col task-edit-col-params">
-                <div class="task-edit-params-toolbar">
+                <div v-if="isRunnable" class="task-edit-params-toolbar">
                     <KsButton
-                        v-if="isRunnable"
                         size="small"
                         :icon="Play"
                         data-test="task-edit-run"
                         @click="runTask(runnableTaskId)"
                     >
                         {{ $t("playground.run_task") }}
-                    </KsButton>
-                    <KsButton
-                        size="small"
-                        :type="docOpen ? 'primary' : 'default'"
-                        :icon="BookOpenPageVariantOutline"
-                        data-test="task-edit-doc-toggle"
-                        @click="docOpen = !docOpen"
-                    >
-                        {{ $t("documentation.documentation") }}
                     </KsButton>
                 </div>
                 <TaskEditPanes
@@ -157,21 +147,6 @@
 
         </div>
 
-        <KsDrawer
-            v-if="docOpen"
-            v-model="docOpen"
-            direction="rtl"
-            resizable
-            size="sm"
-            :title="$t('documentation.documentation')"
-            data-test="task-edit-doc-panel"
-        >
-            <div class="task-edit-doc-body">
-                <KsMarkdown v-if="pluginMarkdown" :content="pluginMarkdown" />
-                <p v-else class="task-edit-doc-empty">{{ $t("block_editor.no_documentation") }}</p>
-            </div>
-        </KsDrawer>
-
         <div v-if="errors && errors.length" v-ks-loading="isLoading" class="task-edit-panel-footer">
             <div class="task-edit-validation-status" role="status" aria-live="polite">
                 <ValidationError link :errors="errors" />
@@ -183,13 +158,12 @@
 <script setup lang="ts">
     import {ref, computed, watch, onMounted, onBeforeUnmount, onDeactivated} from "vue"
     import {useI18n} from "vue-i18n"
-    import {SECTIONS, KsIconButton, KsMarkdown, KsDrawer} from "@kestra-io/design-system"
+    import {SECTIONS, KsIconButton, KsDrawer} from "@kestra-io/design-system"
     import TaskIcon from "../plugins/TaskIcon.vue"
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
     import CodeTags from "vue-material-design-icons/CodeTags.vue"
     import ContentSave from "vue-material-design-icons/ContentSave.vue"
     import Close from "vue-material-design-icons/Close.vue"
-    import BookOpenPageVariantOutline from "vue-material-design-icons/BookOpenPageVariantOutline.vue"
     import Play from "vue-material-design-icons/Play.vue"
     import TaskEditPanes from "./TaskEditPanes.vue"
     import TaskEditData from "./TaskEditData.vue"
@@ -262,7 +236,6 @@
     const {guardedClose} = useDiscardGuard(() => taskYaml.value !== taskBaseline.value)
     const beforeClose = (done: () => void) => guardedClose(() => done())
     const activeTabs = ref(props.readOnly ? "source" : "form")
-    const docOpen = defineModel<boolean>("docOpen", {default: false})
     const inputsCollapsed = defineModel<boolean>("inputsCollapsed", {default: false})
     const outputCollapsed = defineModel<boolean>("outputCollapsed", {default: true})
 
@@ -708,19 +681,6 @@
         flex: 1;
         min-height: 0;
         padding: var(--ks-spacing-5) 0 var(--ks-spacing-6);
-    }
-
-    .task-edit-doc-body {
-        min-height: 0;
-        overflow-y: auto;
-        padding: var(--ks-spacing-4) var(--ks-spacing-5);
-    }
-
-    .task-edit-doc-empty {
-        margin: var(--ks-spacing-6) 0;
-        text-align: center;
-        font-size: var(--ks-font-size-sm);
-        color: var(--ks-text-muted);
     }
 
     .task-edit-panel-footer {

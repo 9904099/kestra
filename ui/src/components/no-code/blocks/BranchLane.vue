@@ -37,6 +37,7 @@
                         @duplicate="(p) => emit('duplicate', p)"
                         @run="(id) => emit('run', id)"
                         @add-at-path="(p, afterIdx) => emit('add-at-path', p, afterIdx)"
+                        @reorder="(p, from, to) => emit('reorder', p, from, to)"
                     />
                     <LeafBlockCard
                         v-else

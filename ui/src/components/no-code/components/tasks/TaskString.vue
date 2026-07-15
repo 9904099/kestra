@@ -38,22 +38,11 @@
             @update:model-value="onInput"
             style="z-index: 1;"
         />
-        <KsButton
-            v-if="hasToggle"
-            :icon="IconCodeTags"
-            size="small"
-            class="code-toggle"
-            :class="{'code-toggle--active': pebble}"
-            :title="$t('no_code.toggle_pebble')"
-            :aria-label="$t('no_code.toggle_pebble')"
-            @click="pebble = !pebble"
-        />
     </div>
 </template>
 <script lang="ts" setup>
-    import {ref, computed, onMounted} from "vue"
+    import {computed, onMounted} from "vue"
     import $moment from "moment"
-    import IconCodeTags from "vue-material-design-icons/CodeTags.vue"
     import {KsEditor} from "@kestra-io/design-system"
     import {useEditorBindings} from "../../../../composables/useEditorBindings"
     import InputText from "../inputs/InputText.vue"
@@ -78,7 +67,7 @@
     }>()
 
 
-    const pebble = ref(false)
+    const pebble = defineModel<boolean>("pebble", {default: false})
 
     const hasToggle = computed(() =>
         ["duration", "date-time"].includes(props.schema?.format ?? ""),
@@ -174,7 +163,7 @@
     gap: var(--ks-spacing-2);
 }
 
-.wrapper--toggle > :not(.code-toggle) {
+.wrapper--toggle > * {
     flex: 1;
     min-width: 0;
 }
@@ -188,34 +177,5 @@
 .wrapper--toggle :deep(.ks-editor:focus-within) {
     border-color: var(--ks-border-focus);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--ks-border-focus) 22%, transparent);
-}
-
-.code-toggle {
-    flex-shrink: 0;
-    margin: 0 !important;
-    background-color: transparent;
-    border-color: transparent;
-}
-
-.code-toggle :deep(svg) {
-    color: var(--ks-icon-muted) !important;
-    font-size: var(--ks-font-size-md);
-}
-
-.code-toggle:hover {
-    background-color: var(--ks-bg-hover);
-}
-
-.code-toggle:hover :deep(svg) {
-    color: var(--ks-text-link) !important;
-}
-
-.code-toggle--active {
-    background-color: var(--ks-bg-tag-hover);
-    border-color: var(--ks-btn-secondary-border-active);
-}
-
-.code-toggle--active :deep(svg) {
-    color: var(--ks-text-link) !important;
 }
 </style>

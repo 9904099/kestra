@@ -1,7 +1,7 @@
 <template>
     <div
         class="flowable-cluster"
-        :class="{'flowable-cluster--expanded': expanded}"
+        :class="{'flowable-cluster--expanded': expanded, 'flowable-cluster--error': issues.length > 0}"
         :data-test="`flowable-cluster-${String(displayBlock.id ?? '')}`"
     >
         <!-- Roving tabindex: only the focused header is a Tab stop; the
@@ -100,6 +100,7 @@
                 @run="(id) => emit('run', id)"
                 @add-at-path="(p, afterIdx, evt) => emit('add-at-path', p, afterIdx, evt)"
                 @update-depends-on="(p, dependsOn) => emit('update-depends-on', p, dependsOn)"
+                @reorder="(p, from, to) => emit('reorder', p, from, to)"
             />
 
             <div v-if="isSwitchTask" class="flowable-cluster-add-case">
@@ -183,6 +184,7 @@
         (e: "run", taskId: string): void
         (e: "add-at-path", parentPath: string, afterIndex: number, evt?: Event): void
         (e: "update-depends-on", itemPath: string, dependsOn: string[]): void
+        (e: "reorder", parentPath: string, fromIndex: number, toIndex: number): void
     }>()
 
     const depth = computed(() => props.depth ?? 0)
@@ -303,6 +305,11 @@
         background: var(--ks-bg-surface);
         border-left: 3px solid var(--ks-border-strong);
         overflow: hidden;
+    }
+
+    .flowable-cluster--error {
+        border-color: var(--ks-border-error);
+        border-left-color: var(--ks-border-error);
     }
 
     .flowable-cluster-header {

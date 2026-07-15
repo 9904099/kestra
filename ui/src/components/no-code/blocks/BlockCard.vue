@@ -5,7 +5,7 @@
     global keymap (which now sees real focus), not duplicated here. -->
     <div
         class="block-card"
-        :class="{'block-card--selected': selected, 'block-card--drag-over': dragOver, 'block-kbd-focused': focused}"
+        :class="{'block-card--selected': selected, 'block-card--drag-over': dragOver, 'block-kbd-focused': focused, 'block-card--error': issues.length > 0}"
         role="button"
         :tabindex="focused ? 0 : -1"
         :aria-pressed="selected"
@@ -163,7 +163,7 @@
         padding: var(--ks-spacing-2) var(--ks-spacing-3);
         border: 1px solid var(--ks-border-default);
         border-radius: var(--ks-radius-base);
-        background: var(--ks-bg-base);
+        background: var(--ks-btn-secondary-bg-default);
         cursor: pointer;
         transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
         outline: none;
@@ -187,6 +187,12 @@
         &--drag-over {
             border-color: var(--ks-text-link);
             border-style: dashed;
+        }
+
+        &--error,
+        &--error:hover {
+            border-color: var(--ks-border-error);
+            box-shadow: inset var(--ks-spacing-1) 0 0 var(--ks-border-error);
         }
     }
 
