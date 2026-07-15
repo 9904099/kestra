@@ -1153,6 +1153,89 @@ public abstract class AbstractFlowRepositoryTest {
     }
 
     @Test
+    void shouldFilterSourceCodeWithCaseSensitiveWholeWordAndRegexOptions() {
+        // Given — three flows whose description embeds a marker in different forms, to
+        // unambiguously exercise case-sensitivity, whole-word and regex matching.
+        String tenant = TestsUtils.randomTenant(this.getClass().getSimpleName());
+
+        FlowWithSource upper = builder(tenant, "source-flow-upper", TEST_FLOW_ID)
+            .description("marker MARKERWORD end")
+            .build();
+        FlowWithSource lower = builder(tenant, "source-flow-lower", TEST_FLOW_ID)
+            .description("marker markerword end")
+            .build();
+        FlowWithSource longer = builder(tenant, "source-flow-longer", TEST_FLOW_ID)
+            .description("marker markerwordish end")
+            .build();
+        // description (outside the tasks: block) AND a task property (inside it) both carry the
+        // marker, so a "tasks" scope can be asserted to only keep the latter.
+        FlowWithSource taskScoped = builder(tenant, "source-flow-task-scoped", TEST_FLOW_ID)
+            .description("marker markerword end")
+            .tasks(Collections.singletonList(Return.builder().id(TEST_FLOW_ID).type(Return.class.getName()).format(Property.ofValue("markerword")).build()))
+            .build();
+
+        upper = flowRepository.create(GenericFlow.of(upper));
+        lower = flowRepository.create(GenericFlow.of(lower));
+        longer = flowRepository.create(GenericFlow.of(longer));
+        taskScoped = flowRepository.create(GenericFlow.of(taskScoped));
+
+        try {
+            // When — a case-sensitive search for the uppercase form only matches the uppercase flow
+            ArrayListTotal<SearchResult<Flow>> caseSensitive = flowRepository.findSourceCode(
+                Pageable.UNPAGED, "MARKERWORD", true, false, false, SourceSearchScope.ALL, tenant, null
+            );
+
+            // Then
+            assertThat(caseSensitive.stream().map(r -> r.getModel().getId()).toList())
+                .containsExactly("source-flow-upper");
+
+            // When — a case-insensitive whole-word search excludes the "markerwordish" flow
+            ArrayListTotal<SearchResult<Flow>> wholeWord = flowRepository.findSourceCode(
+                Pageable.UNPAGED, "markerword", false, true, false, SourceSearchScope.ALL, tenant, null
+            );
+
+            // Then
+            assertThat(wholeWord.stream().map(r -> r.getModel().getId()).toList())
+                .containsExactlyInAnyOrder("source-flow-upper", "source-flow-lower", "source-flow-task-scoped");
+
+            // When — the same query without whole-word also matches the "markerwordish" flow
+            ArrayListTotal<SearchResult<Flow>> substring = flowRepository.findSourceCode(
+                Pageable.UNPAGED, "markerword", false, false, false, SourceSearchScope.ALL, tenant, null
+            );
+
+            // Then
+            assertThat(substring.stream().map(r -> r.getModel().getId()).toList())
+                .containsExactlyInAnyOrder("source-flow-upper", "source-flow-lower", "source-flow-longer", "source-flow-task-scoped");
+
+            // When — a regex query matches only the flow whose marker has the "ish" suffix
+            ArrayListTotal<SearchResult<Flow>> regex = flowRepository.findSourceCode(
+                Pageable.UNPAGED, "markerword\\w*ish", false, false, true, SourceSearchScope.ALL, tenant, null
+            );
+
+            // Then
+            assertThat(regex.stream().map(r -> r.getModel().getId()).toList())
+                .containsExactly("source-flow-longer");
+            assertThat(regex.getFirst().getMatches()).hasSize(1);
+            assertThat(regex.getFirst().getMatches().getFirst().snippet()).contains("[mark]markerwordish[/mark]");
+
+            // When — restricting the scope to the "tasks" section excludes the description-only matches
+            ArrayListTotal<SearchResult<Flow>> tasksScope = flowRepository.findSourceCode(
+                Pageable.UNPAGED, "markerword", false, false, false, SourceSearchScope.TASKS, tenant, null
+            );
+
+            // Then
+            assertThat(tasksScope.stream().map(r -> r.getModel().getId()).toList())
+                .containsExactly("source-flow-task-scoped");
+            assertThat(tasksScope.getFirst().getMatches()).hasSize(1);
+        } finally {
+            deleteFlow(upper);
+            deleteFlow(lower);
+            deleteFlow(longer);
+            deleteFlow(taskScoped);
+        }
+    }
+
+    @Test
     void shouldCountForNullTenant() {
         String tenant = TestsUtils.randomTenant(this.getClass().getSimpleName());
         FlowWithSource toDelete = null;

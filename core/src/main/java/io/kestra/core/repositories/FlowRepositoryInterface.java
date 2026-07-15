@@ -224,7 +224,23 @@ public interface FlowRepositoryInterface extends QueryBuilderInterface<Flows.Fie
         @Nullable String tenantId,
         @Nullable List<QueryFilter> filters);
 
-    ArrayListTotal<SearchResult<Flow>> findSourceCode(Pageable pageable, @Nullable String query, @Nullable String tenantId, @Nullable String namespace);
+    /**
+     * Searches flow source code, optionally honoring case-sensitivity, whole-word, regex and scope options.
+     *
+     * @param caseSensitive whether the query must match with exact case.
+     * @param wholeWord whether the query must match on word boundaries only.
+     * @param regex whether the query is a regular expression rather than a literal string.
+     * @param scope restricts matches to a top-level section of the flow YAML (tasks, triggers, inputs).
+     */
+    ArrayListTotal<SearchResult<Flow>> findSourceCode(Pageable pageable, @Nullable String query, boolean caseSensitive, boolean wholeWord, boolean regex, SourceSearchScope scope, @Nullable String tenantId, @Nullable String namespace);
+
+    /**
+     * @deprecated use {@link #findSourceCode(Pageable, String, boolean, boolean, boolean, SourceSearchScope, String, String)} instead.
+     */
+    @Deprecated
+    default ArrayListTotal<SearchResult<Flow>> findSourceCode(Pageable pageable, @Nullable String query, @Nullable String tenantId, @Nullable String namespace) {
+        return findSourceCode(pageable, query, false, false, false, SourceSearchScope.ALL, tenantId, namespace);
+    }
 
     List<String> findDistinctNamespace(String tenantId);
 
