@@ -74,6 +74,43 @@ export type Flow = Omit<FlowWithSource, "disabled" | "draft" | "deleted" | "task
     tasks?: Task[];
 }
 
+export interface SourceMatch {
+    line: number;
+    snippet: string;
+}
+
+export interface SourceSearchResult {
+    namespace: string;
+    id: string;
+    editable: boolean;
+    matches: SourceMatch[];
+}
+
+export interface SourceSearchReplaceMatch {
+    line: number;
+    before: string;
+    after: string;
+}
+
+export interface SourceSearchReplacePreviewFlow {
+    namespace: string;
+    id: string;
+    editable: boolean;
+    matches: SourceSearchReplaceMatch[];
+}
+
+export interface SourceSearchReplacePreviewResponse {
+    totalMatches: number;
+    totalFlows: number;
+    editableFlowCount: number;
+    flows: SourceSearchReplacePreviewFlow[];
+}
+
+export interface SourceSearchReplaceApplyResponse {
+    updated: Flow[];
+    skipped: {namespace: string; id: string}[];
+}
+
 export type FlowSaveOutcome =
     | "saved"
     | "redirect_to_update"
@@ -90,7 +127,7 @@ export const useFlowStore = defineStore("flow", () => {
     const flows = ref<Flow[]>()
     const flow = ref<Flow>()
     const task = ref<Task>()
-    const search = ref<any[]>()
+    const search = ref<SourceSearchResult[]>()
     const total = ref<number>(0)
     const overallTotal = ref<number>()
     const flowGraph = ref<FlowGraph>()
@@ -425,11 +462,37 @@ export const useFlowStore = defineStore("flow", () => {
     function searchFlows(options: { [key: string]: any }) {
         const {sort, ...rest} = options
         return FlowsAPI.searchFlowsBySourceCode({...rest, sort: sort ? [sort] : undefined}).then(response => {
-            search.value = response.results as unknown as any[]
+            search.value = response.results as unknown as SourceSearchResult[]
             total.value = response.total ?? 0
 
             return response
         })
+    }
+
+    async function previewSourceSearchReplace(options: {
+        query: string;
+        caseSensitive: boolean;
+        wholeWord: boolean;
+        regex: boolean;
+        scope: string;
+        namespace?: string;
+        replacement: string;
+    }): Promise<SourceSearchReplacePreviewResponse> {
+        const response = await axios.post(`${apiUrl()}/flows/source/replace/preview`, options)
+        return response.data
+    }
+
+    async function applySourceSearchReplace(options: {
+        query: string;
+        caseSensitive: boolean;
+        wholeWord: boolean;
+        regex: boolean;
+        scope: string;
+        replacement: string;
+        flows: {namespace: string; id: string}[];
+    }): Promise<SourceSearchReplaceApplyResponse> {
+        const response = await axios.post(`${apiUrl()}/flows/source/replace/apply`, options)
+        return response.data
     }
 
     function flowsByNamespace(namespace: string) {
@@ -1031,6 +1094,8 @@ function deleteFlowAndDependencies() {
         initYamlSource,
         findFlows,
         searchFlows,
+        previewSourceSearchReplace,
+        applySourceSearchReplace,
         flowsByNamespace,
         loadFlow,
         loadTask,

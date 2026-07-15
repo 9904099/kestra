@@ -1,68 +1,262 @@
 <template>
     <TopNavBar :title="routeInfo.title" :breadcrumb="routeInfo.breadcrumb" />
-    <section class="full-container">
-        <KsDataTable
-            ref="dataTable"
-            :loadData="loadData"
-            :currentPage="urlPage"
-            :pageSize="urlSize"
-            @ready="ready = true"
-            @page-changed="({page, size}: {page: number; size: number}) => router.push({query: {...route.query, page: String(page), size: String(size)}})"
-            striped
-            hover
-            :total="flowStore.total"
-            fitHeight
-        >
-            <template #navbar>
-                <KsFormItem>
-                    <SearchField />
-                </KsFormItem>
-                <KsFormItem>
+    <section class="full-container source-search">
+        <div class="source-search__header">
+            <div class="source-search__query-row">
+                <KsIconButton
+                    :aria-expanded="replaceOpen"
+                    :aria-label="replaceOpen ? t('source_search.hide_replace') : t('source_search.show_replace')"
+                    :tooltip="t('source_search.toggle_replace')"
+                    @click="replaceOpen = !replaceOpen"
+                >
+                    <ChevronRight class="source-search__chevron-icon" :class="{'source-search__chevron-icon--open': replaceOpen}" />
+                </KsIconButton>
+
+                <div class="source_search__input-stack">
+                    <KsSearch
+                        v-model="query"
+                        clearable
+                        :placeholder="t('source_search.search_placeholder')"
+                        :aria-label="t('source_search.search_aria')"
+                        :aria-invalid="Boolean(errorMessage)"
+                    >
+                        <template #suffix>
+                            <div class="source-search__toggles" role="group" :aria-label="t('source_search.options_aria')">
+                                <KsCheckTag
+                                    size="small"
+                                    :checked="caseSensitive"
+                                    :aria-pressed="caseSensitive"
+                                    :title="t('source_search.match_case')"
+                                    :aria-label="t('source_search.match_case')"
+                                    @change="(value: boolean) => caseSensitive = value"
+                                >
+                                    Aa
+                                </KsCheckTag>
+                                <KsCheckTag
+                                    size="small"
+                                    :checked="wholeWord"
+                                    :aria-pressed="wholeWord"
+                                    :title="t('source_search.match_whole_word')"
+                                    :aria-label="t('source_search.match_whole_word')"
+                                    @change="(value: boolean) => wholeWord = value"
+                                >
+                                    <u>ab</u>
+                                </KsCheckTag>
+                                <KsCheckTag
+                                    size="small"
+                                    :checked="regexEnabled"
+                                    :aria-pressed="regexEnabled"
+                                    :title="t('source_search.use_regex')"
+                                    :aria-label="t('source_search.use_regex')"
+                                    @change="(value: boolean) => regexEnabled = value"
+                                >
+                                    .*
+                                </KsCheckTag>
+                            </div>
+                        </template>
+                    </KsSearch>
+
+                    <div v-if="replaceOpen" class="source-search__replace-row">
+                        <KsSearch
+                            v-model="replacement"
+                            :placeholder="t('source_search.replace_placeholder')"
+                            :aria-label="t('source_search.replace_aria')"
+                        >
+                            <template #prefix>
+                                <FindReplace />
+                            </template>
+                        </KsSearch>
+                        <KsButton
+                            :type="showDiffPreview ? 'primary' : 'default'"
+                            :disabled="!query"
+                            :loading="previewLoading"
+                            :tooltip="t('source_search.replace_all_tooltip')"
+                            @click="triggerReplacePreview"
+                        >
+                            {{ t('source_search.replace_all') }}
+                        </KsButton>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="query" class="source-search__scope-row">
+                <div class="source-search__field">
+                    <label>{{ t('namespace') }}</label>
                     <NamespaceSelect
-                        v-if="$route.name !== 'flows/update'"
-                        data-type="flow"
                         v-model="namespace"
+                        data-type="flow"
                         @update:model-value="onNamespaceChange"
                     />
-                </KsFormItem>
-            </template>
+                </div>
+                <div class="source-search__field">
+                    <label>{{ t('source_search.scope') }}</label>
+                    <KsSegmented v-model="scope" size="small" :options="scopeOptions" />
+                </div>
 
-            <template #table>
-                <KsSplitter class="search-splitter">
-                    <KsSplitterPanel min="20%" size="35%" key="results">
-                        <SourceSearchResults
-                            :results="flowStore.search"
-                            :selectedKey="selectedKey"
-                            @select="onSelect"
-                            data-test="source-search-results-pane"
-                        />
-                    </KsSplitterPanel>
-                    <KsSplitterPanel min="20%" key="preview">
-                        <SourceSearchPreview
-                            :selected="selected"
-                            :query="searchQuery"
-                            data-test="source-search-preview-pane"
-                        />
-                    </KsSplitterPanel>
-                </KsSplitter>
-            </template>
-        </KsDataTable>
+                <div class="source-search__spacer" />
+
+                <i18n-t
+                    v-if="hasResults"
+                    keypath="source_search.summary"
+                    tag="span"
+                    class="source-search__summary"
+                >
+                    <template #matches>
+                        <strong>{{ totalMatchCount }}</strong>
+                    </template>
+                    <template #flows>
+                        <strong>{{ results.length }}</strong>
+                    </template>
+                </i18n-t>
+
+                <div v-if="hasResults" class="source-search__match-nav">
+                    <KsIconButton
+                        :disabled="flatMatches.length === 0"
+                        :tooltip="t('source_search.previous_match')"
+                        @click="goToMatch(-1)"
+                    >
+                        <ChevronUp />
+                    </KsIconButton>
+                    <span class="source-search__match-count">{{ matchNavLabel }}</span>
+                    <KsIconButton
+                        :disabled="flatMatches.length === 0"
+                        :tooltip="t('source_search.next_match')"
+                        @click="goToMatch(1)"
+                    >
+                        <ChevronDown />
+                    </KsIconButton>
+                    <KsIconButton
+                        :tooltip="allCollapsed ? t('source_search.expand_all') : t('source_search.collapse_all')"
+                        @click="toggleCollapseAll"
+                    >
+                        <ArrowExpandVertical v-if="allCollapsed" />
+                        <ArrowCollapseVertical v-else />
+                    </KsIconButton>
+                </div>
+            </div>
+        </div>
+
+        <KsAlert
+            v-if="showDiffPreview && readOnlyExcludedCount > 0"
+            type="warning"
+            class="source-search__rbac-banner"
+        >
+            <i18n-t keypath="source_search.rbac_banner" tag="span">
+                <template #count>
+                    <b>{{ readOnlyExcludedCount }}</b>
+                </template>
+                <template #namespace>
+                    <code>{{ firstReadOnlyNamespace }}</code>
+                </template>
+                <template #permission>
+                    <b>{{ t('source_search.flow_update_permission') }}</b>
+                </template>
+            </i18n-t>
+        </KsAlert>
+
+        <div v-if="loading" class="source-search__states">
+            <div class="source-search__skeleton-rows">
+                <KsSkeleton v-for="n in 4" :key="n" animated :rows="1" class="source-search__skeleton-row" />
+            </div>
+        </div>
+
+        <div v-else-if="!query" class="source-search__states">
+            <KsEmpty :background="false">
+                <template #image>
+                    <span class="source-search__empty-glyph">
+                        <Magnify />
+                    </span>
+                </template>
+                <template #description>
+                    <h3>{{ t('source_search.empty_title') }}</h3>
+                    <p>{{ t('source_search.empty_description') }}</p>
+                </template>
+                <div class="source-search__examples" role="list" :aria-label="t('source_search.examples_aria')">
+                    <button
+                        v-for="example in exampleQueries"
+                        :key="example"
+                        type="button"
+                        class="source-search__example-chip"
+                        role="listitem"
+                        @click="query = example"
+                    >
+                        {{ example }}
+                    </button>
+                </div>
+            </KsEmpty>
+        </div>
+
+        <div v-else-if="errorMessage" class="source-search__states">
+            <KsAlert type="error" :title="t('source_search.error_title')" :description="errorMessage" />
+            <KsButton type="default" @click="fetchResults">
+                {{ t('source_search.retry_search') }}
+            </KsButton>
+        </div>
+
+        <div v-else-if="!hasResults" class="source-search__states">
+            <KsEmpty :background="false">
+                <template #description>
+                    <h3>{{ t('source_search.no_results_title', {query}) }}</h3>
+                    <p>{{ t('source_search.no_results_description') }}</p>
+                </template>
+            </KsEmpty>
+        </div>
+
+        <KsSplitter v-else class="source-search__splitter">
+            <KsSplitterPanel min="20%" size="38%" key="results">
+                <SourceSearchResults
+                    ref="resultsRef"
+                    :results="results"
+                    :selectedKey="selectedKey"
+                    :replaceMode="replaceOpen"
+                    :selectedMatchKeys="selectedMatchKeys"
+                    data-test="source-search-results-pane"
+                    @select="onSelect"
+                    @toggle-flow="onToggleFlow"
+                    @toggle-match="onToggleMatch"
+                    @replace-flow="onReplaceFlow"
+                    @replace-match="onReplaceMatch"
+                />
+            </KsSplitterPanel>
+            <KsSplitterPanel min="20%" key="preview">
+                <SourceSearchPreview
+                    :selected="selected"
+                    :query="query"
+                    :replaceMode="showDiffPreview"
+                    :previewResponse="previewResponse"
+                    :selectionSummary="showDiffPreview ? selectionSummary : null"
+                    :readOnlyExcludedCount="readOnlyExcludedCount"
+                    data-test="source-search-preview-pane"
+                    @cancel="previewResponse = null"
+                    @replace-all="onConfirmReplaceAll"
+                />
+            </KsSplitterPanel>
+        </KsSplitter>
     </section>
 </template>
 
 <script setup lang="ts">
-    import {ref, computed, watch, useTemplateRef} from "vue"
+    import {ref, computed, watch} from "vue"
     import {useI18n} from "vue-i18n"
     import {useRoute, useRouter} from "vue-router"
+    import debounce from "lodash/debounce"
     import TopNavBar from "../layout/TopNavBar.vue"
-    import SearchField from "../layout/SearchField.vue"
     import NamespaceSelect from "../namespaces/components/NamespaceSelect.vue"
     import SourceSearchResults from "./SourceSearchResults.vue"
     import SourceSearchPreview from "./SourceSearchPreview.vue"
+    import ChevronRight from "vue-material-design-icons/ChevronRight.vue"
+    import ChevronUp from "vue-material-design-icons/ChevronUp.vue"
+    import ChevronDown from "vue-material-design-icons/ChevronDown.vue"
+    import ArrowCollapseVertical from "vue-material-design-icons/ArrowCollapseVertical.vue"
+    import ArrowExpandVertical from "vue-material-design-icons/ArrowExpandVertical.vue"
+    import FindReplace from "vue-material-design-icons/FindReplace.vue"
+    import Magnify from "vue-material-design-icons/Magnify.vue"
     import useRouteContext from "../../composables/useRouteContext"
     import useRestoreUrl from "../../composables/useRestoreUrl"
+    import {useToast} from "../../utils/toast"
+    import {computeSelectionSummary} from "../../utils/sourceSearchDiff"
 
-    import {useFlowStore} from "../../stores/flow"
+    import {useFlowStore, type SourceSearchReplacePreviewResponse} from "../../stores/flow"
 
     const {loadInit} = useRestoreUrl()
 
@@ -70,13 +264,37 @@
     const route = useRoute()
     const router = useRouter()
     const flowStore = useFlowStore()
-    const dataTable = useTemplateRef("dataTable")
-    const ready = ref(false)
-    const selected = ref<{namespace: string; id: string; matchIndex: number} | null>(null)
+    const toast = useToast()
 
-    const selectedKey = computed(() =>
-        selected.value ? `${selected.value.namespace}.${selected.value.id}#${selected.value.matchIndex}` : null,
-    )
+    const resultsRef = ref<InstanceType<typeof SourceSearchResults> | null>(null)
+
+    const loading = ref(false)
+    const errorMessage = ref<string | null>(null)
+    const selected = ref<{namespace: string; id: string; line: number} | null>(null)
+    const selectedMatchKeys = ref<Set<string>>(new Set())
+    const previewResponse = ref<SourceSearchReplacePreviewResponse | null>(null)
+    const previewLoading = ref(false)
+    const allCollapsed = ref(false)
+
+    const replaceOpen = ref(false)
+    const replacement = ref("")
+    const caseSensitive = ref(false)
+    const wholeWord = ref(false)
+    const regexEnabled = ref(false)
+
+    const exampleQueries = [
+        "io.kestra.plugin.gcp.bigquery.Query",
+        "retry:",
+        "concurrency:\\s*\\n\\s*limit:",
+        "secret('...')",
+    ]
+
+    const scopeOptions = computed(() => [
+        {label: t("source_search.scope_all"), value: "all"},
+        {label: t("source_search.scope_tasks"), value: "tasks"},
+        {label: t("source_search.scope_triggers"), value: "triggers"},
+        {label: t("source_search.scope_inputs"), value: "inputs"},
+    ])
 
     const routeInfo = computed(() => ({
         title: (route.meta?.title as string) ?? t("source search"),
@@ -90,64 +308,415 @@
 
     useRouteContext(routeInfo)
 
+    const query = computed({
+        get: () => (route.query.q as string) ?? "",
+        set: (value: string) => {
+            const routeQuery = {...route.query}
+            if (value) {
+                routeQuery.q = value
+            } else {
+                delete routeQuery.q
+            }
+            router.push({query: routeQuery})
+        },
+    })
+
     const namespace = computed({
         get: () => route.query?.namespace as [],
         set: (val) => onNamespaceChange(val),
     })
 
-    const searchQuery = computed(() => (route.query.q as string) ?? "")
+    const namespaceFilter = computed<string | undefined>(() => {
+        const raw = route.query?.namespace
+        if (Array.isArray(raw)) return raw[0] as string
+        return typeof raw === "string" && raw ? raw : undefined
+    })
+
+    const scope = computed({
+        get: () => (route.query.scope as string) ?? "all",
+        set: (value: string) => {
+            const routeQuery = {...route.query, scope: value}
+            router.push({query: routeQuery})
+        },
+    })
 
     function onNamespaceChange(val: any) {
-        const query = {...route.query}
+        const routeQuery = {...route.query}
         if (val === undefined || val === "" || val === null || (Array.isArray(val) && val.length === 0)) {
-            delete query["namespace"]
+            delete routeQuery["namespace"]
         } else {
-            query["namespace"] = val
+            routeQuery["namespace"] = val
         }
-        delete query["page"]
-        router.push({query})
+        router.push({query: routeQuery})
     }
 
-    async function loadData({page, size}: {page: number; size: number; sort?: string}) {
-        if (!loadInit.value) return
-        const {page: _p, size: _s, sort: _so, ...filters} = route.query
-        const params: {page: number; size: number; [key: string]: any} = {page, size, ...filters}
-        await flowStore.searchFlows(params).finally(() => {
-            if (!params.q) {
-                flowStore.total = 0
-                flowStore.search = undefined
+    const results = computed(() => flowStore.search ?? [])
+    const hasResults = computed(() => results.value.length > 0)
+    const totalMatchCount = computed(() => results.value.reduce((sum, group) => sum + group.matches.length, 0))
+    const readOnlyExcludedCount = computed(() => results.value.filter((group) => !group.editable).length)
+    const firstReadOnlyNamespace = computed(() => results.value.find((group) => !group.editable)?.namespace ?? "")
+
+    const selectedKey = computed(() => selected.value ? `${selected.value.namespace}.${selected.value.id}#${selected.value.line}` : null)
+
+    const showDiffPreview = computed(() => previewResponse.value !== null)
+
+    const selectionSummary = computed(() => computeSelectionSummary(results.value, selectedMatchKeys.value))
+
+    const flatMatches = computed(() => {
+        const list: {namespace: string; id: string; line: number}[] = []
+        for (const group of results.value) {
+            for (const match of group.matches) {
+                list.push({namespace: group.namespace, id: group.id, line: match.line})
             }
-        })
+        }
+        return list
+    })
+
+    const activeMatchIndex = computed(() => {
+        if (!selected.value) return -1
+        return flatMatches.value.findIndex((match) => match.namespace === selected.value!.namespace && match.id === selected.value!.id && match.line === selected.value!.line)
+    })
+
+    const matchNavLabel = computed(() => {
+        if (flatMatches.value.length === 0) return t("source_search.match_nav_empty")
+        return t("source_search.match_nav", {current: activeMatchIndex.value + 1, total: flatMatches.value.length})
+    })
+
+    function matchKey(matchNamespace: string, id: string, line: number) {
+        return `${matchNamespace}.${id}#${line}`
     }
 
-    const urlPage = computed(() => Number(route.query.page) || 1)
-    const urlSize = computed(() => Number(route.query.size) || 25)
-
-    const filterQueryKey = computed(() => {
-        const {page: _p, size: _s, sort: _so, ...filters} = route.query
-        return JSON.stringify(filters)
-    })
-
-    watch(filterQueryKey, () => {
-        selected.value = null
-        dataTable.value?.resetAndReload()
-    })
-
-    watch(urlPage, () => {
-        selected.value = null
-    })
-
-    function onSelect(item: {namespace: string; id: string; matchIndex: number}) {
-        selected.value = item
+    function onSelect(value: {namespace: string; id: string; line: number}) {
+        selected.value = value
     }
+
+    function goToMatch(delta: number) {
+        if (flatMatches.value.length === 0) return
+        const nextIndex = (activeMatchIndex.value + delta + flatMatches.value.length) % flatMatches.value.length
+        selected.value = {...flatMatches.value[nextIndex]}
+    }
+
+    function toggleCollapseAll() {
+        allCollapsed.value = !allCollapsed.value
+        if (allCollapsed.value) {
+            resultsRef.value?.collapseAll()
+        } else {
+            resultsRef.value?.expandAll()
+        }
+    }
+
+    function onToggleFlow(value: {namespace: string; id: string; checked: boolean}) {
+        const group = results.value.find((g) => g.namespace === value.namespace && g.id === value.id)
+        if (!group) return
+        const next = new Set(selectedMatchKeys.value)
+        for (const match of group.matches) {
+            const key = matchKey(group.namespace, group.id, match.line)
+            if (value.checked) next.add(key)
+            else next.delete(key)
+        }
+        selectedMatchKeys.value = next
+    }
+
+    function onToggleMatch(value: {namespace: string; id: string; line: number; checked: boolean}) {
+        const next = new Set(selectedMatchKeys.value)
+        const key = matchKey(value.namespace, value.id, value.line)
+        if (value.checked) next.add(key)
+        else next.delete(key)
+        selectedMatchKeys.value = next
+    }
+
+    function selectOnly(keys: string[]) {
+        selectedMatchKeys.value = new Set(keys)
+    }
+
+    async function onReplaceFlow(value: {namespace: string; id: string}) {
+        const group = results.value.find((g) => g.namespace === value.namespace && g.id === value.id)
+        if (!group) return
+        replaceOpen.value = true
+        selectOnly(group.matches.map((match) => matchKey(group.namespace, group.id, match.line)))
+        await triggerReplacePreview()
+    }
+
+    async function onReplaceMatch(value: {namespace: string; id: string; line: number}) {
+        replaceOpen.value = true
+        selected.value = value
+        selectOnly([matchKey(value.namespace, value.id, value.line)])
+        await triggerReplacePreview()
+    }
+
+    async function triggerReplacePreview() {
+        if (!query.value) return
+        previewLoading.value = true
+        try {
+            previewResponse.value = await flowStore.previewSourceSearchReplace({
+                query: query.value,
+                caseSensitive: caseSensitive.value,
+                wholeWord: wholeWord.value,
+                regex: regexEnabled.value,
+                scope: scope.value,
+                namespace: namespaceFilter.value,
+                replacement: replacement.value,
+            })
+        } catch (e: any) {
+            toast.error(e?.response?.data?.message ?? t("source_search.replace_preview_failed"))
+        } finally {
+            previewLoading.value = false
+        }
+    }
+
+    async function onConfirmReplaceAll() {
+        const flowsToApply = results.value
+            .filter((group) => group.editable && group.matches.some((match) => selectedMatchKeys.value.has(matchKey(group.namespace, group.id, match.line))))
+            .map((group) => ({namespace: group.namespace, id: group.id}))
+
+        if (flowsToApply.length === 0) return
+
+        try {
+            const response = await flowStore.applySourceSearchReplace({
+                query: query.value,
+                caseSensitive: caseSensitive.value,
+                wholeWord: wholeWord.value,
+                regex: regexEnabled.value,
+                scope: scope.value,
+                replacement: replacement.value,
+                flows: flowsToApply,
+            })
+            toast.success(t("source_search.replace_apply_success", {count: response.updated.length}))
+            previewResponse.value = null
+            await fetchResults()
+        } catch (e: any) {
+            toast.error(e?.response?.data?.message ?? t("source_search.replace_apply_failed"))
+        }
+    }
+
+    async function fetchResults() {
+        if (!loadInit.value || !query.value) {
+            if (!query.value) {
+                flowStore.search = undefined
+                flowStore.total = 0
+            }
+            return
+        }
+
+        loading.value = true
+        errorMessage.value = null
+        previewResponse.value = null
+
+        try {
+            await flowStore.searchFlows({
+                page: 1,
+                size: 200,
+                q: query.value,
+                namespace: namespaceFilter.value,
+                caseSensitive: caseSensitive.value,
+                wholeWord: wholeWord.value,
+                regex: regexEnabled.value,
+                scope: scope.value,
+            })
+        } catch (e: any) {
+            errorMessage.value = e?.response?.data?.message ?? t("source_search.search_failed")
+            flowStore.search = undefined
+        } finally {
+            loading.value = false
+        }
+    }
+
+    const debouncedFetch = debounce(fetchResults, 300)
+
+    watch(
+        () => [query.value, namespace.value, scope.value, caseSensitive.value, wholeWord.value, regexEnabled.value].join("|"),
+        () => debouncedFetch(),
+    )
+
+    watch(results, (newResults) => {
+        selectedMatchKeys.value = new Set(
+            newResults
+                .filter((group) => group.editable)
+                .flatMap((group) => group.matches.map((match) => matchKey(group.namespace, group.id, match.line))),
+        )
+
+        if (newResults.length > 0 && newResults[0].matches.length > 0) {
+            const stillValid = selected.value && newResults.some((group) => group.namespace === selected.value!.namespace && group.id === selected.value!.id && group.matches.some((match) => match.line === selected.value!.line))
+            if (!stillValid) {
+                selected.value = {namespace: newResults[0].namespace, id: newResults[0].id, line: newResults[0].matches[0].line}
+            }
+        } else {
+            selected.value = null
+        }
+    })
+
+    fetchResults()
 </script>
 
 <style scoped lang="scss">
-section {
-    --ks-data-table-navbar-padding-block-start: var(--ks-spacing-5);
+.source-search {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
 }
 
-.search-splitter {
+.source-search__header {
+    padding: var(--ks-spacing-3) var(--ks-spacing-4);
+    border-bottom: 1px solid var(--ks-border-default);
+    background: var(--ks-bg-surface);
+    flex: 0 0 auto;
+}
+
+.source-search__query-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--ks-spacing-2);
+}
+
+.source-search__chevron-icon {
+    display: inline-flex;
+    transition: transform .15s ease;
+}
+
+.source-search__chevron-icon--open {
+    transform: rotate(90deg);
+}
+
+.source_search__input-stack {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ks-spacing-2);
+    min-width: 0;
+}
+
+.source-search__toggles {
+    display: flex;
+    align-items: center;
+    gap: var(--ks-spacing-1);
+}
+
+.source-search__replace-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--ks-spacing-2);
+}
+
+.source-search__scope-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ks-spacing-3);
+    margin-top: var(--ks-spacing-3);
+    padding-top: var(--ks-spacing-3);
+    border-top: 1px solid var(--ks-border-subtle);
+}
+
+.source-search__field {
+    display: flex;
+    align-items: center;
+    gap: var(--ks-spacing-2);
+
+    label {
+        font-size: var(--ks-font-size-sm);
+        color: var(--ks-text-secondary);
+    }
+}
+
+.source-search__spacer {
+    flex: 1 1 auto;
+}
+
+.source-search__summary {
+    font-size: var(--ks-font-size-sm);
+    color: var(--ks-text-muted);
+    white-space: nowrap;
+}
+
+.source-search__match-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--ks-spacing-1);
+}
+
+.source-search__match-count {
+    font-size: var(--ks-font-size-sm);
+    color: var(--ks-text-secondary);
+    min-width: 8.5ch;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.source-search__rbac-banner {
+    flex: 0 0 auto;
+    border-radius: 0;
+}
+
+.source-search__states {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ks-spacing-3);
+    padding: var(--ks-spacing-8) var(--ks-spacing-5);
+    text-align: center;
+
+    h3 {
+        margin: 0 0 var(--ks-spacing-2);
+        font-size: var(--ks-font-size-lg);
+    }
+
+    p {
+        margin: 0;
+        color: var(--ks-text-secondary);
+        font-size: var(--ks-font-size-sm);
+        max-width: 48ch;
+    }
+}
+
+.source-search__skeleton-rows {
+    width: 100%;
+    max-width: 40rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ks-spacing-3);
+}
+
+.source-search__empty-glyph {
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--ks-radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ks-bg-base);
+    border: 1px solid var(--ks-border-default);
+    color: var(--ks-text-muted);
+    margin: 0 auto var(--ks-spacing-3);
+}
+
+.source-search__examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ks-spacing-2);
+    justify-content: center;
+    margin-top: var(--ks-spacing-2);
+}
+
+.source-search__example-chip {
+    font-family: var(--ks-font-family-mono);
+    font-size: var(--ks-font-size-xs);
+    background: var(--ks-bg-base);
+    border: 1px solid var(--ks-border-default);
+    border-radius: var(--ks-radius-base);
+    padding: var(--ks-spacing-1) var(--ks-spacing-2);
+    color: var(--ks-text-link);
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--ks-border-strong);
+    }
+}
+
+.source-search__splitter {
     flex: 1;
     min-height: 0;
     overflow: hidden;
