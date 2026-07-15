@@ -305,6 +305,14 @@
         overflow: hidden;
     }
 
+    // Collapsed, a cluster reads as a single task row: match the leaf card's
+    // background and drop the expanded-only left accent so it lines up in size.
+    .flowable-cluster:not(.flowable-cluster--expanded) {
+        background: var(--ks-btn-secondary-bg-default);
+        border-left-width: 1px;
+        border-left-color: var(--ks-border-default);
+    }
+
     .flowable-cluster--error {
         border-color: var(--ks-border-error);
         border-left-color: var(--ks-border-error);
@@ -350,7 +358,7 @@
         font-weight: 600;
         font-family: var(--ks-font-family-mono);
         color: var(--ks-text-primary);
-        flex: 1;
+        flex: 0 1 auto;
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -358,8 +366,11 @@
     }
 
 
+    // Pushed to the right so the error badge stays next to the id (left),
+    // clear of the hover action overlay that covers the right edge.
     .flowable-cluster-kind-tag {
         flex-shrink: 0;
+        margin-left: auto;
     }
 
     .flowable-cluster-summary {
