@@ -796,7 +796,7 @@ function deleteFlowAndDependencies() {
                 const constraintsArray = [validResults.constraints, flowValidationIssues.constraints].filter(Boolean)
 
                 if (constraintsArray.length) {
-                    validResults.constraints = constraintsArray.join(", ")
+                    validResults.constraints = constraintsArray.join("\n")
                 } else {
                     delete validResults.constraints
                 }
@@ -939,8 +939,13 @@ function deleteFlowAndDependencies() {
                 ? [`${t(key + ".description")} ${t(key + ".details")}`]
                 : []
 
+        // The backend joins individual constraint violations with newlines, so
+        // split on newlines (not commas — a message can itself contain ", ").
         const constraintsError =
-            flowValidation.value?.constraints?.split(/, ?/) ?? []
+            flowValidation.value?.constraints
+                ?.split(/\r?\n/)
+                .map((constraint) => constraint.trim())
+                .filter(Boolean) ?? []
 
         const errors = [...flowExistsError, ...constraintsError]
 

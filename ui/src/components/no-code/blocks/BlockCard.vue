@@ -36,12 +36,7 @@
         <div class="block-card-main">
             <div class="block-card-idrow">
                 <span class="block-card-id" data-test="block-card-id">{{ block.id }}</span>
-                <KsTooltip v-if="issues.length" :persistent="false">
-                    <template #content>
-                        <div v-for="issue in issues" :key="issue">{{ issue }}</div>
-                    </template>
-                    <AlertCircle class="block-card-warning" data-test="block-card-warning" />
-                </KsTooltip>
+                <BlockErrorBadge :issues="issues" />
             </div>
             <span class="block-card-type" data-test="block-card-type">{{ shortType }}</span>
         </div>
@@ -106,10 +101,10 @@
     import DragVertical from "vue-material-design-icons/DragVertical.vue"
     import Play from "vue-material-design-icons/Play.vue"
     import ViewSplitVertical from "vue-material-design-icons/ViewSplitVertical.vue"
-    import AlertCircle from "vue-material-design-icons/AlertCircle.vue"
 
-    import {KsIconButton, KsTooltip} from "@kestra-io/design-system"
+    import {KsIconButton} from "@kestra-io/design-system"
     import TaskIcon from "../../plugins/TaskIcon.vue"
+    import BlockErrorBadge from "./BlockErrorBadge.vue"
 
     import type {PluginIconData} from "../../../stores/plugins"
     import {BLOCK_VALIDATION_ISSUES_INJECTION_KEY} from "../injectionKeys"
@@ -245,13 +240,6 @@
         white-space: nowrap;
     }
 
-    .block-card-warning {
-        display: inline-flex;
-        flex-shrink: 0;
-        color: var(--ks-text-error);
-        font-size: var(--ks-font-size-sm);
-        cursor: help;
-    }
 
     .block-card-type {
         font-size: var(--ks-font-size-xs);

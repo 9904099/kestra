@@ -35,12 +35,7 @@
         <div class="leaf-block-card-main">
             <div class="leaf-block-card-idrow">
                 <span class="leaf-block-card-id" data-test="block-card-id">{{ displayBlock.id }}</span>
-                <KsTooltip v-if="issues.length" :persistent="false">
-                    <template #content>
-                        <div v-for="issue in issues" :key="issue">{{ issue }}</div>
-                    </template>
-                    <AlertCircle class="leaf-block-card-warning" data-test="block-card-warning" />
-                </KsTooltip>
+                <BlockErrorBadge :issues="issues" />
             </div>
             <span class="leaf-block-card-type" data-test="block-card-type">{{ shortType }}</span>
         </div>
@@ -90,10 +85,10 @@
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import DragVertical from "vue-material-design-icons/DragVertical.vue"
     import Play from "vue-material-design-icons/Play.vue"
-    import AlertCircle from "vue-material-design-icons/AlertCircle.vue"
 
-    import {KsIconButton, KsTooltip} from "@kestra-io/design-system"
+    import {KsIconButton} from "@kestra-io/design-system"
     import TaskIcon from "../../plugins/TaskIcon.vue"
+    import BlockErrorBadge from "./BlockErrorBadge.vue"
 
     import type {PluginIconData} from "../../../stores/plugins"
     import {displayTaskOf} from "../../../utils/flowableBlockOps"
@@ -234,13 +229,6 @@
         white-space: nowrap;
     }
 
-    .leaf-block-card-warning {
-        display: inline-flex;
-        flex-shrink: 0;
-        color: var(--ks-text-error);
-        font-size: var(--ks-font-size-sm);
-        cursor: help;
-    }
 
     .leaf-block-card-type {
         font-size: var(--ks-font-size-xs);

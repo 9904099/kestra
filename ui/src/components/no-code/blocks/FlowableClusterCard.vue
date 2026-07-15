@@ -33,12 +33,7 @@
 
             <span class="flowable-cluster-id" data-test="block-card-id">{{ displayBlock.id }}</span>
 
-            <KsTooltip v-if="issues.length" :persistent="false">
-                <template #content>
-                    <div v-for="issue in issues" :key="issue">{{ issue }}</div>
-                </template>
-                <AlertCircle class="flowable-cluster-warning" data-test="block-card-warning" />
-            </KsTooltip>
+            <BlockErrorBadge :issues="issues" />
 
             <KsTag size="small" class="flowable-cluster-kind-tag" data-test="block-card-type">
                 {{ shortType }}
@@ -131,7 +126,6 @@
 <script setup lang="ts">
     import {computed, defineAsyncComponent, inject, ref} from "vue"
     import {useI18n} from "vue-i18n"
-    import AlertCircle from "vue-material-design-icons/AlertCircle.vue"
     import ChevronDown from "vue-material-design-icons/ChevronDown.vue"
     import ChevronRight from "vue-material-design-icons/ChevronRight.vue"
     import ContentCopy from "vue-material-design-icons/ContentCopy.vue"
@@ -139,8 +133,9 @@
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
 
-    import {KsTag, KsIconButton, KsInput, KsTooltip} from "@kestra-io/design-system"
+    import {KsTag, KsIconButton, KsInput} from "@kestra-io/design-system"
     import TaskIcon from "../../plugins/TaskIcon.vue"
+    import BlockErrorBadge from "./BlockErrorBadge.vue"
 
     import type {PluginIconData} from "../../../stores/plugins"
     import {displayTaskOf, taskEditPathFor} from "../../../utils/flowableBlockOps"
@@ -359,13 +354,6 @@
         white-space: nowrap;
     }
 
-    .flowable-cluster-warning {
-        display: inline-flex;
-        flex-shrink: 0;
-        color: var(--ks-text-error);
-        font-size: var(--ks-font-size-sm);
-        cursor: help;
-    }
 
     .flowable-cluster-kind-tag {
         flex-shrink: 0;
