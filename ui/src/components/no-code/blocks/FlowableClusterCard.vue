@@ -205,7 +205,7 @@
 
     const focused = computed(() => props.focusedId !== undefined && props.focusedId === (props.domId ?? String(displayBlock.value.id ?? "")))
 
-    const expanded = ref(depth.value < 2)
+    const expanded = ref(true)
 
     function toggle() {
         expanded.value = !expanded.value
