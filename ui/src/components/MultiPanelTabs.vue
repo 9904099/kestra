@@ -11,7 +11,7 @@
             <KsSplitterPanel
                 v-for="{panel, panelIndex} in renderedPanels"
                 min="10%"
-                :key="panelIndex"
+                :key="`${panelIndex}:${maximizedPanelIndex === panelIndex}`"
                 :size="panelSizes[panelIndex] ?? panel.size"
                 @dragover.prevent="(e:DragEvent) => panelDragOver(e, panelIndex)"
                 @dragleave.prevent="panelDragLeave"

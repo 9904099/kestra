@@ -241,9 +241,9 @@
 }
 
 .task-duration-add:hover {
-    border-color: var(--ks-text-link);
-    color: var(--ks-text-link);
-    background: var(--ks-bg-hover);
+    border-color: var(--ks-border-strong);
+    color: var(--ks-text-primary);
+    background: var(--ks-btn-secondary-bg-hover);
 }
 
 .task-duration-add:active {
@@ -277,9 +277,9 @@
 }
 
 .task-duration-preset:hover {
-    border-color: var(--ks-border-default);
+    border-color: var(--ks-border-strong);
     color: var(--ks-text-primary);
-    background: var(--ks-bg-hover);
+    background: var(--ks-btn-secondary-bg-hover);
 }
 
 .task-duration-preset:active {

@@ -291,8 +291,9 @@
         transition: color 0.15s, border-color 0.15s;
 
         &:hover {
-            color: var(--ks-text-link);
-            border-color: var(--ks-text-link);
+            color: var(--ks-text-primary);
+            border-color: var(--ks-border-strong);
+            background: var(--ks-btn-secondary-bg-hover);
         }
 
         &:focus-visible {
