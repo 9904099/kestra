@@ -461,11 +461,13 @@ export const useFlowStore = defineStore("flow", () => {
     }
     function searchFlows(options: { [key: string]: any }) {
         const {sort, ...rest} = options
-        return FlowsAPI.searchFlowsBySourceCode({...rest, sort: sort ? [sort] : undefined}).then(response => {
-            search.value = response.results as unknown as SourceSearchResult[]
-            total.value = response.total ?? 0
+        return axios.get(`${apiUrl()}/flows/source`, {
+            params: {...rest, sort: sort ? [sort] : undefined},
+        }).then(response => {
+            search.value = response.data.results as unknown as SourceSearchResult[]
+            total.value = response.data.total ?? 0
 
-            return response
+            return response.data
         })
     }
 
