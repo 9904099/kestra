@@ -315,12 +315,6 @@
         border-left-color: var(--ks-border-default);
     }
 
-    // A leaf card is two text lines tall (id + type); the collapsed single-row
-    // header is shorter, so give it the same height to line up in the list.
-    .flowable-cluster:not(.flowable-cluster--expanded) .flowable-cluster-header {
-        min-height: 3.25rem;
-    }
-
     .flowable-cluster--error {
         border-color: var(--ks-border-error);
         border-left-color: var(--ks-border-error);
@@ -331,6 +325,9 @@
         display: flex;
         align-items: center;
         gap: var(--ks-spacing-2);
+        // Match the two-line height of leaf task cards so the header row lines
+        // up with the surrounding tasks whether the cluster is open or closed.
+        min-height: 3.25rem;
         padding: var(--ks-spacing-2) var(--ks-spacing-3);
         cursor: pointer;
         user-select: none;
