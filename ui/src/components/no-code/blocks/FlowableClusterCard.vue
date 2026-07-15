@@ -315,6 +315,12 @@
         border-left-color: var(--ks-border-default);
     }
 
+    // A leaf card is two text lines tall (id + type); the collapsed single-row
+    // header is shorter, so give it the same height to line up in the list.
+    .flowable-cluster:not(.flowable-cluster--expanded) .flowable-cluster-header {
+        min-height: 3.25rem;
+    }
+
     .flowable-cluster--error {
         border-color: var(--ks-border-error);
         border-left-color: var(--ks-border-error);
