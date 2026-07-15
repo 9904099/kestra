@@ -304,7 +304,7 @@ public class FlowController {
     @ExecuteOn(TaskExecutors.IO)
     @Post(uri = "/source/replace/apply")
     @Operation(tags = { "Flows" }, summary = "Apply a Source Search replace-all operation", description = "Replaces every match in the given flows and persists the new revisions. Flows the caller is not allowed to edit are skipped.")
-    public SourceSearchReplaceApplyResponse applyReplaceBySourceCode(@RequestBody(description = "The search query, replacement and target flows") @Body @Valid SourceSearchReplaceApplyRequest request) throws Exception {
+    public SourceSearchReplaceApplyResponse applyReplaceBySourceCode(@RequestBody(description = "The search query, replacement and target flows") @Body @Valid SourceSearchReplaceApplyRequest request) throws FlowProcessingException, QueueException {
         return sourceSearchService.apply(
             tenantService.resolveTenant(),
             request.query(),
