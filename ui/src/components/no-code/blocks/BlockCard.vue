@@ -30,6 +30,7 @@
             class="block-card-ico"
             :cls="String(block.type ?? '')"
             :icons="icons"
+            :loadIcon="pluginsStore.loadIcon"
             :onlyIcon="true"
         />
 
@@ -106,10 +107,12 @@
     import TaskIcon from "../../plugins/TaskIcon.vue"
     import BlockErrorBadge from "./BlockErrorBadge.vue"
 
-    import type {PluginIconData} from "../../../stores/plugins"
+    import {usePluginsStore, type PluginIconData} from "../../../stores/plugins"
     import {BLOCK_VALIDATION_ISSUES_INJECTION_KEY} from "../injectionKeys"
 
     const {t} = useI18n()
+
+    const pluginsStore = usePluginsStore()
 
     const props = defineProps<{
         block: Record<string, unknown>

@@ -73,7 +73,7 @@
                 data-test="task-edit-tab"
                 @dragstart="onTabDragStart"
             >
-                <TaskIcon class="task-edit-tab-ico" :cls="taskType" :icons="pluginsStore.icons" :onlyIcon="true" />
+                <TaskIcon class="task-edit-tab-ico" :cls="taskType" :icons="pluginsStore.icons" :loadIcon="pluginsStore.loadIcon" :onlyIcon="true" />
                 <span class="task-edit-tab-id">{{ taskId || task?.id || $t("add task") }}</span>
                 <KsIconButton
                     class="task-edit-tab-close"

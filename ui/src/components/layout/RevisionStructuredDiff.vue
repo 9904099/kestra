@@ -16,6 +16,7 @@
                         <TaskIcon
                             :cls="block.type ?? ''"
                             :icons="pluginsStore.icons"
+                            :loadIcon="pluginsStore.loadIcon"
                             :onlyIcon="true"
                             class="diff-card-icon"
                         />

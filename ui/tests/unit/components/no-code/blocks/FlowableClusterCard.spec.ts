@@ -12,7 +12,7 @@ const globalConfig = {
     ],
     stubs: {
         BranchLane: {name: "BranchLane", props: ["laneName", "tasks"], template: "<div class='branch-lane-stub' :data-lane='laneName' />"},
-        TaskIcon: true,
+        TaskIcon: {name: "TaskIcon", props: ["cls", "icons", "loadIcon", "onlyIcon"], template: "<span class='task-icon-stub' />"},
     },
 }
 
@@ -42,6 +42,13 @@ describe("FlowableClusterCard", () => {
         const wrapper = mountAt(5)
         expect(wrapper.find(".flowable-cluster-body").exists()).toBe(true)
         expect(wrapper.find(".branch-lane-stub").exists()).toBe(true)
+    })
+
+    test("passes a lazy loadIcon to the task icon so real icons resolve", () => {
+        const wrapper = mountAt(0)
+        const icon = wrapper.findComponent({name: "TaskIcon"})
+        expect(icon.exists()).toBe(true)
+        expect(typeof icon.props("loadIcon")).toBe("function")
     })
 
     test("the header toggle collapses the lanes", async () => {

@@ -520,7 +520,7 @@
                             class="block-editor-picker-app"
                             @click="appFilter = grp.group"
                         >
-                            <TaskIcon class="block-editor-picker-icon" :cls="grp.sampleFqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
+                            <TaskIcon class="block-editor-picker-icon" :cls="grp.sampleFqcn" :icons="pluginsStore.icons" :loadIcon="pluginsStore.loadIcon" :onlyIcon="true" />
                             <span class="block-editor-picker-app-name">{{ grp.group }}</span>
                             <span class="block-editor-picker-app-count">{{ t('block_editor.app_actions', {count: grp.count}) }}</span>
                         </button>
@@ -551,7 +551,7 @@
                             @click="insertTask(type.fqcn)"
                             @mouseenter="pickerFocusedIndex = idx"
                         >
-                            <TaskIcon class="block-editor-picker-icon" :cls="type.fqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
+                            <TaskIcon class="block-editor-picker-icon" :cls="type.fqcn" :icons="pluginsStore.icons" :loadIcon="pluginsStore.loadIcon" :onlyIcon="true" />
                             <span class="block-editor-picker-main">
                                 <span class="block-editor-picker-name">{{ type.name }}</span>
                                 <span class="block-editor-picker-desc">{{ type.label }}</span>

@@ -28,6 +28,7 @@
                 class="flowable-cluster-icon"
                 :cls="String(displayBlock.type ?? '')"
                 :icons="icons"
+                :loadIcon="pluginsStore.loadIcon"
                 :onlyIcon="true"
             />
 
@@ -137,13 +138,15 @@
     import TaskIcon from "../../plugins/TaskIcon.vue"
     import BlockErrorBadge from "./BlockErrorBadge.vue"
 
-    import type {PluginIconData} from "../../../stores/plugins"
+    import {usePluginsStore, type PluginIconData} from "../../../stores/plugins"
     import {displayTaskOf, taskEditPathFor} from "../../../utils/flowableBlockOps"
     import {BLOCK_VALIDATION_ISSUES_INJECTION_KEY} from "../injectionKeys"
 
     const BranchLane = defineAsyncComponent(() => import("./BranchLane.vue"))
 
     const {t} = useI18n()
+
+    const pluginsStore = usePluginsStore()
 
     const FLOWABLE_SUFFIX_MAP: Record<string, string[]> = {
         "If": ["then", "else", "errors", "finally"],
