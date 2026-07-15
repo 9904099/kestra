@@ -13,7 +13,7 @@
             >
                 <div class="diff-card-header">
                     <div class="diff-card-identity">
-                        <KsTaskIcon
+                        <TaskIcon
                             :cls="block.type ?? ''"
                             :icons="pluginsStore.icons"
                             :onlyIcon="true"
@@ -58,7 +58,8 @@
     import MinusCircleOutline from "vue-material-design-icons/MinusCircleOutline.vue"
     import PencilOutline from "vue-material-design-icons/PencilOutline.vue"
     import ArrowRight from "vue-material-design-icons/ArrowRight.vue"
-    import {KsEmpty, KsTaskIcon} from "@kestra-io/design-system"
+    import {KsEmpty} from "@kestra-io/design-system"
+    import TaskIcon from "../plugins/TaskIcon.vue"
     import {computeRevisionDiff, type BlockChangeType, type RevisionDiff} from "../../utils/revisionDiff"
     import {usePluginsStore} from "../../stores/plugins"
 

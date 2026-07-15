@@ -73,7 +73,7 @@
                 data-test="task-edit-tab"
                 @dragstart="onTabDragStart"
             >
-                <KsTaskIcon class="task-edit-tab-ico" :cls="taskType" :icons="pluginsStore.icons" :onlyIcon="true" />
+                <TaskIcon class="task-edit-tab-ico" :cls="taskType" :icons="pluginsStore.icons" :onlyIcon="true" />
                 <span class="task-edit-tab-id">{{ taskId || task?.id || $t("add task") }}</span>
                 <KsIconButton
                     class="task-edit-tab-close"
@@ -183,7 +183,8 @@
 <script setup lang="ts">
     import {ref, computed, watch, onMounted, onBeforeUnmount, onDeactivated} from "vue"
     import {useI18n} from "vue-i18n"
-    import {SECTIONS, KsTaskIcon, KsIconButton, KsMarkdown, KsDrawer} from "@kestra-io/design-system"
+    import {SECTIONS, KsIconButton, KsMarkdown, KsDrawer} from "@kestra-io/design-system"
+    import TaskIcon from "../plugins/TaskIcon.vue"
     import {flowYamlUtils as YAML_UTILS} from "@kestra-io/topology"
     import CodeTags from "vue-material-design-icons/CodeTags.vue"
     import ContentSave from "vue-material-design-icons/ContentSave.vue"

@@ -516,7 +516,7 @@
                             class="block-editor-picker-app"
                             @click="appFilter = grp.group"
                         >
-                            <KsTaskIcon class="block-editor-picker-icon" :cls="grp.sampleFqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
+                            <TaskIcon class="block-editor-picker-icon" :cls="grp.sampleFqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
                             <span class="block-editor-picker-app-name">{{ grp.group }}</span>
                             <span class="block-editor-picker-app-count">{{ t('block_editor.app_actions', {count: grp.count}) }}</span>
                         </button>
@@ -547,7 +547,7 @@
                             @click="insertTask(type.fqcn)"
                             @mouseenter="pickerFocusedIndex = idx"
                         >
-                            <KsTaskIcon class="block-editor-picker-icon" :cls="type.fqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
+                            <TaskIcon class="block-editor-picker-icon" :cls="type.fqcn" :icons="pluginsStore.icons" :onlyIcon="true" />
                             <span class="block-editor-picker-main">
                                 <span class="block-editor-picker-name">{{ type.name }}</span>
                                 <span class="block-editor-picker-desc">{{ type.label }}</span>
@@ -597,7 +597,8 @@
     import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
     import OpenInNew from "vue-material-design-icons/OpenInNew.vue"
 
-    import {KsTaskIcon, KsInput, KsMessageBox, KsTag, vKsLoading} from "@kestra-io/design-system"
+    import {KsInput, KsMessageBox, KsTag, vKsLoading} from "@kestra-io/design-system"
+    import TaskIcon from "../../plugins/TaskIcon.vue"
     import {flowYamlUtils} from "@kestra-io/topology"
 
     import {useFlowStore} from "../../../stores/flow"

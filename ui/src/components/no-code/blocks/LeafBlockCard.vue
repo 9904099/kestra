@@ -25,7 +25,7 @@
             @mousedown.stop
         />
 
-        <KsTaskIcon
+        <TaskIcon
             class="leaf-block-card-ico"
             :cls="String(displayBlock.type ?? '')"
             :icons="icons"
@@ -92,8 +92,10 @@
     import Play from "vue-material-design-icons/Play.vue"
     import AlertCircle from "vue-material-design-icons/AlertCircle.vue"
 
-    import {KsTaskIcon, KsIconButton, KsTooltip} from "@kestra-io/design-system"
+    import {KsIconButton, KsTooltip} from "@kestra-io/design-system"
+    import TaskIcon from "../../plugins/TaskIcon.vue"
 
+    import type {PluginIconData} from "../../../stores/plugins"
     import {displayTaskOf} from "../../../utils/flowableBlockOps"
     import {BLOCK_VALIDATION_ISSUES_INJECTION_KEY} from "../injectionKeys"
 
@@ -107,7 +109,7 @@
         draggable?: boolean
         dragOver?: boolean
         runnable?: boolean
-        icons?: Record<string, {icon: string; flowable: boolean}>
+        icons?: Record<string, PluginIconData>
     }>()
 
     const emit = defineEmits<{

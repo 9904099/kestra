@@ -11,7 +11,7 @@ export const FLOWABLE_SUFFIXES = [
 
 export function isFlowableType(
     type: string,
-    icons?: Record<string, {icon: string; flowable: boolean}>,
+    icons?: Record<string, {flowable: boolean}>,
 ): boolean {
     const iconEntry = icons?.[type]
     if (iconEntry !== undefined) return iconEntry.flowable

@@ -26,7 +26,7 @@
             @mousedown.stop
         />
 
-        <KsTaskIcon
+        <TaskIcon
             class="block-card-ico"
             :cls="String(block.type ?? '')"
             :icons="icons"
@@ -108,8 +108,10 @@
     import ViewSplitVertical from "vue-material-design-icons/ViewSplitVertical.vue"
     import AlertCircle from "vue-material-design-icons/AlertCircle.vue"
 
-    import {KsTaskIcon, KsIconButton, KsTooltip} from "@kestra-io/design-system"
+    import {KsIconButton, KsTooltip} from "@kestra-io/design-system"
+    import TaskIcon from "../../plugins/TaskIcon.vue"
 
+    import type {PluginIconData} from "../../../stores/plugins"
     import {BLOCK_VALIDATION_ISSUES_INJECTION_KEY} from "../injectionKeys"
 
     const {t} = useI18n()
@@ -121,7 +123,7 @@
         draggable?: boolean
         dragOver?: boolean
         runnable?: boolean
-        icons?: Record<string, {icon: string; flowable: boolean}>
+        icons?: Record<string, PluginIconData>
     }>()
 
     const validationIssues = inject(BLOCK_VALIDATION_ISSUES_INJECTION_KEY, undefined)

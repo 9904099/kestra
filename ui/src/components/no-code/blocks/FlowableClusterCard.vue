@@ -24,7 +24,7 @@
                 aria-hidden="true"
             />
 
-            <KsTaskIcon
+            <TaskIcon
                 class="flowable-cluster-icon"
                 :cls="String(displayBlock.type ?? '')"
                 :icons="icons"
@@ -138,8 +138,10 @@
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
 
-    import {KsTag, KsTaskIcon, KsIconButton, KsInput, KsTooltip} from "@kestra-io/design-system"
+    import {KsTag, KsIconButton, KsInput, KsTooltip} from "@kestra-io/design-system"
+    import TaskIcon from "../../plugins/TaskIcon.vue"
 
+    import type {PluginIconData} from "../../../stores/plugins"
     import {displayTaskOf, taskEditPathFor} from "../../../utils/flowableBlockOps"
     import {BLOCK_VALIDATION_ISSUES_INJECTION_KEY} from "../injectionKeys"
 
@@ -167,7 +169,7 @@
         // the keyboard-focus ring compares against, and it can differ from block.id
         // when a sibling shares the same id (see resolveBlockDomId).
         domId?: string
-        icons?: Record<string, {icon: string; flowable: boolean}>
+        icons?: Record<string, PluginIconData>
         selectedId?: string
         focusedId?: string
         depth?: number

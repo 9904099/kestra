@@ -110,6 +110,7 @@
 
     import {KsTag, KsAlert} from "@kestra-io/design-system"
 
+    import type {PluginIconData} from "../../../stores/plugins"
     import {displayTaskOf, isFlowableType, isWrappedLaneItem, resolveBlockDomId} from "../../../utils/flowableBlockOps"
     import {useDragAndDrop} from "../../../composables/useDragAndDrop"
 
@@ -125,7 +126,7 @@
         laneName: string
         tasks: Record<string, unknown>[]
         parentPath: string
-        icons?: Record<string, {icon: string; flowable: boolean}>
+        icons?: Record<string, PluginIconData>
         selectedId?: string
         focusedId?: string
         depth?: number
