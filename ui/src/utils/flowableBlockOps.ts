@@ -13,9 +13,15 @@ export function isFlowableType(
     type: string,
     icons?: Record<string, {flowable: boolean}>,
 ): boolean {
-    const iconEntry = icons?.[type]
-    if (iconEntry !== undefined) return iconEntry.flowable
-    return FLOWABLE_SUFFIXES.some(suffix => type.endsWith(`.${suffix}`))
+    // The type-suffix match is authoritative for the core flow-control tasks:
+    // the plugin-icon `flowable` flag is unreliable (a lazily-resolved
+    // ecosystem icon carries flowable=false), so it must not demote a known
+    // flowable to a plain leaf card. Fall back to the icon flag only for
+    // custom flowables whose type doesn't match a known suffix.
+    if (FLOWABLE_SUFFIXES.some(suffix => type.endsWith(`.${suffix}`))) {
+        return true
+    }
+    return icons?.[type]?.flowable ?? false
 }
 
 // A DAG's `tasks` lane holds `{task, dependsOn}` wrappers instead of flat task

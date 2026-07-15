@@ -10,6 +10,7 @@ import {
     duplicateBlock,
     duplicateBlockAtPath,
     groupValidationIssuesByTask,
+    isFlowableType,
     isWrappedLaneItem,
     isWrapperLane,
     moveBlockAtPath,
@@ -836,6 +837,25 @@ tasks:
             expect(parsed.tasks[0].cases.prod[0].id).toBe("prod_second")
             expect(parsed.tasks[0].cases.prod[1].id).toBe("prod_log")
             expect(parsed.tasks[0].cases.dev[0].id).toBe("dev_log")
+        })
+    })
+
+    describe("isFlowableType", () => {
+        it("treats a known flow-control suffix as flowable even when the icon flag is false", () => {
+            // A lazily-resolved ecosystem icon reports flowable=false; the suffix
+            // match must still win so the task renders as a cluster, not a leaf.
+            const icons = {"io.kestra.plugin.core.flow.Sequential": {flowable: false}}
+            expect(isFlowableType("io.kestra.plugin.core.flow.Sequential", icons)).toBe(true)
+        })
+
+        it("falls back to the icon flowable flag for a type without a known suffix", () => {
+            const icons = {"io.acme.custom.MyFlowable": {flowable: true}}
+            expect(isFlowableType("io.acme.custom.MyFlowable", icons)).toBe(true)
+            expect(isFlowableType("io.acme.custom.PlainTask", {"io.acme.custom.PlainTask": {flowable: false}})).toBe(false)
+        })
+
+        it("is not flowable for a plain task with no icon entry", () => {
+            expect(isFlowableType("io.kestra.plugin.core.log.Log")).toBe(false)
         })
     })
 
