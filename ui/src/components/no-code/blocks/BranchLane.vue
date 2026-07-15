@@ -33,6 +33,7 @@
                         :domId="resolveBlockDomId(tasks, index)"
                         :data-block-id="resolveBlockDomId(tasks, index)"
                         @select="(p) => emit('select', p)"
+                        @open-split="(p) => emit('open-split', p)"
                         @delete="(p) => emit('delete', p)"
                         @duplicate="(p) => emit('duplicate', p)"
                         @run="(id) => emit('run', id)"
@@ -52,6 +53,7 @@
                         :data-block-id="resolveBlockDomId(tasks, index)"
                         :data-test="`nested-block-card`"
                         @select="emit('select', `${parentPath}[${index}]`)"
+                        @open-split="emit('open-split', `${parentPath}[${index}]`)"
                         @delete="emit('delete', `${parentPath}[${index}]`)"
                         @duplicate="emit('duplicate', `${parentPath}[${index}]`)"
                         @run="emit('run', String(displayTaskOf(task).id))"
@@ -136,6 +138,7 @@
 
     const emit = defineEmits<{
         (e: "select", path: string): void
+        (e: "open-split", path: string): void
         (e: "delete", path: string): void
         (e: "duplicate", path: string): void
         (e: "run", taskId: string): void

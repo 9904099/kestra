@@ -56,6 +56,17 @@
 
             <KsIconButton
                 class="leaf-block-card-action"
+                :aria-label="t('block_editor.open_in_split')"
+                :tooltip="t('block_editor.open_in_split')"
+                data-test="block-card-open-split"
+                tabindex="-1"
+                @click.stop="emit('open-split')"
+            >
+                <ViewSplitVertical />
+            </KsIconButton>
+
+            <KsIconButton
+                class="leaf-block-card-action"
                 :aria-label="t('block_editor.duplicate')"
                 :tooltip="`${t('block_editor.duplicate')} (d)`"
                 data-test="block-card-duplicate"
@@ -86,6 +97,7 @@
     import DeleteOutline from "vue-material-design-icons/DeleteOutline.vue"
     import DragVertical from "vue-material-design-icons/DragVertical.vue"
     import Play from "vue-material-design-icons/Play.vue"
+    import ViewSplitVertical from "vue-material-design-icons/ViewSplitVertical.vue"
 
     import {KsIconButton} from "@kestra-io/design-system"
     import TaskIcon from "../../plugins/TaskIcon.vue"
@@ -112,6 +124,7 @@
 
     const emit = defineEmits<{
         (e: "select"): void
+        (e: "open-split"): void
         (e: "delete"): void
         (e: "duplicate"): void
         (e: "run"): void
