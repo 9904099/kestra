@@ -59,4 +59,25 @@ describe("MultiPanelTabs maximize", () => {
         expect(wrapper.findAll(".content-panel").length).toBe(2)
         expect(maximize().attributes("aria-pressed")).toBe("false")
     })
+
+    test("closing the maximized panel's last tab drops maximize instead of moving it to another panel", async () => {
+        const wrapper = mount(MultiPanelTabs, {
+            global: globalConfig,
+            props: {modelValue: [makePanel("a"), makePanel("b"), makePanel("c")]},
+        })
+
+        // Maximize the middle panel
+        await wrapper.findAll("[data-test='panel-maximize']")[1].trigger("click")
+        expect(wrapper.findAll(".content-panel").length).toBe(1)
+
+        // Empty that panel's tabs — the zero-tab watch removes it and indices shift
+        const vm = wrapper.vm as unknown as {panels: {tabs: unknown[]}[]}
+        vm.panels[1].tabs.splice(0)
+        await wrapper.vm.$nextTick()
+        await wrapper.vm.$nextTick()
+
+        // Maximize must be dropped, not silently reassigned to the shifted panel
+        expect(wrapper.findAll(".content-panel").length).toBe(2)
+        expect(wrapper.find("[data-test='panel-maximize'][aria-pressed='true']").exists()).toBe(false)
+    })
 })

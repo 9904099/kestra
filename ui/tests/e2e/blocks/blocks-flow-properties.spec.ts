@@ -46,7 +46,10 @@ test.describe("Block editor — flow properties panel", () => {
         }
         // The list-type fields render header-style labels with their count
         await expect(panel(page).getByText(/inputs \(\d+\)/).first()).toBeVisible()
-        await expect(panel(page).getByText(/pluginDefaults \(\d+\)/).first()).toBeVisible()
+        // pluginDefaults is deliberately NOT offered here: managing plugin
+        // defaults belongs to the namespace-level Plugin Defaults surface, not
+        // the no-code flow editor.
+        await expect(panel(page).getByText(/pluginDefaults \(\d+\)/)).toBeHidden()
         // quotas is deliberately NOT offered: the OSS executor rejects it at
         // runtime (EE feature) in a way that crash-loops the server
         await expect(panel(page).getByText("quotas", {exact: true})).toBeHidden()

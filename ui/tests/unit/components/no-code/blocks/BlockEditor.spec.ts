@@ -827,6 +827,33 @@ describe("BlockEditor", () => {
             expect(vm.activeSelectedPath).toBeUndefined()
         })
 
+        it("keeps a nested selection when an unrelated sibling lane is reordered", async () => {
+            // Given — a nested child open at tasks[1].then[0]
+            mockFlowYaml.value = YAML_WITH_FLOWABLE
+            wrapper = mount(BlockEditor, makeConfig())
+            const cluster = wrapper.findComponent({name: "FlowableClusterCard"})
+            cluster.vm.$emit("select", "tasks[1].then[0]")
+            await wrapper.vm.$nextTick()
+            await wrapper.vm.$nextTick()
+
+            const vm = wrapper.vm as unknown as {
+                activeSelectedPath: string | undefined
+                activeSelectedId: string | undefined
+            }
+            expect(vm.activeSelectedPath).toBe("tasks[1].then[0]")
+            expect(vm.activeSelectedId).toBe("nested_a")
+
+            // When — a DIFFERENT lane of the same flowable (else) is reordered.
+            // The old index-only check matched the outer tasks[1] and wrongly
+            // cleared; keying on the reordered parentPath must leave it alone.
+            cluster.vm.$emit("reorder", "tasks[1].else", 0, 1)
+            await wrapper.vm.$nextTick()
+
+            // Then — the then-lane selection is untouched
+            expect(vm.activeSelectedPath).toBe("tasks[1].then[0]")
+            expect(vm.activeSelectedId).toBe("nested_a")
+        })
+
         it("emits update:selectedId when selectedId changes via v-model", async () => {
             // Given
             wrapper = mount(BlockEditor, {

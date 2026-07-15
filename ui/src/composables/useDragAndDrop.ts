@@ -8,7 +8,8 @@ export function useDragAndDrop() {
         draggedIndex.value = index
         if (event.dataTransfer) {
             event.dataTransfer.effectAllowed = "move"
-            event.dataTransfer.setData("text/plain", String(index))
+            // Firefox won't start a drag unless dataTransfer carries data.
+            event.dataTransfer.setData?.("text/plain", String(index))
         }
     }
 

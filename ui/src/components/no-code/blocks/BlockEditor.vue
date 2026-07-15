@@ -1514,11 +1514,12 @@
         handleDrop: handleTaskDropBase,
     } = useDragAndDrop()
 
-    function clearSelectionIfPathStale(_parentSection: string, from: number, to: number) {
+    function clearSelectionIfPathStale(parentPath: string, from: number, to: number) {
         const path = activeSelectedPath.value
         const id = activeSelectedId.value
         if (!path || !id) return
-        const match = path.match(/^tasks\[(\d+)\]/)
+        const escaped = parentPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        const match = path.match(new RegExp(`^${escaped}\\[(\\d+)\\]`))
         if (!match) return
         const movedIndex = parseInt(match[1], 10)
         const lo = Math.min(from, to)

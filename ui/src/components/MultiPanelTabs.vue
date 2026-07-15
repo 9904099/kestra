@@ -629,12 +629,15 @@
     }
 
     watch(panels, () => {
-        let index = 0
-        for (const panel of panels.value) {
-            if (panel.tabs.length === 0) {
+        for (let index = panels.value.length - 1; index >= 0; index--) {
+            if (panels.value[index].tabs.length === 0) {
                 panels.value.splice(index, 1)
+                if (maximizedPanelIndex.value === index) {
+                    maximizedPanelIndex.value = null
+                } else if (maximizedPanelIndex.value != null && index < maximizedPanelIndex.value) {
+                    maximizedPanelIndex.value--
+                }
             }
-            index++
         }
     }, {deep: true})
 
