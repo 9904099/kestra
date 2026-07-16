@@ -2330,6 +2330,7 @@
       "replace_all_in_flow": "この flow 内をすべて置換",
       "replace_all_tooltip": "編集可能な flow 内のすべての一致を置換",
       "replace_apply_failed": "置換の適用に失敗しました",
+      "replace_apply_skipped": "{count} 件の flow をスキップしました（保存できませんでした）",
       "replace_apply_success": "{count} 件の flow を更新しました",
       "replace_aria": "置換後の文字列",
       "replace_placeholder": "置換…",

@@ -2331,6 +2331,7 @@
       "replace_all_in_flow": "Replace all in flow",
       "replace_all_tooltip": "Replace all matches in editable flows",
       "replace_apply_failed": "Failed to apply replace",
+      "replace_apply_skipped": "{count} flow skipped (couldn't be saved) | {count} flows skipped (couldn't be saved)",
       "replace_apply_success": "{count} flow updated | {count} flows updated",
       "replace_placeholder": "Replace…",
       "replace_preview_failed": "Failed to compute replace preview",

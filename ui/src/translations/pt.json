@@ -2330,6 +2330,7 @@
       "replace_all_in_flow": "Substituir tudo no flow",
       "replace_all_tooltip": "Substituir todas as correspondências em flows editáveis",
       "replace_apply_failed": "Falha ao aplicar a substituição",
+      "replace_apply_skipped": "{count} flow ignorado (não foi possível salvar) | {count} flows ignorados (não foi possível salvar)",
       "replace_apply_success": "{count} flow atualizado | {count} flows atualizados",
       "replace_aria": "Substituir por",
       "replace_placeholder": "Substituir…",

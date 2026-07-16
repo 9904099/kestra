@@ -2330,6 +2330,7 @@
       "replace_all_in_flow": "Zamień wszystko w flow",
       "replace_all_tooltip": "Zamień wszystkie dopasowania w edytowalnych flows",
       "replace_apply_failed": "Nie udało się zastosować zamiany",
+      "replace_apply_skipped": "Pominięto {count} flow (nie można zapisać) | Pominięto {count} flows (nie można zapisać)",
       "replace_apply_success": "Zaktualizowano {count} flow | Zaktualizowano {count} flows",
       "replace_aria": "Zamień na",
       "replace_placeholder": "Zamień…",

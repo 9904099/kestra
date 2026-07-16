@@ -2330,6 +2330,7 @@
       "replace_all_in_flow": "在此 flow 中全部替换",
       "replace_all_tooltip": "替换可编辑 flow 中的所有匹配项",
       "replace_apply_failed": "应用替换失败",
+      "replace_apply_skipped": "已跳过 {count} 个 flow（无法保存）",
       "replace_apply_success": "已更新 {count} 个 flow",
       "replace_aria": "替换为",
       "replace_placeholder": "替换…",

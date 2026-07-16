@@ -479,7 +479,12 @@
                 replacement: replacement.value,
                 flows: flowsToApply,
             })
-            toast.success(t("source_search.replace_apply_success", {count: response.updated.length}))
+            if (response.updated.length > 0) {
+                toast.success(t("source_search.replace_apply_success", {count: response.updated.length}))
+            }
+            if (response.skipped?.length) {
+                toast.warning(t("source_search.replace_apply_skipped", {count: response.skipped.length}))
+            }
             previewResponse.value = null
             await fetchResults()
         } catch (e: any) {
