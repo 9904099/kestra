@@ -1,5 +1,5 @@
 <template>
-    <div class="source-search-results" data-test="source-search-results">
+    <div ref="rootEl" class="source-search-results" data-test="source-search-results">
         <KsCollapse
             v-model="expanded"
             class="results-collapse"
@@ -111,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-    import {ref, watch} from "vue"
+    import {ref, watch, nextTick} from "vue"
     import {useI18n} from "vue-i18n"
     import _escape from "lodash/escape"
     import Lock from "vue-material-design-icons/Lock.vue"
@@ -138,7 +138,16 @@
 
     const SECRET_PATTERN = /secret\(\s*['"]([^'"]+)['"]\s*\)/
 
+    const rootEl = ref<HTMLElement | null>(null)
     const expanded = ref<string[]>([])
+
+    watch(
+        () => props.selectedKey,
+        async () => {
+            await nextTick()
+            rootEl.value?.querySelector(".result-match--selected")?.scrollIntoView({block: "nearest"})
+        },
+    )
 
     watch(
         () => props.results,
