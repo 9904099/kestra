@@ -13,46 +13,45 @@
                 </KsIconButton>
 
                 <div class="source_search__input-stack">
-                    <KsSearch
-                        v-model="query"
-                        clearable
-                        :placeholder="t('source_search.search_placeholder')"
-                        :aria-label="t('source_search.search_aria')"
-                        :aria-invalid="Boolean(errorMessage)"
-                        @keydown.down.prevent="goToMatch(1)"
-                        @keydown.up.prevent="goToMatch(-1)"
-                        @keydown.enter.exact.prevent="goToMatch(1)"
-                        @keydown.enter.shift.prevent="goToMatch(-1)"
-                    >
-                        <template #suffix>
-                            <div class="source-search__toggles" role="group" :aria-label="t('source_search.options_aria')">
-                                <KsCheckboxButton
-                                    v-model="caseSensitive"
-                                    size="small"
-                                    :title="t('source_search.match_case')"
-                                    :aria-label="t('source_search.match_case')"
-                                >
-                                    Aa
-                                </KsCheckboxButton>
-                                <KsCheckboxButton
-                                    v-model="wholeWord"
-                                    size="small"
-                                    :title="t('source_search.match_whole_word')"
-                                    :aria-label="t('source_search.match_whole_word')"
-                                >
-                                    <u>ab</u>
-                                </KsCheckboxButton>
-                                <KsCheckboxButton
-                                    v-model="regexEnabled"
-                                    size="small"
-                                    :title="t('source_search.use_regex')"
-                                    :aria-label="t('source_search.use_regex')"
-                                >
-                                    .*
-                                </KsCheckboxButton>
-                            </div>
-                        </template>
-                    </KsSearch>
+                    <div class="source-search__search-row">
+                        <KsSearch
+                            v-model="query"
+                            clearable
+                            :placeholder="t('source_search.search_placeholder')"
+                            :aria-label="t('source_search.search_aria')"
+                            :aria-invalid="Boolean(errorMessage)"
+                            @keydown.down.prevent="goToMatch(1)"
+                            @keydown.up.prevent="goToMatch(-1)"
+                            @keydown.enter.exact.prevent="goToMatch(1)"
+                            @keydown.enter.shift.prevent="goToMatch(-1)"
+                        />
+                        <div class="source-search__toggles" role="group" :aria-label="t('source_search.options_aria')">
+                            <KsCheckboxButton
+                                v-model="caseSensitive"
+                                size="small"
+                                :title="t('source_search.match_case')"
+                                :aria-label="t('source_search.match_case')"
+                            >
+                                <span class="source-search__toggle-label">Aa</span>
+                            </KsCheckboxButton>
+                            <KsCheckboxButton
+                                v-model="wholeWord"
+                                size="small"
+                                :title="t('source_search.match_whole_word')"
+                                :aria-label="t('source_search.match_whole_word')"
+                            >
+                                <span class="source-search__toggle-label"><u>ab</u></span>
+                            </KsCheckboxButton>
+                            <KsCheckboxButton
+                                v-model="regexEnabled"
+                                size="small"
+                                :title="t('source_search.use_regex')"
+                                :aria-label="t('source_search.use_regex')"
+                            >
+                                <span class="source-search__toggle-label">.*</span>
+                            </KsCheckboxButton>
+                        </div>
+                    </div>
 
                     <div v-if="replaceOpen" class="source-search__replace-row">
                         <KsSearch
@@ -582,17 +581,23 @@
     min-width: 0;
 }
 
-.source-search__toggles {
-    display: flex;
-    align-items: center;
-    gap: var(--ks-spacing-1);
-    margin-left: var(--ks-spacing-2);
-}
-
+.source-search__search-row,
 .source-search__replace-row {
     display: flex;
     align-items: stretch;
     gap: var(--ks-spacing-2);
+}
+
+.source-search__toggles {
+    display: flex;
+    align-items: stretch;
+    flex: 0 0 auto;
+}
+
+.source-search__toggle-label {
+    display: inline-block;
+    min-width: 2.75ch;
+    text-align: center;
 }
 
 .source-search__scope-row {
