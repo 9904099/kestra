@@ -497,6 +497,21 @@ export const useFlowStore = defineStore("flow", () => {
         return response.data
     }
 
+    async function replaceLineSourceSearch(options: {
+        query: string;
+        caseSensitive: boolean;
+        wholeWord: boolean;
+        regex: boolean;
+        scope: string;
+        replacement: string;
+        namespace: string;
+        id: string;
+        line: number;
+    }): Promise<SourceSearchReplaceApplyResponse> {
+        const response = await axios.post(`${apiUrl()}/flows/source/replace/line`, options)
+        return response.data
+    }
+
     function flowsByNamespace(namespace: string) {
         return FlowsAPI.listFlowsByNamespace({namespace}).then(response => {
             return response
@@ -1098,6 +1113,7 @@ function deleteFlowAndDependencies() {
         searchFlows,
         previewSourceSearchReplace,
         applySourceSearchReplace,
+        replaceLineSourceSearch,
         flowsByNamespace,
         loadFlow,
         loadTask,

@@ -216,6 +216,7 @@
                     @toggle-flow="onToggleFlow"
                     @toggle-match="onToggleMatch"
                     @replace-flow="onReplaceFlow"
+                    @replace-match="onReplaceMatch"
                 />
             </KsSplitterPanel>
             <KsSplitterPanel min="20%" key="preview">
@@ -462,24 +463,42 @@
         }
     }
 
+    function reportReplaceResult(response: {updated: unknown[]; skipped?: unknown[]}) {
+        if (response.updated.length > 0) {
+            toast.success(t("source_search.replace_apply_success", {count: response.updated.length}))
+        }
+        if (response.skipped?.length) {
+            toast.warning(t("source_search.replace_apply_skipped", {count: response.skipped.length}))
+        }
+        previewResponse.value = null
+        return fetchResults()
+    }
+
     async function applyReplace(flows: {namespace: string; id: string}[]) {
         if (flows.length === 0 || !query.value) return
-
         try {
-            const response = await flowStore.applySourceSearchReplace({
+            await reportReplaceResult(await flowStore.applySourceSearchReplace({
                 ...searchFilters.value,
                 query: query.value,
                 replacement: replacement.value,
                 flows,
-            })
-            if (response.updated.length > 0) {
-                toast.success(t("source_search.replace_apply_success", {count: response.updated.length}))
-            }
-            if (response.skipped?.length) {
-                toast.warning(t("source_search.replace_apply_skipped", {count: response.skipped.length}))
-            }
-            previewResponse.value = null
-            await fetchResults()
+            }))
+        } catch (e: any) {
+            toast.error(e?.response?.data?.message ?? t("source_search.replace_apply_failed"))
+        }
+    }
+
+    async function onReplaceMatch(value: {namespace: string; id: string; line: number}) {
+        if (!query.value) return
+        try {
+            await reportReplaceResult(await flowStore.replaceLineSourceSearch({
+                ...searchFilters.value,
+                query: query.value,
+                replacement: replacement.value,
+                namespace: value.namespace,
+                id: value.id,
+                line: value.line,
+            }))
         } catch (e: any) {
             toast.error(e?.response?.data?.message ?? t("source_search.replace_apply_failed"))
         }

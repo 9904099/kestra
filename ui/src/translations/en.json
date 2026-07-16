@@ -2335,6 +2335,7 @@
       "replace_apply_success": "{count} flow updated | {count} flows updated",
       "replace_placeholder": "Replace…",
       "replace_preview_failed": "Failed to compute replace preview",
+      "replace_this": "Replace",
       "replace_this_match": "Replace this match",
       "retry_search": "Retry search",
       "scope": "Scope",

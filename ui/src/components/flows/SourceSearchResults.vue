@@ -97,6 +97,15 @@
                         <div v-else class="result-match-snippet">
                             <code v-html="renderSnippet(match.snippet)" />
                         </div>
+                        <KsButton
+                            v-if="replaceContext && group.editable && !secretKey(match.snippet)"
+                            size="small"
+                            class="result-match-replace"
+                            :title="t('source_search.replace_this_match')"
+                            @click.stop="emit('replace-match', {namespace: group.namespace, id: group.id, line: match.line})"
+                        >
+                            {{ t('source_search.replace_this') }}
+                        </KsButton>
                     </div>
                 </div>
             </KsCollapseItem>
@@ -127,6 +136,7 @@
         (e: "toggle-flow", value: {namespace: string; id: string; checked: boolean}): void
         (e: "toggle-match", value: {namespace: string; id: string; line: number; checked: boolean}): void
         (e: "replace-flow", value: {namespace: string; id: string}): void
+        (e: "replace-match", value: {namespace: string; id: string; line: number}): void
     }>()
 
     const {t} = useI18n()
@@ -293,6 +303,11 @@
 }
 
 .result-group-replace {
+    white-space: nowrap;
+}
+
+.result-match-replace {
+    flex: 0 0 auto;
     white-space: nowrap;
 }
 
