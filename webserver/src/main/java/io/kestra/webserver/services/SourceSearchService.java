@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.kestra.core.exceptions.DeserializationException;
 import io.kestra.core.exceptions.FlowProcessingException;
 import io.kestra.core.models.SearchResult;
 import io.kestra.core.models.SourceMatch;
@@ -129,13 +130,54 @@ public class SourceSearchService {
             try {
                 GenericFlow genericFlow = GenericFlow.fromYaml(tenantId, newSource);
                 updated.add(flowService.update(genericFlow, current));
-            } catch (ConstraintViolationException | FlowProcessingException e) {
+            } catch (ConstraintViolationException | FlowProcessingException | DeserializationException e) {
                 log.warn("Skipping flow {}.{} during Source Search replace: {}", ref.getNamespace(), ref.getId(), e.getMessage());
                 skipped.add(ref);
             }
         }
 
         return new SourceSearchReplaceApplyResponse(updated, skipped);
+    }
+
+    public SourceSearchReplaceApplyResponse applyLine(
+        String tenantId,
+        String query,
+        boolean caseSensitive,
+        boolean wholeWord,
+        boolean regex,
+        String replacement,
+        String namespace,
+        String id,
+        int line
+    ) throws QueueException {
+        IdWithNamespace ref = new IdWithNamespace(namespace, id);
+        Optional<FlowWithSource> existing = flowRepository.findByIdWithSource(tenantId, namespace, id);
+        if (existing.isEmpty() || !isEditable(existing.get())) {
+            return new SourceSearchReplaceApplyResponse(List.of(), List.of(ref));
+        }
+
+        FlowWithSource current = existing.get();
+        String[] lines = current.getSource().split("\n", -1);
+        if (line < 1 || line > lines.length) {
+            return new SourceSearchReplaceApplyResponse(List.of(), List.of(ref));
+        }
+
+        Pattern pattern = SourceSearchMatcher.toPattern(query, caseSensitive, wholeWord, regex);
+        String effectiveReplacement = regex ? replacement : Matcher.quoteReplacement(replacement);
+        String replacedLine = RegexUtils.matcher(pattern, lines[line - 1]).replaceAll(effectiveReplacement);
+        if (replacedLine.equals(lines[line - 1])) {
+            return new SourceSearchReplaceApplyResponse(List.of(), List.of(ref));
+        }
+        lines[line - 1] = replacedLine;
+        String newSource = String.join("\n", lines);
+
+        try {
+            GenericFlow genericFlow = GenericFlow.fromYaml(tenantId, newSource);
+            return new SourceSearchReplaceApplyResponse(List.of(flowService.update(genericFlow, current)), List.of());
+        } catch (ConstraintViolationException | FlowProcessingException | DeserializationException e) {
+            log.warn("Skipping flow {}.{} line {} during Source Search replace: {}", namespace, id, line, e.getMessage());
+            return new SourceSearchReplaceApplyResponse(List.of(), List.of(ref));
+        }
     }
 
     protected boolean isEditable(FlowInterface flow) {

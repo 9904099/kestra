@@ -41,6 +41,7 @@ import io.kestra.webserver.controllers.domain.IdWithNamespace;
 import io.kestra.webserver.converters.QueryFilterFormat;
 import io.kestra.webserver.models.flows.SourceSearchReplaceApplyRequest;
 import io.kestra.webserver.models.flows.SourceSearchReplaceApplyResponse;
+import io.kestra.webserver.models.flows.SourceSearchReplaceLineRequest;
 import io.kestra.webserver.models.flows.SourceSearchReplacePreviewRequest;
 import io.kestra.webserver.models.flows.SourceSearchReplacePreviewResponse;
 import io.kestra.webserver.models.flows.SourceSearchResult;
@@ -314,6 +315,23 @@ public class FlowController {
             request.scopeOrAll(),
             request.replacement(),
             request.flows()
+        );
+    }
+
+    @ExecuteOn(TaskExecutors.IO)
+    @Post(uri = "/source/replace/line")
+    @Operation(tags = { "Flows" }, summary = "Apply a Source Search replace on a single match line", description = "Replaces the matches on one line of one flow and persists the new revision. Returns the flow as skipped if it is not editable or fails validation.")
+    public SourceSearchReplaceApplyResponse replaceLineBySourceCode(@RequestBody(description = "The search query, replacement and target match line") @Body @Valid SourceSearchReplaceLineRequest request) throws QueueException {
+        return sourceSearchService.applyLine(
+            tenantService.resolveTenant(),
+            request.query(),
+            request.caseSensitive(),
+            request.wholeWord(),
+            request.regex(),
+            request.replacement(),
+            request.namespace(),
+            request.id(),
+            request.line()
         );
     }
 

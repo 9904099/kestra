@@ -5,11 +5,13 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import jakarta.validation.ConstraintViolationException;
 
 import io.kestra.core.models.flows.FlowInterface;
 import io.kestra.core.models.flows.FlowWithSource;
+import io.kestra.core.models.flows.GenericFlow;
 import io.kestra.core.repositories.FlowRepositoryInterface;
 import io.kestra.core.services.FlowService;
 import io.kestra.webserver.controllers.domain.IdWithNamespace;
@@ -93,5 +95,28 @@ class SourceSearchServiceTest {
 
         assertThat(response.updated()).isEmpty();
         assertThat(response.skipped()).containsExactly(ref);
+    }
+
+    @Test
+    void shouldReplaceOnlyTheTargetLineWhenApplyingLineReplace() throws Exception {
+        String tenantId = "main";
+        FlowWithSource flow = FlowWithSource.builder()
+            .tenantId(tenantId)
+            .namespace("io.kestra.tests")
+            .id("multi")
+            .source("id: multi\nnamespace: io.kestra.tests\ntasks:\n  - id: a\n    type: io.kestra.plugin.core.log.Log\n    message: legacy-value\n  - id: b\n    type: io.kestra.plugin.core.log.Log\n    message: legacy-value\n")
+            .build();
+        when(flowRepository.findByIdWithSource(tenantId, "io.kestra.tests", "multi")).thenReturn(Optional.of(flow));
+        when(flowService.update(any(), any())).thenReturn(flow);
+
+        SourceSearchService service = new SourceSearchService(flowRepository, flowService);
+
+        service.applyLine(tenantId, "legacy-value", false, false, false, "new-value", "io.kestra.tests", "multi", 6);
+
+        ArgumentCaptor<GenericFlow> captor = ArgumentCaptor.forClass(GenericFlow.class);
+        verify(flowService).update(captor.capture(), any());
+        String saved = captor.getValue().getSource();
+        assertThat(saved).contains("    message: new-value\n");
+        assertThat(saved).contains("    message: legacy-value\n");
     }
 }
