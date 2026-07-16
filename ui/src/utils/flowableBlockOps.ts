@@ -352,6 +352,11 @@ export function moveBlockAtPath(source: string, path: string, direction: "up" | 
     }
 }
 
+// Object keys that must never be traversed or written through a string path:
+// a task id or Switch case key flows into these path helpers, and letting
+// `__proto__`/`constructor`/`prototype` through would risk prototype pollution.
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"])
+
 function getAtPath(obj: Record<string, unknown>, path: string): unknown {
     const segments = parsePath(path)
     let cur: unknown = obj
@@ -360,6 +365,7 @@ function getAtPath(obj: Record<string, unknown>, path: string): unknown {
         if (Array.isArray(cur)) {
             cur = (cur as unknown[])[Number(seg)]
         } else {
+            if (UNSAFE_KEYS.has(seg)) return undefined
             cur = (cur as Record<string, unknown>)[seg]
         }
     }
@@ -376,6 +382,7 @@ function setAtPath(obj: Record<string, unknown>, path: string, value: unknown): 
         if (Array.isArray(cur)) {
             cur = (cur as unknown[])[Number(seg)]
         } else {
+            if (UNSAFE_KEYS.has(seg)) return
             cur = (cur as Record<string, unknown>)[seg]
         }
     }
@@ -384,6 +391,7 @@ function setAtPath(obj: Record<string, unknown>, path: string, value: unknown): 
     if (Array.isArray(cur)) {
         (cur as unknown[])[Number(last)] = value
     } else {
+        if (UNSAFE_KEYS.has(last)) return
         (cur as Record<string, unknown>)[last] = value
     }
 }
