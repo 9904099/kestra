@@ -10,10 +10,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-/**
- * Request body to apply a Source Search replace-all operation to a caller-confirmed set of flows.
- * Flows the caller is not allowed to edit are skipped even if included in {@link #flows()}.
- */
 public record SourceSearchReplaceApplyRequest(
     @NotBlank String query,
     boolean caseSensitive,

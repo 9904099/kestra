@@ -6,9 +6,6 @@ import io.micronaut.core.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-/**
- * Request body to preview a Source Search replace-all operation without persisting anything.
- */
 public record SourceSearchReplacePreviewRequest(
     @NotBlank String query,
     boolean caseSensitive,

@@ -230,19 +230,15 @@ class FlowControllerTest {
     @SuppressWarnings("unchecked")
     @Test
     void searchFlowsBySourceCodeWithRegexOption() {
-        // Given — a multi-line regex ("marker-\w+") can only match if regex mode bypasses the
-        // literal-substring coarse filter
         String namespace = "io.kestra.sourcesearch.regex";
         createSourceSearchFlow(namespace, "regex-flow", "unique-marker-alpha");
         createSourceSearchFlow(namespace, "regex-flow-2", "no-match-here");
 
-        // When
         PagedResults<SourceSearchResult> results = client.toBlocking().retrieve(
             HttpRequest.GET(FLOW_PATH + "/source?q=" + URLEncoder.encode("unique-marker-\\w+", StandardCharsets.UTF_8) + "&regex=true&namespace=" + namespace),
             Argument.of(PagedResults.class, SourceSearchResult.class)
         );
 
-        // Then
         assertThat(results.getResults()).hasSize(1);
         assertThat(results.getResults().getFirst().id()).isEqualTo("regex-flow");
         assertThat(results.getResults().getFirst().editable()).isTrue();
@@ -252,25 +248,21 @@ class FlowControllerTest {
     @SuppressWarnings("unchecked")
     @Test
     void searchFlowsBySourceCodeWithCaseSensitiveOption() {
-        // Given
         String namespace = "io.kestra.sourcesearch.case";
         createSourceSearchFlow(namespace, "case-flow-upper", "MARKERCASE");
         createSourceSearchFlow(namespace, "case-flow-lower", "markercase");
 
-        // When
         PagedResults<SourceSearchResult> caseSensitive = client.toBlocking().retrieve(
             HttpRequest.GET(FLOW_PATH + "/source?q=MARKERCASE&caseSensitive=true&namespace=" + namespace),
             Argument.of(PagedResults.class, SourceSearchResult.class)
         );
 
-        // Then
         assertThat(caseSensitive.getResults()).hasSize(1);
         assertThat(caseSensitive.getResults().getFirst().id()).isEqualTo("case-flow-upper");
     }
 
     @Test
     void shouldReturnBadRequestForInvalidRegexQuery() {
-        // Given / When / Then — an unclosed group is not a valid regular expression
         assertThatThrownBy(() -> client.toBlocking().retrieve(
             HttpRequest.GET(FLOW_PATH + "/source?q=" + URLEncoder.encode("concurrency:(\\s*limit:", StandardCharsets.UTF_8) + "&regex=true")
         ))
@@ -280,18 +272,15 @@ class FlowControllerTest {
 
     @Test
     void shouldPreviewAndApplySourceSearchReplace() {
-        // Given
         String namespace = "io.kestra.sourcesearch.replace";
         String id = "replace-flow";
         createSourceSearchFlow(namespace, id, "legacy-value-here");
 
-        // When — preview
         SourceSearchReplacePreviewResponse preview = client.toBlocking().retrieve(
             HttpRequest.POST(FLOW_PATH + "/source/replace/preview", new SourceSearchReplacePreviewRequest("legacy-value", false, false, false, namespace, null, "new-value")),
             SourceSearchReplacePreviewResponse.class
         );
 
-        // Then — nothing is persisted yet, but the diff is computed
         assertThat(preview.totalMatches()).isEqualTo(1);
         assertThat(preview.totalFlows()).isEqualTo(1);
         assertThat(preview.editableFlowCount()).isEqualTo(1);
@@ -301,7 +290,6 @@ class FlowControllerTest {
         FlowWithSource beforeApply = client.toBlocking().retrieve(HttpRequest.GET(FLOW_PATH + "/" + namespace + "/" + id + "?source=true"), FlowWithSource.class);
         assertThat(beforeApply.getSource()).contains("legacy-value-here");
 
-        // When — apply
         SourceSearchReplaceApplyResponse apply = client.toBlocking().retrieve(
             HttpRequest.POST(
                 FLOW_PATH + "/source/replace/apply",
@@ -310,7 +298,6 @@ class FlowControllerTest {
             SourceSearchReplaceApplyResponse.class
         );
 
-        // Then — the flow is persisted with the replacement applied
         assertThat(apply.updated()).hasSize(1);
         assertThat(apply.updated().getFirst().getSource()).contains("new-value-here");
         assertThat(apply.skipped()).isEmpty();

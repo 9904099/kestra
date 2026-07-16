@@ -10,27 +10,13 @@ import io.kestra.core.exceptions.InvalidSourceSearchQueryException;
 import io.kestra.core.models.SourceMatch;
 import io.kestra.core.models.flows.SourceSearchScope;
 
-/**
- * Finds and highlights occurrences of a Source Search query (literal, case-sensitive, whole-word
- * and/or regex) within a flow's YAML source, and computes replacement previews.
- */
 public final class SourceSearchMatcher {
 
-    /**
-     * Caps the number of matches computed per flow source so a pathological query (e.g. a regex
-     * matching every character) cannot blow up memory or response size.
-     */
     private static final int MAX_MATCHES_PER_SOURCE = 500;
 
     private SourceSearchMatcher() {
     }
 
-    /**
-     * Compiles a query into a {@link Pattern} honoring the case-sensitivity, whole-word and regex
-     * options.
-     *
-     * @throws InvalidSourceSearchQueryException if {@code regex} is {@code true} and the query is not a valid regular expression.
-     */
     public static Pattern toPattern(String query, boolean caseSensitive, boolean wholeWord, boolean regex) {
         String base = regex ? query : Pattern.quote(query);
         String withBoundaries = wholeWord ? "\\b(?:" + base + ")\\b" : base;
@@ -46,10 +32,6 @@ public final class SourceSearchMatcher {
         }
     }
 
-    /**
-     * Finds every occurrence of {@code query} in {@code source}, restricted to the given
-     * {@link SourceSearchScope} section of the flow YAML (or the whole source for {@link SourceSearchScope#ALL}).
-     */
     public static List<SourceMatch> findMatches(String source, String query, boolean caseSensitive, boolean wholeWord, boolean regex, SourceSearchScope scope) {
         List<SourceMatch> matches = findMatches(source, query, caseSensitive, wholeWord, regex);
         if (scope == null || scope == SourceSearchScope.ALL || matches.isEmpty()) {
@@ -64,11 +46,6 @@ public final class SourceSearchMatcher {
         return matches.stream().filter(match -> match.line() >= range[0] && match.line() <= range[1]).toList();
     }
 
-    /**
-     * Finds every occurrence of {@code query} in {@code source}, one {@link SourceMatch} per hit,
-     * each carrying the 1-based line number and the containing line with the hit wrapped in
-     * {@code [mark]}/{@code [/mark]}.
-     */
     public static List<SourceMatch> findMatches(String source, String query, boolean caseSensitive, boolean wholeWord, boolean regex) {
         if (source == null || query == null || query.isEmpty()) {
             return List.of();
@@ -106,10 +83,6 @@ public final class SourceSearchMatcher {
         return matches;
     }
 
-    /**
-     * Replaces every match of {@code pattern} in {@code source}, restricted to the given
-     * {@link SourceSearchScope} section so a scoped replace-all never touches lines outside it.
-     */
     public static String replaceWithinScope(String source, Pattern pattern, String replacement, SourceSearchScope scope) {
         if (scope == null || scope == SourceSearchScope.ALL) {
             return RegexUtils.matcher(pattern, source).replaceAll(replacement);
@@ -131,10 +104,6 @@ public final class SourceSearchMatcher {
         return before + RegexUtils.matcher(pattern, scoped).replaceAll(replacement) + after;
     }
 
-    /**
-     * Returns the plain (unmarked) text of the given 1-based line number, or an empty string if
-     * out of range.
-     */
     public static String extractLine(String source, int lineNumber) {
         List<int[]> bounds = lineBounds(source);
         int index = lineNumber - 1;
@@ -145,13 +114,6 @@ public final class SourceSearchMatcher {
         return source.substring(b[0], b[1]);
     }
 
-    /**
-     * Returns the [start, end] 1-based, inclusive line range of the top-level {@code key:} mapping
-     * in a flow's YAML source (e.g. {@code tasks}, {@code triggers}, {@code inputs}), or
-     * {@code null} if that key has no top-level entry. A "top-level" line is one with no leading
-     * whitespace, so nested keys of the same name (e.g. a task property called {@code inputs})
-     * are not mistaken for the section boundary.
-     */
     private static int[] topLevelBlockLineRange(String source, String key) {
         String[] lines = source.split("\n", -1);
         Pattern topLevelKey = Pattern.compile("^[A-Za-z_][\\w-]*:.*");

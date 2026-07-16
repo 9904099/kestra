@@ -42,10 +42,8 @@ class SourceSearchMatcherTest {
 
     @Test
     void shouldFindEveryLiteralMatchCaseInsensitiveByDefault() {
-        // Given / When
         List<SourceMatch> matches = SourceSearchMatcher.findMatches(SOURCE, "BIGQUERY.QUERY", false, false, false);
 
-        // Then
         assertThat(matches).hasSize(2);
         assertThat(matches.get(0).line()).isEqualTo(5);
         assertThat(matches.get(0).snippet()).contains("[mark]bigquery.Query[/mark]");
@@ -54,24 +52,18 @@ class SourceSearchMatcherTest {
 
     @Test
     void shouldNotMatchWhenCaseSensitiveAndCaseDiffers() {
-        // Given / When
         List<SourceMatch> matches = SourceSearchMatcher.findMatches(SOURCE, "BIGQUERY.QUERY", true, false, false);
 
-        // Then
         assertThat(matches).isEmpty();
     }
 
     @Test
     void shouldRespectWholeWordOption() {
-        // Given — "query" as a standalone word, glued to a suffix ("queryable"), and glued to a
-        // prefix via an underscore ("my_query" — "_" counts as a word character for \b)
         String text = "id: query\nid: queryable\nid: my_query\n";
 
-        // When
         List<SourceMatch> wholeWord = SourceSearchMatcher.findMatches(text, "query", false, true, false);
         List<SourceMatch> substring = SourceSearchMatcher.findMatches(text, "query", false, false, false);
 
-        // Then — whole-word matches only the standalone occurrence
         assertThat(wholeWord).hasSize(1);
         assertThat(wholeWord.getFirst().line()).isEqualTo(1);
         assertThat(substring).hasSize(3);
@@ -79,20 +71,16 @@ class SourceSearchMatcherTest {
 
     @Test
     void shouldMatchAcrossLinesWhenRegexEnabled() {
-        // Given — a regex spanning a newline, mirroring the "concurrency:\s*\n\s*limit:" example
         String multiline = "concurrency:\n  limit: 4\n";
 
-        // When
         List<SourceMatch> matches = SourceSearchMatcher.findMatches(multiline, "concurrency:\\s*\\n\\s*limit:", false, false, true);
 
-        // Then — the match starts on the first line it spans
         assertThat(matches).hasSize(1);
         assertThat(matches.getFirst().line()).isEqualTo(1);
     }
 
     @Test
     void shouldThrowInvalidSourceSearchQueryExceptionForInvalidRegex() {
-        // Given / When / Then
         assertThatThrownBy(() -> SourceSearchMatcher.findMatches(SOURCE, "concurrency:(\\s*limit:", false, false, true))
             .isInstanceOf(InvalidSourceSearchQueryException.class)
             .hasMessageContaining("Unclosed group");
@@ -100,27 +88,23 @@ class SourceSearchMatcherTest {
 
     @Test
     void shouldReturnEmptyListForBlankQuery() {
-        // Given / When / Then
         assertThat(SourceSearchMatcher.findMatches(SOURCE, "", false, false, false)).isEmpty();
         assertThat(SourceSearchMatcher.findMatches(SOURCE, null, false, false, false)).isEmpty();
     }
 
     @Test
     void shouldExtractPlainLineText() {
-        // Given / When / Then
         assertThat(SourceSearchMatcher.extractLine(SOURCE, 1)).isEqualTo("id: my-flow");
         assertThat(SourceSearchMatcher.extractLine(SOURCE, 999)).isEmpty();
     }
 
     @Test
     void shouldRestrictMatchesToTopLevelScope() {
-        // Given / When
         List<SourceMatch> all = SourceSearchMatcher.findMatches(SCOPED_SOURCE, "marker", false, false, false, SourceSearchScope.ALL);
         List<SourceMatch> tasksOnly = SourceSearchMatcher.findMatches(SCOPED_SOURCE, "marker", false, false, false, SourceSearchScope.TASKS);
         List<SourceMatch> triggersOnly = SourceSearchMatcher.findMatches(SCOPED_SOURCE, "marker", false, false, false, SourceSearchScope.TRIGGERS);
         List<SourceMatch> inputsOnly = SourceSearchMatcher.findMatches(SCOPED_SOURCE, "marker", false, false, false, SourceSearchScope.INPUTS);
 
-        // Then
         assertThat(all).hasSize(3);
         assertThat(tasksOnly).hasSize(1);
         assertThat(tasksOnly.getFirst().snippet()).contains("format: [mark]marker[/mark] inside");
@@ -131,13 +115,10 @@ class SourceSearchMatcherTest {
 
     @Test
     void shouldReplaceOnlyWithinScope() {
-        // Given
         Pattern pattern = SourceSearchMatcher.toPattern("marker", false, false, false);
 
-        // When
         String replaced = SourceSearchMatcher.replaceWithinScope(SCOPED_SOURCE, pattern, "changed", SourceSearchScope.TASKS);
 
-        // Then — only the tasks-section occurrence is replaced
         assertThat(replaced).contains("description: marker outside");
         assertThat(replaced).contains("format: changed inside");
         assertThat(replaced).contains("cron: marker-trigger");

@@ -10,10 +10,6 @@ export interface SelectionSummary {
     selectedMatchCount: number;
 }
 
-/**
- * Aggregates how many editable flows/matches are currently checked for a bulk replace, given the
- * search results and the set of checked match keys (`${namespace}.${id}#${line}`).
- */
 export function computeSelectionSummary(results: SourceSearchSelectionGroup[], selectedMatchKeys: Set<string>): SelectionSummary {
     let selectedFlowCount = 0
     let selectedMatchCount = 0
@@ -44,11 +40,6 @@ export interface DiffLine {
     text: string;
 }
 
-/**
- * Builds a unified-diff-style list of lines around each replace match: a few lines of
- * unchanged context, then the removed/added pair for the match itself. Overlapping or
- * adjacent windows are merged into a single hunk so shared context isn't duplicated.
- */
 export function buildDiffHunks(sourceLines: string[], matches: SourceSearchDiffMatch[], context = 2): DiffLine[] {
     if (matches.length === 0) {
         return []

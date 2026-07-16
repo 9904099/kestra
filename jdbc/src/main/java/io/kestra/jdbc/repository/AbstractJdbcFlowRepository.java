@@ -890,9 +890,6 @@ public abstract class AbstractJdbcFlowRepository extends AbstractJdbcRepository 
 
                 SelectConditionStep<Record> select = this.fullTextSelect(tenantId, context, Collections.singletonList(field("source_code")));
 
-                // The coarse full-text condition tokenizes the query and can't recall a regex pattern
-                // spanning multiple lines (e.g. `concurrency:\s*\n\s*limit:`), so regex mode scans every
-                // candidate flow in scope directly instead of pre-filtering in SQL.
                 if (query != null && !regex) {
                     select = select.and(this.findSourceCodeCondition(query));
                 }
@@ -911,10 +908,6 @@ public abstract class AbstractJdbcFlowRepository extends AbstractJdbcRepository 
                             : SourceSearchMatcher.findMatches(record.getValue("source_code", String.class), query, caseSensitive, wholeWord, regex, scope),
                         true
                     ))
-                    // The coarse condition above is a recall superset (it only requires each tokenized
-                    // word to appear somewhere in the source): a candidate row may have zero real matches
-                    // once verified precisely in Java, especially with caseSensitive/wholeWord/regex on.
-                    // Drop those so the reported total and page reflect only real matches.
                     .filter(result -> query == null || !result.getMatches().isEmpty())
                     .sorted(java.util.Comparator.comparing((SearchResult<Flow> r) -> r.getModel().getNamespace())
                         .thenComparing(r -> r.getModel().getId()))

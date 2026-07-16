@@ -31,10 +31,6 @@ import io.micronaut.data.model.Pageable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-/**
- * Search and replace over flow source code: powers the Source Search screen's find,
- * replace-preview and replace-apply operations.
- */
 @Singleton
 public class SourceSearchService {
 
@@ -134,11 +130,6 @@ public class SourceSearchService {
         return new SourceSearchReplaceApplyResponse(updated, skipped);
     }
 
-    /**
-     * Whether the current user is allowed to edit {@code flow}. OSS has no per-flow RBAC, so every
-     * flow is editable; EE overrides this to reflect the FLOW UPDATE permission and Git-sync
-     * read-only namespaces.
-     */
     protected boolean isEditable(FlowInterface flow) {
         return true;
     }

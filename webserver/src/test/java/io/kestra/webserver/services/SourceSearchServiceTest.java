@@ -26,8 +26,6 @@ class SourceSearchServiceTest {
 
     @Test
     void shouldSkipFlowsTheCallerIsNotAllowedToEditWhenApplyingReplace() throws Exception {
-        // Given — a flow the isEditable override always denies, mirroring how EE will plug in
-        // real FLOW UPDATE permission checks.
         String tenantId = "main";
         IdWithNamespace ref = new IdWithNamespace("io.kestra.tests", "locked-flow");
         FlowWithSource flow = FlowWithSource.builder()
@@ -45,12 +43,10 @@ class SourceSearchServiceTest {
             }
         };
 
-        // When
         SourceSearchReplaceApplyResponse response = service.apply(
             tenantId, "legacy-value", false, false, false, null, "new-value", List.of(ref)
         );
 
-        // Then
         assertThat(response.updated()).isEmpty();
         assertThat(response.skipped()).containsExactly(ref);
         verify(flowService, never()).update(any(), any());
@@ -58,19 +54,16 @@ class SourceSearchServiceTest {
 
     @Test
     void shouldSkipFlowsNotFoundWhenApplyingReplace() throws Exception {
-        // Given
         String tenantId = "main";
         IdWithNamespace ref = new IdWithNamespace("io.kestra.tests", "missing-flow");
         when(flowRepository.findByIdWithSource(tenantId, ref.getNamespace(), ref.getId())).thenReturn(Optional.empty());
 
         SourceSearchService service = new SourceSearchService(flowRepository, flowService);
 
-        // When
         SourceSearchReplaceApplyResponse response = service.apply(
             tenantId, "legacy-value", false, false, false, null, "new-value", List.of(ref)
         );
 
-        // Then
         assertThat(response.updated()).isEmpty();
         assertThat(response.skipped()).containsExactly(ref);
         verify(flowService, never()).update(any(), any());
