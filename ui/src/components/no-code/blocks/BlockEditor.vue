@@ -717,8 +717,8 @@
     provide(CREATE_TASK_FUNCTION_INJECTION_KEY, (parentPath, _blockSchemaPath, refPath, anchorEl) => {
         openTaskPickerAtPath(parentPath, refPath ?? -1, undefined, "after", anchorEl)
     })
-    provide(EDIT_TASK_FUNCTION_INJECTION_KEY, (parentPath, blockSchemaPath, refPath) => {
-        emit("editTask", parentPath, blockSchemaPath, refPath)
+    provide(EDIT_TASK_FUNCTION_INJECTION_KEY, (parentPath, blockSchemaPath, refPath, split) => {
+        emit("editTask", parentPath, blockSchemaPath, refPath, split)
     })
     provide(CLOSE_TASK_FUNCTION_INJECTION_KEY, () => emit("closeTask"))
     provide(UPDATE_YAML_FUNCTION_INJECTION_KEY, (yaml: string) => applyYaml(yaml))

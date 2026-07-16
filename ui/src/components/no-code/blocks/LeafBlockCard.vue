@@ -35,10 +35,10 @@
 
         <div class="leaf-block-card-main">
             <div class="leaf-block-card-idrow">
-                <span class="leaf-block-card-id" data-test="block-card-id">{{ displayBlock.id }}</span>
+                <span class="leaf-block-card-id" data-test="block-card-id">{{ displayLabel }}</span>
                 <BlockErrorBadge :issues="issues" />
             </div>
-            <span class="leaf-block-card-type" data-test="block-card-type">{{ shortType }}</span>
+            <span v-if="showType" class="leaf-block-card-type" data-test="block-card-type">{{ shortType }}</span>
         </div>
 
         <div class="leaf-block-card-actions">
@@ -55,6 +55,7 @@
             </KsIconButton>
 
             <KsIconButton
+                v-if="showOpenSplit"
                 class="leaf-block-card-action"
                 :aria-label="t('block_editor.open_in_split')"
                 :tooltip="t('block_editor.open_in_split')"
@@ -66,6 +67,7 @@
             </KsIconButton>
 
             <KsIconButton
+                v-if="showDuplicate"
                 class="leaf-block-card-action"
                 :aria-label="t('block_editor.duplicate')"
                 :tooltip="`${t('block_editor.duplicate')} (d)`"
@@ -111,16 +113,22 @@
 
     const pluginsStore = usePluginsStore()
 
-    const props = defineProps<{
+    const props = withDefaults(defineProps<{
         block: Record<string, unknown>
         path: string
+        label?: string
         selected?: boolean
         focused?: boolean
         draggable?: boolean
         dragOver?: boolean
         runnable?: boolean
+        showOpenSplit?: boolean
+        showDuplicate?: boolean
         icons?: Record<string, PluginIconData>
-    }>()
+    }>(), {
+        showOpenSplit: true,
+        showDuplicate: true,
+    })
 
     const emit = defineEmits<{
         (e: "select"): void
@@ -149,8 +157,12 @@
         return parts[parts.length - 1] ?? type
     })
 
+    const displayLabel = computed(() => props.label ?? String(displayBlock.value.id ?? ""))
+
+    const showType = computed(() => !!shortType.value && shortType.value !== displayLabel.value)
+
     const cardAriaLabel = computed(() =>
-        t("block_editor.card_aria_label", {id: String(displayBlock.value.id ?? ""), type: shortType.value}),
+        t("block_editor.card_aria_label", {id: displayLabel.value, type: shortType.value}),
     )
 </script>
 
