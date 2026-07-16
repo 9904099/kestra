@@ -5,11 +5,14 @@
             <div class="source-search__query-row">
                 <KsIconButton
                     :aria-expanded="replaceOpen"
+                    :aria-pressed="replaceOpen"
                     :aria-label="replaceOpen ? t('source_search.hide_replace') : t('source_search.show_replace')"
-                    :tooltip="t('source_search.toggle_replace')"
+                    :tooltip="replaceOpen ? t('source_search.hide_replace') : t('source_search.show_replace')"
+                    class="source-search__replace-toggle"
+                    :class="{'source-search__replace-toggle--active': replaceOpen}"
                     @click="replaceOpen = !replaceOpen"
                 >
-                    <ChevronRight class="source-search__chevron-icon" :class="{'source-search__chevron-icon--open': replaceOpen}" />
+                    <FindReplace />
                 </KsIconButton>
 
                 <div class="source_search__input-stack">
@@ -212,7 +215,6 @@
                     @toggle-flow="onToggleFlow"
                     @toggle-match="onToggleMatch"
                     @replace-flow="onReplaceFlow"
-                    @replace-match="onReplaceMatch"
                 />
             </KsSplitterPanel>
             <KsSplitterPanel min="20%" key="preview">
@@ -241,7 +243,6 @@
     import NamespaceSelect from "../namespaces/components/NamespaceSelect.vue"
     import SourceSearchResults from "./SourceSearchResults.vue"
     import SourceSearchPreview from "./SourceSearchPreview.vue"
-    import ChevronRight from "vue-material-design-icons/ChevronRight.vue"
     import ChevronUp from "vue-material-design-icons/ChevronUp.vue"
     import ChevronDown from "vue-material-design-icons/ChevronDown.vue"
     import ArrowCollapseVertical from "vue-material-design-icons/ArrowCollapseVertical.vue"
@@ -422,23 +423,8 @@
         selectedMatchKeys.value = next
     }
 
-    function selectOnly(keys: string[]) {
-        selectedMatchKeys.value = new Set(keys)
-    }
-
-    async function onReplaceFlow(value: {namespace: string; id: string}) {
-        const group = results.value.find((g) => g.namespace === value.namespace && g.id === value.id)
-        if (!group) return
-        replaceOpen.value = true
-        selectOnly(group.matches.map((match) => matchKey(group.namespace, group.id, match.line)))
-        await triggerReplacePreview()
-    }
-
-    async function onReplaceMatch(value: {namespace: string; id: string; line: number}) {
-        replaceOpen.value = true
-        selected.value = value
-        selectOnly([matchKey(value.namespace, value.id, value.line)])
-        await triggerReplacePreview()
+    function onReplaceFlow(value: {namespace: string; id: string}) {
+        return applyReplace([{namespace: value.namespace, id: value.id}])
     }
 
     const searchFilters = computed(() => ({
@@ -465,19 +451,15 @@
         }
     }
 
-    async function onConfirmReplaceAll() {
-        const flowsToApply = results.value
-            .filter((group) => group.editable && group.matches.some((match) => selectedMatchKeys.value.has(matchKey(group.namespace, group.id, match.line))))
-            .map((group) => ({namespace: group.namespace, id: group.id}))
-
-        if (flowsToApply.length === 0) return
+    async function applyReplace(flows: {namespace: string; id: string}[]) {
+        if (flows.length === 0 || !query.value) return
 
         try {
             const response = await flowStore.applySourceSearchReplace({
                 ...searchFilters.value,
                 query: query.value,
                 replacement: replacement.value,
-                flows: flowsToApply,
+                flows,
             })
             if (response.updated.length > 0) {
                 toast.success(t("source_search.replace_apply_success", {count: response.updated.length}))
@@ -490,6 +472,13 @@
         } catch (e: any) {
             toast.error(e?.response?.data?.message ?? t("source_search.replace_apply_failed"))
         }
+    }
+
+    function onConfirmReplaceAll() {
+        const flowsToApply = results.value
+            .filter((group) => group.editable && group.matches.some((match) => selectedMatchKeys.value.has(matchKey(group.namespace, group.id, match.line))))
+            .map((group) => ({namespace: group.namespace, id: group.id}))
+        return applyReplace(flowsToApply)
     }
 
     async function fetchResults() {
@@ -569,13 +558,9 @@
     gap: var(--ks-spacing-2);
 }
 
-.source-search__chevron-icon {
-    display: inline-flex;
-    transition: transform .15s ease;
-}
-
-.source-search__chevron-icon--open {
-    transform: rotate(90deg);
+.source-search__replace-toggle--active {
+    color: var(--ks-text-link);
+    background: var(--ks-bg-hover);
 }
 
 .source_search__input-stack {

@@ -95,14 +95,6 @@
                         <div v-else class="result-match-snippet">
                             <code v-html="sanitize(match.snippet)" />
                         </div>
-                        <KsIconButton
-                            v-if="replaceMode && group.editable && !secretKey(match.snippet)"
-                            class="result-match-action"
-                            :tooltip="t('source_search.replace_this_match')"
-                            @click.stop="emit('replace-match', {namespace: group.namespace, id: group.id, line: match.line})"
-                        >
-                            <FindReplace />
-                        </KsIconButton>
                     </div>
                 </div>
             </KsCollapseItem>
@@ -131,7 +123,6 @@
         (e: "toggle-flow", value: {namespace: string; id: string; checked: boolean}): void
         (e: "toggle-match", value: {namespace: string; id: string; line: number; checked: boolean}): void
         (e: "replace-flow", value: {namespace: string; id: string}): void
-        (e: "replace-match", value: {namespace: string; id: string; line: number}): void
     }>()
 
     const {t} = useI18n()
@@ -311,14 +302,6 @@
     &:focus-visible {
         outline: 2px solid var(--ks-border-focus);
         outline-offset: -2px;
-    }
-
-    .result-match-action {
-        opacity: 0;
-    }
-
-    &:hover .result-match-action {
-        opacity: 1;
     }
 }
 
