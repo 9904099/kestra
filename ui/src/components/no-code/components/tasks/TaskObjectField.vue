@@ -109,16 +109,17 @@
                     :disabled
                     class="inline-number"
                 />
-                <KsButton
+                <KsIconButton
                     v-if="hasToggle"
-                    :icon="IconCodeTags"
-                    size="small"
+                    filled
                     class="inline-code-toggle"
                     :type="pebbleState ? 'primary' : 'default'"
-                    :title="t('no_code.toggle_pebble')"
+                    :tooltip="t('no_code.toggle_pebble')"
                     :aria-label="t('no_code.toggle_pebble')"
                     @click="pebbleState = !pebbleState"
-                />
+                >
+                    <IconCodeTags />
+                </KsIconButton>
             </div>
         </template>
         <TaskObjectTaskInline
