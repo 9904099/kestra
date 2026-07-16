@@ -268,4 +268,82 @@ describe("computeRevisionDiff", () => {
             expect(result.hasChanges).toBe(false)
         })
     })
+
+    describe("task reordering", () => {
+        const FLOW_REORDERED = `
+id: my_flow
+namespace: company.team
+tasks:
+  - id: task_b
+    type: io.kestra.plugin.core.log.Log
+    message: World
+  - id: task_a
+    type: io.kestra.plugin.core.log.Log
+    message: Hello
+`.trim()
+
+        const FLOW_PREPENDED = `
+id: my_flow
+namespace: company.team
+tasks:
+  - id: task_c
+    type: io.kestra.plugin.core.log.Log
+    message: New
+  - id: task_a
+    type: io.kestra.plugin.core.log.Log
+    message: Hello
+  - id: task_b
+    type: io.kestra.plugin.core.log.Log
+    message: World
+`.trim()
+
+        it("shouldFlagReorderWhenOnlyOrderChanged", () => {
+            // Given / When
+            const result = computeRevisionDiff(FLOW_A, FLOW_REORDERED)
+
+            // Then
+            expect(result.hasChanges).toBe(true)
+            const moved = result.blockDiffs.filter(b => b.fieldChanges.some(f => f.field === "(order)"))
+            expect(moved.map(b => b.id).sort()).toEqual(["task_a", "task_b"])
+        })
+
+        it("shouldNotFlagReorderWhenAnAddedSiblingShiftsAbsoluteIndices", () => {
+            // Given / When: task_c prepended shifts a/b absolute index but not relative order
+            const result = computeRevisionDiff(FLOW_A, FLOW_PREPENDED)
+
+            // Then
+            expect(result.blockDiffs.filter(b => b.fieldChanges.some(f => f.field === "(order)"))).toHaveLength(0)
+            expect(result.blockDiffs.filter(b => b.changeType === "added").map(b => b.id)).toContain("task_c")
+        })
+    })
+
+    describe("flow-level properties", () => {
+        it("shouldFlagNamespaceChangeAsAFlowSectionDiff", () => {
+            // Given / When
+            const result = computeRevisionDiff(FLOW_A, FLOW_A.replace("company.team", "company.other"))
+
+            // Then
+            expect(result.hasChanges).toBe(true)
+            const flowDiff = result.blockDiffs.find(b => b.section === "flow")
+            expect(flowDiff).toBeTruthy()
+            expect(flowDiff?.fieldChanges.some(f => f.field === "namespace")).toBe(true)
+        })
+
+        it("shouldFlagAnAddedFlowLevelProperty", () => {
+            // Given / When
+            const result = computeRevisionDiff(FLOW_A, `${FLOW_A}\ndisabled: true`)
+
+            // Then
+            const flowDiff = result.blockDiffs.find(b => b.section === "flow")
+            expect(flowDiff?.fieldChanges.some(f => f.field === "disabled")).toBe(true)
+        })
+
+        it("shouldNotEmitAFlowDiffWhenOnlyBlocksChanged", () => {
+            // Given / When
+            const result = computeRevisionDiff(FLOW_A, FLOW_B_ADDED)
+
+            // Then
+            expect(result.blockDiffs.find(b => b.section === "flow")).toBeUndefined()
+        })
+    })
 })
