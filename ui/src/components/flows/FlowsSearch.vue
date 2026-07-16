@@ -19,39 +19,37 @@
                         :placeholder="t('source_search.search_placeholder')"
                         :aria-label="t('source_search.search_aria')"
                         :aria-invalid="Boolean(errorMessage)"
+                        @keydown.down.prevent="goToMatch(1)"
+                        @keydown.up.prevent="goToMatch(-1)"
+                        @keydown.enter.exact.prevent="goToMatch(1)"
+                        @keydown.enter.shift.prevent="goToMatch(-1)"
                     >
                         <template #suffix>
                             <div class="source-search__toggles" role="group" :aria-label="t('source_search.options_aria')">
-                                <KsCheckTag
+                                <KsCheckboxButton
+                                    v-model="caseSensitive"
                                     size="small"
-                                    :checked="caseSensitive"
-                                    :aria-pressed="caseSensitive"
                                     :title="t('source_search.match_case')"
                                     :aria-label="t('source_search.match_case')"
-                                    @change="(value: boolean) => caseSensitive = value"
                                 >
                                     Aa
-                                </KsCheckTag>
-                                <KsCheckTag
+                                </KsCheckboxButton>
+                                <KsCheckboxButton
+                                    v-model="wholeWord"
                                     size="small"
-                                    :checked="wholeWord"
-                                    :aria-pressed="wholeWord"
                                     :title="t('source_search.match_whole_word')"
                                     :aria-label="t('source_search.match_whole_word')"
-                                    @change="(value: boolean) => wholeWord = value"
                                 >
                                     <u>ab</u>
-                                </KsCheckTag>
-                                <KsCheckTag
+                                </KsCheckboxButton>
+                                <KsCheckboxButton
+                                    v-model="regexEnabled"
                                     size="small"
-                                    :checked="regexEnabled"
-                                    :aria-pressed="regexEnabled"
                                     :title="t('source_search.use_regex')"
                                     :aria-label="t('source_search.use_regex')"
-                                    @change="(value: boolean) => regexEnabled = value"
                                 >
                                     .*
-                                </KsCheckTag>
+                                </KsCheckboxButton>
                             </div>
                         </template>
                     </KsSearch>
