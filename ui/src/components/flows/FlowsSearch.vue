@@ -210,6 +210,7 @@
                     :selectedKey="selectedKey"
                     :replaceMode="replaceOpen"
                     :selectedMatchKeys="selectedMatchKeys"
+                    :replaceContext="replaceContext"
                     data-test="source-search-results-pane"
                     @select="onSelect"
                     @toggle-flow="onToggleFlow"
@@ -252,7 +253,7 @@
     import useRouteContext from "../../composables/useRouteContext"
     import useRestoreUrl from "../../composables/useRestoreUrl"
     import {useToast} from "../../utils/toast"
-    import {computeSelectionSummary} from "../../utils/sourceSearchDiff"
+    import {computeSelectionSummary, type ReplaceContext} from "../../utils/sourceSearchDiff"
 
     import {useFlowStore, type SourceSearchReplacePreviewResponse} from "../../stores/flow"
 
@@ -433,6 +434,16 @@
         regex: regexEnabled.value,
         scope: scope.value,
     }))
+
+    const replaceContext = computed<ReplaceContext | null>(() => (replaceOpen.value && replacement.value)
+        ? {
+            query: query.value,
+            replacement: replacement.value,
+            regex: regexEnabled.value,
+            caseSensitive: caseSensitive.value,
+            wholeWord: wholeWord.value,
+        }
+        : null)
 
     async function triggerReplacePreview() {
         if (!query.value) return

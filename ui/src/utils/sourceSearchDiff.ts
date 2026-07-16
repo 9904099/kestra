@@ -28,6 +28,26 @@ export function computeSelectionSummary(results: SourceSearchSelectionGroup[], s
     return {selectedFlowCount, selectedMatchCount}
 }
 
+export interface ReplaceContext {
+    query: string;
+    replacement: string;
+    regex: boolean;
+    caseSensitive: boolean;
+    wholeWord: boolean;
+}
+
+export function inlineReplacement(matched: string, context: ReplaceContext): string {
+    if (!context.regex) {
+        return context.replacement
+    }
+    try {
+        const pattern = context.wholeWord ? `\\b(?:${context.query})\\b` : context.query
+        return matched.replace(new RegExp(pattern, context.caseSensitive ? "" : "i"), context.replacement)
+    } catch {
+        return context.replacement
+    }
+}
+
 export interface SourceSearchDiffMatch {
     line: number;
     before: string;

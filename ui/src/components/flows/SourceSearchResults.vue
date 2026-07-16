@@ -42,14 +42,16 @@
                             </template>
                             {{ t('source_search.read_only') }}
                         </KsTag>
-                        <span class="result-group-actions">
-                            <KsIconButton
+                        <span class="result-group-actions" :class="{'result-group-actions--persistent': replaceMode}">
+                            <KsButton
                                 v-if="replaceMode && group.editable"
-                                :tooltip="t('source_search.replace_all_in_flow')"
+                                size="small"
+                                class="result-group-replace"
                                 @click.stop="emit('replace-flow', {namespace: group.namespace, id: group.id})"
                             >
-                                <FindReplace />
-                            </KsIconButton>
+                                <FindReplace class="result-group-replace-icon" />
+                                {{ t('source_search.replace_all_in_flow') }}
+                            </KsButton>
                             <router-link
                                 :to="{path: `/flows/edit/${group.namespace}/${group.id}/source`}"
                                 class="result-group-open-link"
@@ -93,7 +95,7 @@
                             secret('{{ secretKey(match.snippet) }}')
                         </KsTag>
                         <div v-else class="result-match-snippet">
-                            <code v-html="sanitize(match.snippet)" />
+                            <code v-html="renderSnippet(match.snippet)" />
                         </div>
                     </div>
                 </div>
@@ -110,12 +112,14 @@
     import FindReplace from "vue-material-design-icons/FindReplace.vue"
     import OpenInNew from "vue-material-design-icons/OpenInNew.vue"
     import type {SourceSearchResult, SourceMatch} from "../../stores/flow"
+    import {inlineReplacement, type ReplaceContext} from "../../utils/sourceSearchDiff"
 
     const props = defineProps<{
         results: SourceSearchResult[]
         selectedKey: string | null
         replaceMode: boolean
         selectedMatchKeys: Set<string>
+        replaceContext?: ReplaceContext | null
     }>()
 
     const emit = defineEmits<{
@@ -173,10 +177,26 @@
         return snippet.replaceAll("[mark]", "").replaceAll("[/mark]", "")
     }
 
-    function sanitize(snippet: string) {
-        return _escape(snippet)
-            .replaceAll("[mark]", "<mark>")
-            .replaceAll("[/mark]", "</mark>")
+    function renderSnippet(snippet: string) {
+        return snippet
+            .split(/(\[mark\][\s\S]*?\[\/mark\])/)
+            .map((part) => {
+                const marked = part.match(/^\[mark\]([\s\S]*)\[\/mark\]$/)
+                if (!marked) {
+                    return _escape(part)
+                }
+                const old = marked[1]
+                if (!props.replaceContext) {
+                    return `<mark>${_escape(old)}</mark>`
+                }
+                const next = inlineReplacement(old, props.replaceContext)
+                const removed = `<del class="result-match-old">${_escape(old)}</del>`
+                if (next === "") {
+                    return removed
+                }
+                return `${removed}<span class="result-match-arrow" aria-hidden="true"> → </span><ins class="result-match-new">${_escape(next)}</ins>`
+            })
+            .join("")
     }
 
     function collapseAll() {
@@ -268,6 +288,19 @@
     opacity: 1;
 }
 
+.result-group-actions--persistent {
+    opacity: 1;
+}
+
+.result-group-replace {
+    white-space: nowrap;
+}
+
+.result-group-replace-icon {
+    display: inline-flex;
+    margin-right: var(--ks-spacing-1);
+}
+
 .result-group-open-link {
     display: inline-flex;
     align-items: center;
@@ -343,6 +376,25 @@
             color: var(--ks-text-primary);
             border-radius: var(--ks-radius-xs);
             padding: 0 var(--ks-spacing-1);
+        }
+
+        :deep(.result-match-old) {
+            background-color: var(--ks-status-background-failed);
+            color: var(--ks-text-error);
+            text-decoration: line-through;
+            border-radius: var(--ks-radius-xs);
+            padding: 0 var(--ks-spacing-1);
+        }
+
+        :deep(.result-match-new) {
+            background-color: var(--ks-status-background-success);
+            color: var(--ks-text-success);
+            border-radius: var(--ks-radius-xs);
+            padding: 0 var(--ks-spacing-1);
+        }
+
+        :deep(.result-match-arrow) {
+            color: var(--ks-text-muted);
         }
     }
 }
