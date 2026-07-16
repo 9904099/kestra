@@ -2,7 +2,7 @@
     <div
         v-if="generated?.total > 0"
         class="chart"
-        :class="{short: props.short, execution: props.execution}"
+        :class="{short: props.short, execution: props.execution, fit: props.fit}"
     >
         <ChartLegend
             v-if="showLegend"
@@ -24,7 +24,7 @@
     </div>
     <KsNoData
         v-else-if="!props.short || (props.execution && generated?.total === 0)"
-        :class="{empty: !props.short && !props.execution}"
+        :class="{empty: !props.short && !props.execution && !props.fit}"
     />
 </template>
 
@@ -56,6 +56,7 @@
         showDefault?: boolean;
         short?: boolean;
         execution?: boolean;
+        fit?: boolean;
         flow?: string;
         namespace?: string;
     }>(), {
@@ -64,6 +65,7 @@
         showDefault: false,
         short: false,
         execution: false,
+        fit: false,
         flow: undefined,
         namespace: undefined,
     })
@@ -402,6 +404,11 @@
         }
 
         &.execution {
+            height: 120px;
+            min-height: 0;
+        }
+
+        &.fit {
             height: 120px;
             min-height: 0;
         }

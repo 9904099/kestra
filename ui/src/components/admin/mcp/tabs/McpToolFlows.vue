@@ -1,5 +1,5 @@
 <template>
-    <div class="mcp-tools">
+    <div class="mcp-tools d-flex flex-column fill-height">
         <Empty
             v-if="isEmpty"
             type="mcpToolFlows"
@@ -20,6 +20,7 @@
 
         <KsDataTable
             v-else
+            fitHeight
             :data="filteredTools"
             :total="filteredTools.length"
             :loading="loading"
@@ -285,6 +286,10 @@
 </script>
 
 <style lang="scss" scoped>
+    .mcp-tools {
+        min-height: 0;
+    }
+
     .mono {
         font-family: var(--ks-font-family-mono);
         font-size: var(--ks-font-size-sm);

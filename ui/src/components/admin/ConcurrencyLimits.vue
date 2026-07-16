@@ -2,30 +2,32 @@
     <TopNavBar :title="routeInfo.title" />
 
     <Empty v-if="data?.results === undefined || data?.results.length === 0" type="concurrency_limits" />
-    <section v-else class="container">
-        <KsDataTable :total="data?.total ?? 0">
+    <section v-else class="full-container">
+        <KsDataTable :total="data?.total ?? 0" fitHeight>
             <template #table>
-                <KsTable
-                    :data="data?.results"
-                    stripe
-                >
-                    <KsTableColumn
-                        v-for="k in KEYS"
-                        :key="k"
-                        :prop="k"
-                        :label="k"
+                <div class="table-slot-fit">
+                    <KsTable
+                        :data="data?.results"
+                        stripe
                     >
-                        <template #default="scope">
-                            <button v-if="k === 'running'" class="edit-running" @click="openDialog(scope.row)">
-                                {{ scope.row[k] }}
-                                <IconEdit />
-                            </button>
-                            <span v-else>
-                                {{ scope.row[k] }}
-                            </span>
-                        </template>
-                    </KsTableColumn>
-                </KsTable>
+                        <KsTableColumn
+                            v-for="k in KEYS"
+                            :key="k"
+                            :prop="k"
+                            :label="k"
+                        >
+                            <template #default="scope">
+                                <button v-if="k === 'running'" class="edit-running" @click="openDialog(scope.row)">
+                                    {{ scope.row[k] }}
+                                    <IconEdit />
+                                </button>
+                                <span v-else>
+                                    {{ scope.row[k] }}
+                                </span>
+                            </template>
+                        </KsTableColumn>
+                    </KsTable>
+                </div>
             </template>
         </KsDataTable>
         <KsDialog v-model="editRunning" :title="$t('concurrency_limit.dialog_title')" destroyOnClose :appendToBody="true" :beforeClose="beforeEditClose">

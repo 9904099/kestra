@@ -476,6 +476,15 @@
         &--fit {
             min-height: 0;
             overflow: hidden;
+
+            .ks-data-table-content {
+                flex: 1 1 0;
+                min-height: 0;
+            }
+
+            .kel-pagination {
+                margin-top: auto;
+            }
         }
     }
 
@@ -510,6 +519,13 @@
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
+        }
+
+        // element-plus sizes the empty-block to 100% of its scroll view, on top of the header row's own
+        // height, overflowing the view by the header's height whenever an ancestor constrains it (e.g. any
+        // empty-state layout). Subtract the header height we already track for the bulk-select overlay above.
+        .kel-table__empty-block {
+            height: calc(100% - var(--table-header-height, 0px)) !important;
         }
 
         .kel-table tr.ks-row-force-expanded .kel-table__expand-icon {

@@ -9,8 +9,8 @@
                     [`dash-width-${chart.chartOptions?.width || 6}`]: true
                 }"
             >
-                <div class="d-flex flex-column" :class="{'is-kpi': isKPIChart(chart.type)}">
-                    <div class="d-flex justify-content-between">
+                <div class="d-flex flex-column" :class="{'is-kpi': isKPIChart(chart.type), fit: props.fit}">
+                    <div v-if="!props.fit" class="d-flex justify-content-between">
                         <div id="charts_heading">
                             <p v-if="!isKPIChart(chart.type)">
                                 <span class="fs-6 fw-bold">
@@ -63,6 +63,7 @@
                             :dashboardId="dashboard.id"
                             :filters
                             :showDefault="props.showDefault"
+                            :fit="props.fit"
                         />
                     </div>
                 </div>
@@ -104,6 +105,7 @@
         charts?: Chart[];
         showDefault?: boolean;
         padding?: boolean;
+        fit?: boolean;
     }>()
 
     const labels = (chart: Chart) => ({
@@ -174,6 +176,14 @@ section#charts {
                     top: 1.25rem;
                     right: 1.25rem;
                 }
+            }
+
+            &.fit {
+                padding: 0;
+                background: none;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
             }
         }
 

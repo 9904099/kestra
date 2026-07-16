@@ -1,5 +1,5 @@
 <template>
-    <div class="triggers-manage">
+    <div class="triggers-manage d-flex flex-column fill-height">
         <KsDataTable
             ref="dataTable"
             :loadData="loadData"
@@ -8,6 +8,7 @@
             :currentPage="urlPage"
             :pageSize="urlSize"
             :defaultSort="{prop: 'flowId', order: 'ascending'}"
+            fitHeight
             :selectable="canCheck"
             :selectionMapper="selectionMapper"
             :rowClassName="getClasses"
@@ -855,6 +856,8 @@
 
 <style scoped lang="scss">
     .triggers-manage {
+        min-height: 0;
+
         :deep(tr.no-expand .kel-table__expand-icon) {
             pointer-events: none;
 

@@ -11,6 +11,7 @@
                 :currentPage="urlPage"
                 :pageSize="urlSize"
                 :noGutter="!embed && !system"
+                :fitHeight="!embed && !system"
                 @ready="ready = true"
                 @page-changed="onPageChanged"
             >
@@ -47,39 +48,41 @@
                 </template>
 
                 <template #table>
-                    <KsNoData
-                        v-if="isEmpty"
-                        :title="$t('blueprints.empty')"
-                    />
-                    <div v-else-if="embed && !system" class="blueprint-list">
-                        <BlueprintListRow
-                            v-for="blueprint in blueprints"
-                            :key="blueprint.id"
-                            :blueprint
-                            :tags
-                            @click="goToDetail(blueprint.id)"
-                            @copy="copy(blueprint.id)"
+                    <div class="table-slot-fit">
+                        <KsNoData
+                            v-if="isEmpty"
+                            :title="$t('blueprints.empty')"
                         />
-                    </div>
-                    <div v-else class="card-grid" :class="{system}">
-                        <BlueprintCard
-                            v-for="blueprint in blueprints"
-                            :key="blueprint.id"
-                            :blueprint
-                            :embed
-                            :system
-                            :tags
-                            :blueprintKind
-                            :blueprintType
-                            :icons="pluginsStore.icons"
-                            :loadIcon="pluginsStore.loadIcon"
-                            @click="goToDetail(blueprint.id)"
-                            @use="blueprintToEditor(blueprint.id)"
-                        >
-                            <template v-if="$slots.buttons" #buttons="slotProps">
-                                <slot name="buttons" :blueprint="slotProps.blueprint" />
-                            </template>
-                        </BlueprintCard>
+                        <div v-else-if="embed && !system" class="blueprint-list">
+                            <BlueprintListRow
+                                v-for="blueprint in blueprints"
+                                :key="blueprint.id"
+                                :blueprint
+                                :tags
+                                @click="goToDetail(blueprint.id)"
+                                @copy="copy(blueprint.id)"
+                            />
+                        </div>
+                        <div v-else class="card-grid" :class="{system}">
+                            <BlueprintCard
+                                v-for="blueprint in blueprints"
+                                :key="blueprint.id"
+                                :blueprint
+                                :embed
+                                :system
+                                :tags
+                                :blueprintKind
+                                :blueprintType
+                                :icons="pluginsStore.icons"
+                                :loadIcon="pluginsStore.loadIcon"
+                                @click="goToDetail(blueprint.id)"
+                                @use="blueprintToEditor(blueprint.id)"
+                            >
+                                <template v-if="$slots.buttons" #buttons="slotProps">
+                                    <slot name="buttons" :blueprint="slotProps.blueprint" />
+                                </template>
+                            </BlueprintCard>
+                        </div>
                     </div>
                 </template>
             </KsDataTable>
