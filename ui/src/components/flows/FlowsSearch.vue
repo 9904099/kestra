@@ -588,6 +588,7 @@
     display: flex;
     align-items: center;
     gap: var(--ks-spacing-1);
+    margin-left: var(--ks-spacing-2);
 }
 
 .source-search__replace-row {
