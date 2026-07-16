@@ -30,7 +30,10 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.model.Pageable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Singleton
 public class SourceSearchService {
 
@@ -102,7 +105,7 @@ public class SourceSearchService {
         SourceSearchScope scope,
         String replacement,
         List<IdWithNamespace> selection
-    ) throws FlowProcessingException, QueueException {
+    ) throws QueueException {
         Pattern pattern = SourceSearchMatcher.toPattern(query, caseSensitive, wholeWord, regex);
         String effectiveReplacement = regex ? replacement : Matcher.quoteReplacement(replacement);
 
@@ -123,8 +126,13 @@ public class SourceSearchService {
                 continue;
             }
 
-            GenericFlow genericFlow = GenericFlow.fromYaml(tenantId, newSource);
-            updated.add(flowService.update(genericFlow, current));
+            try {
+                GenericFlow genericFlow = GenericFlow.fromYaml(tenantId, newSource);
+                updated.add(flowService.update(genericFlow, current));
+            } catch (ConstraintViolationException | FlowProcessingException e) {
+                log.warn("Skipping flow {}.{} during Source Search replace: {}", ref.getNamespace(), ref.getId(), e.getMessage());
+                skipped.add(ref);
+            }
         }
 
         return new SourceSearchReplaceApplyResponse(updated, skipped);

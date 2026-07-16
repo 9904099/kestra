@@ -2,8 +2,11 @@ package io.kestra.webserver.services;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+
+import jakarta.validation.ConstraintViolationException;
 
 import io.kestra.core.models.flows.FlowInterface;
 import io.kestra.core.models.flows.FlowWithSource;
@@ -67,5 +70,28 @@ class SourceSearchServiceTest {
         assertThat(response.updated()).isEmpty();
         assertThat(response.skipped()).containsExactly(ref);
         verify(flowService, never()).update(any(), any());
+    }
+
+    @Test
+    void shouldSkipFlowsThatFailToSaveWhenApplyingReplace() throws Exception {
+        String tenantId = "main";
+        IdWithNamespace ref = new IdWithNamespace("io.kestra.tests", "unsavable-flow");
+        FlowWithSource flow = FlowWithSource.builder()
+            .tenantId(tenantId)
+            .namespace(ref.getNamespace())
+            .id(ref.getId())
+            .source("id: unsavable-flow\nnamespace: io.kestra.tests\ntasks:\n  - id: log\n    type: io.kestra.plugin.core.log.Log\n    message: legacy-value\n")
+            .build();
+        when(flowRepository.findByIdWithSource(tenantId, ref.getNamespace(), ref.getId())).thenReturn(Optional.of(flow));
+        when(flowService.update(any(), any())).thenThrow(new ConstraintViolationException("Invalid type", Set.of()));
+
+        SourceSearchService service = new SourceSearchService(flowRepository, flowService);
+
+        SourceSearchReplaceApplyResponse response = service.apply(
+            tenantId, "legacy-value", false, false, false, null, "new-value", List.of(ref)
+        );
+
+        assertThat(response.updated()).isEmpty();
+        assertThat(response.skipped()).containsExactly(ref);
     }
 }
