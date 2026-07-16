@@ -78,9 +78,9 @@
             || element.uid.startsWith("nocode-")
     }
 
-    // Flag-gated rollout lever (see MERGE-PLAN.md): "legacy" keeps the
-    // schema-driven NoCode.vue form; any other value (default) uses the
-    // Blocks canvas as the nocode tab's engine.
+    // Flag-gated rollout lever: "legacy" keeps the schema-driven NoCode.vue
+    // form; any other value (default) uses the Blocks canvas as the nocode
+    // tab's engine.
     const RawNoCode = markRaw(localStorage.getItem(storageKeys.NOCODE_ENGINE) === "legacy" ? NoCode : BlockEditor)
 
     const onboardingV2Store = useOnboardingV2Store()
