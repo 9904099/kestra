@@ -502,7 +502,6 @@ export const useFlowStore = defineStore("flow", () => {
         caseSensitive: boolean;
         wholeWord: boolean;
         regex: boolean;
-        scope: string;
         replacement: string;
         namespace: string;
         id: string;

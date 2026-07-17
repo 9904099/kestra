@@ -2,6 +2,7 @@ package io.kestra.core.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -13,6 +14,7 @@ import io.kestra.core.models.flows.SourceSearchScope;
 public final class SourceSearchMatcher {
 
     private static final int MAX_MATCHES_PER_SOURCE = 500;
+    private static final Pattern TOP_LEVEL_KEY = Pattern.compile("^[A-Za-z_][\\w-]*:.*");
 
     private SourceSearchMatcher() {
     }
@@ -38,7 +40,7 @@ public final class SourceSearchMatcher {
             return matches;
         }
 
-        int[] range = topLevelBlockLineRange(source, scope.name().toLowerCase());
+        int[] range = topLevelBlockLineRange(source, scope.name().toLowerCase(Locale.ROOT));
         if (range == null) {
             return List.of();
         }
@@ -88,7 +90,7 @@ public final class SourceSearchMatcher {
             return RegexUtils.matcher(pattern, source).replaceAll(replacement);
         }
 
-        int[] range = topLevelBlockLineRange(source, scope.name().toLowerCase());
+        int[] range = topLevelBlockLineRange(source, scope.name().toLowerCase(Locale.ROOT));
         if (range == null) {
             return source;
         }
@@ -116,13 +118,12 @@ public final class SourceSearchMatcher {
 
     private static int[] topLevelBlockLineRange(String source, String key) {
         String[] lines = source.split("\n", -1);
-        Pattern topLevelKey = Pattern.compile("^[A-Za-z_][\\w-]*:.*");
 
         int start = -1;
         int end = lines.length;
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            boolean isTopLevelKey = topLevelKey.matcher(line).matches();
+            boolean isTopLevelKey = TOP_LEVEL_KEY.matcher(line).matches();
 
             if (start == -1) {
                 if (isTopLevelKey && line.startsWith(key + ":")) {

@@ -308,10 +308,11 @@
 
     useRouteContext(routeInfo)
 
-    function pushQuery(mutate: (query: Record<string, any>) => void) {
+    function pushQuery(mutate: (query: Record<string, any>) => void, options?: {replace?: boolean}) {
         const routeQuery = {...route.query}
         mutate(routeQuery)
-        router.push({query: routeQuery})
+        if (options?.replace) router.replace({query: routeQuery})
+        else router.push({query: routeQuery})
     }
 
     const query = computed({
@@ -319,7 +320,7 @@
         set: (value: string) => pushQuery((q) => {
             if (value) q.q = value
             else delete q.q
-        }),
+        }, {replace: true}),
     })
 
     const namespace = computed({
@@ -492,8 +493,10 @@
         if (!query.value) return
         try {
             await reportReplaceResult(await flowStore.replaceLineSourceSearch({
-                ...searchFilters.value,
                 query: query.value,
+                caseSensitive: caseSensitive.value,
+                wholeWord: wholeWord.value,
+                regex: regexEnabled.value,
                 replacement: replacement.value,
                 namespace: value.namespace,
                 id: value.id,
