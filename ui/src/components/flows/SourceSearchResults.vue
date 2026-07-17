@@ -379,12 +379,12 @@
 .result-match-snippet {
     flex: 1 1 auto;
     min-width: 0;
-    overflow-x: auto;
 
     code {
         font-family: var(--ks-font-family-mono);
         font-size: var(--ks-font-size-sm);
-        white-space: pre;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
         color: var(--ks-text-dim);
 
         :deep(mark) {
