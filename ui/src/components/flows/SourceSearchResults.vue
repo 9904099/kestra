@@ -100,6 +100,7 @@
                         <KsButton
                             v-if="replaceContext && group.editable && !secretKey(match.snippet)"
                             size="small"
+                            type="primary"
                             class="result-match-replace"
                             :title="t('source_search.replace_this_match')"
                             @click.stop="emit('replace-match', {namespace: group.namespace, id: group.id, line: match.line})"
