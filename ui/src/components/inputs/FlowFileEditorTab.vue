@@ -75,13 +75,14 @@
 
 <script setup lang="ts">
     import {computed, onActivated, onMounted, ref, provide, onBeforeUnmount, watch, InjectionKey, inject} from "vue"
-    import {useRoute, useRouter} from "vue-router"
+    import {useRoute} from "vue-router"
     import {apiUrl} from "override/utils/route"
     import type * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 
     import {EDITOR_CURSOR_INJECTION_KEY, EDITOR_WRAPPER_INJECTION_KEY} from "../no-code/injectionKeys"
     import {usePluginsStore} from "../../stores/plugins"
-    import {isSuccessfulFlowSaveOutcome, useFlowStore} from "../../stores/flow"
+    import {useFlowStore} from "../../stores/flow"
+    import {useFlowEditorActions} from "../flows/useFlowEditorActions"
     import {useApiStore} from "../../stores/api"
     import {useDocStore} from "../../stores/doc"
     import {useAuthStore} from "override/stores/auth"
@@ -105,8 +106,8 @@
     import AcceptDecline from "./AcceptDecline.vue"
 
     const route = useRoute()
-    const router = useRouter()
 
+    const {save} = useFlowEditorActions()
     const flowStore = useFlowStore()
     const authStore = useAuthStore()
     const editorBindings = useEditorBindings()
@@ -325,27 +326,13 @@
         pluginsStore.updateDocumentation({cls, version, hash: hash.value})
     }
 
+    // Delegate to the shared save action so Ctrl+S / the editor's save event go through the same
+    // path as the Save button — including auto-install of missing plugins before persisting.
     const saveFlowYaml = async () => {
         clearTimeout(timeout.value)
         if(!editorRefElement.value?.getEditor()) return
 
-        const result = await flowStore.saveAll()
-
-        if (result === "redirect_to_update") {
-            await router.push({
-                name: "flows/update",
-                params: {
-                    id: flowStore.flow?.id,
-                    namespace: flowStore.flow?.namespace,
-                    tab: "edit",
-                    tenant: route.params?.tenant,
-                },
-            })
-        }
-
-        if (isSuccessfulFlowSaveOutcome(result)) {
-            onboardingStore.recordSave()
-        }
+        await save()
     }
 
     const saveFileContent = async () => {
