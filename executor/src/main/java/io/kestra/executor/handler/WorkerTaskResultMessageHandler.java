@@ -1,5 +1,6 @@
 package io.kestra.executor.handler;
 
+import java.util.List;
 import java.util.Optional;
 
 import io.kestra.core.exceptions.FlowNotFoundException;
@@ -30,18 +31,22 @@ public class WorkerTaskResultMessageHandler implements ExecutorMessageHandler<Wo
     private final KillSwitchService killSwitchService;
     private final KillSwitchActionService killSwitchActionService;
 
+    private final List<WorkerTaskResultListener> workerTaskResultListeners;
+
     @Inject
     public WorkerTaskResultMessageHandler(
         ExecutionStateStore executionStateStore,
         ExecutorService executorService,
         FlowMetaStoreInterface flowMetaStore,
         KillSwitchService killSwitchService,
-        KillSwitchActionService killSwitchActionService) {
+        KillSwitchActionService killSwitchActionService,
+        List<WorkerTaskResultListener> workerTaskResultListeners) {
         this.executionStateStore = executionStateStore;
         this.executorService = executorService;
         this.flowMetaStore = flowMetaStore;
         this.killSwitchService = killSwitchService;
         this.killSwitchActionService = killSwitchActionService;
+        this.workerTaskResultListeners = workerTaskResultListeners;
     }
 
     @Override
@@ -59,7 +64,7 @@ public class WorkerTaskResultMessageHandler implements ExecutorMessageHandler<Wo
             executorService.log(log, true, message);
         }
 
-        return executionStateStore.lock(message.getTaskRun().getExecutionId(), execution ->
+        Optional<ExecutorContext> result = executionStateStore.lock(message.getTaskRun().getExecutionId(), execution ->
         {
             ExecutorContext current = new ExecutorContext(execution);
 
@@ -85,5 +90,22 @@ public class WorkerTaskResultMessageHandler implements ExecutorMessageHandler<Wo
 
             return null;
         });
+
+        // a present result means the taskrun was joined here (redeliveries come back empty): notify listeners once
+        if (result.isPresent()) {
+            notifyJoined(message);
+        }
+
+        return result;
+    }
+
+    private void notifyJoined(WorkerTaskResult message) {
+        for (WorkerTaskResultListener listener : workerTaskResultListeners) {
+            try {
+                listener.onJoined(message);
+            } catch (Exception e) {
+                log.error("Worker task result listener {} failed", listener.getClass().getName(), e);
+            }
+        }
     }
 }
