@@ -10,6 +10,7 @@ import DemoInstance from "../components/demo/Instance.vue"
 import DemoApps from "../components/demo/Apps.vue"
 import DemoTests from "../components/demo/Tests.vue"
 import DemoAssets from "../components/demo/Assets.vue"
+import DemoCases from "../components/demo/Cases.vue"
 import DemoQuotas from "../components/demo/Quotas.vue"
 
 const routes: RouteRecordRaw[] = [
@@ -99,6 +100,7 @@ const routes: RouteRecordRaw[] = [
     {name: "apps/list", path: "/:tenant?/apps", component: DemoApps},
     {name: "tests/list", path: "/:tenant?/tests", component: DemoTests},
     {name: "assets/list", path: "/:tenant?/assets", component: DemoAssets},
+    {name: "cases/list", path: "/:tenant?/cases", component: DemoCases},
     {name: "admin/iam", path: "/:tenant?/admin/iam", component: DemoIAM},
     {name: "admin/tenants/list", path: "/:tenant?/admin/tenants/list", component: DemoTenants},
     {name: "admin/auditlogs/list", path: "/:tenant?/admin/auditlogs", component: DemoAuditLogs},
