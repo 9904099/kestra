@@ -80,7 +80,7 @@
 
 <script setup lang="ts">
     import {computed, onActivated, onMounted, ref, provide, onBeforeUnmount, watch, InjectionKey, inject, type Ref} from "vue"
-    import {useRoute, useRouter} from "vue-router"
+    import {useRoute} from "vue-router"
     import {apiUrl} from "override/utils/route"
     import type * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 
