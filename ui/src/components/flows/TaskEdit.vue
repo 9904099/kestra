@@ -293,7 +293,12 @@
     })
 
     const flowStore = useFlowStore()
-    const errors = computed(() => flowStore.taskError?.split(/, ?/))
+    // Validation errors scoped to THIS task editor instance. flowStore.taskError
+    // is a shared global written by whichever editor last validated, so reading
+    // it directly leaks one task's errors into another's footer; keep our own
+    // copy fed only by our own validateTask calls.
+    const localTaskError = ref<string | undefined>()
+    const errors = computed(() => localTaskError.value?.split(/, ?/))
     const pluginMarkdown = computed(() => {
         if (pluginsStore?.plugin?.markdown && YAML_UTILS.parse(taskYaml.value)?.type) {
             return pluginsStore?.plugin.markdown
@@ -340,16 +345,26 @@
             })})
         }
 
-        const ctx = [
-            {label: "flow.id", expr: "{{ flow.id }}"},
-            {label: "flow.namespace", expr: "{{ flow.namespace }}"},
-            {label: "execution.id", expr: "{{ execution.id }}"},
-            {label: "execution.startDate", expr: "{{ execution.startDate }}"},
-            {label: "taskrun.id", expr: "{{ taskrun.id }}"},
-            {label: "trigger.date", expr: "{{ trigger.date }}"},
-            {label: "now()", expr: "{{ now() }}"},
-            {label: "labels", expr: "{{ labels }}"},
-        ]
+        // Mirrors the pebble context the flow autocompletion exposes
+        // (flowAutoCompletionProvider.nestedFieldAutoCompletion) so the panel
+        // stays in sync with what actually resolves at runtime.
+        const CONTEXT_FIELDS: Record<string, string[]> = {
+            flow: ["id", "namespace", "revision", "tenantId"],
+            execution: ["id", "startDate", "state", "originalId"],
+            taskrun: ["id", "startDate", "attemptsCount", "parentId", "value", "iteration"],
+            task: ["id", "type"],
+            trigger: ["id", "date", "type"],
+            error: ["taskId", "message", "stackTrace"],
+            kestra: ["environment", "url"],
+        }
+        const ctx: {label: string; expr: string}[] = []
+        for (const [root, fields] of Object.entries(CONTEXT_FIELDS)) {
+            for (const field of fields) ctx.push({label: `${root}.${field}`, expr: `{{ ${root}.${field} }}`})
+        }
+        for (const root of ["labels", "envs", "globals", "parent", "parents"]) {
+            ctx.push({label: root, expr: `{{ ${root} }}`})
+        }
+        ctx.push({label: "now()", expr: "{{ now() }}"})
         if (flow.variables && typeof flow.variables === "object") {
             for (const key of Object.keys(flow.variables)) ctx.push({label: `vars.${key}`, expr: `{{ vars.${key} }}`})
         }
@@ -440,6 +455,16 @@
         if (props.task?.type) {
             pluginsStore.load({cls: props.task.type}).catch(() => {})
         }
+        // Validate on open so the footer reflects THIS task's errors from the
+        // start (and never a stale value left by another task's editor).
+        if (taskYaml.value) {
+            lastValidatedValue.value = taskYaml.value
+            flowStore.validateTask({task: taskYaml.value, section: props.section})
+                .then((result) => { localTaskError.value = (result as {constraints?: string})?.constraints })
+                .catch(() => { localTaskError.value = undefined })
+        } else {
+            localTaskError.value = undefined
+        }
     }
 
     const commitEdit = () => {
@@ -448,7 +473,9 @@
             flowStore.validateTask({
                 task: taskYaml.value,
                 section: props.section,
-            })
+            }).then((result) => {
+                localTaskError.value = (result as {constraints?: string})?.constraints
+            }).catch(() => { /* leave prior errors in place on transient failure */ })
         }
         if (props.presentation === "panel") {
             let parsed: unknown
@@ -631,26 +658,37 @@
 
     @mixin task-edit-stacked {
         flex-direction: column;
-        overflow-y: auto;
 
         .task-edit-col {
             flex: none;
             width: 100%;
+            // Override the row-layout `height: 100%`: stacked columns size to
+            // their content, otherwise a collapsed rail stretches to the full
+            // height and leaves a big empty block.
             height: auto;
             border: none;
             border-bottom: 1px solid var(--ks-border-subtle);
         }
 
+        // Cap the data columns so a long inputs/outputs list scrolls inside
+        // itself instead of consuming the whole height and crushing the
+        // Form/Source editor below.
+        .task-edit-col-inputs,
+        .task-edit-col-output {
+            max-height: 30%;
+        }
+
         .task-edit-col-params {
             order: -1;
-            flex: 1 1 0;
-            min-height: 0;
+            flex: 1 1 auto;
+            min-height: 55%;
         }
 
         .task-edit-col-inputs.task-edit-col--collapsed,
         .task-edit-col-output.task-edit-col--collapsed {
             flex: none;
             width: 100%;
+            max-height: none;
         }
     }
 

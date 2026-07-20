@@ -106,7 +106,7 @@
     import {useI18n} from "vue-i18n"
     import PlusCircleOutline from "vue-material-design-icons/PlusCircleOutline.vue"
     import AlertCircleOutline from "vue-material-design-icons/AlertCircleOutline.vue"
-    import AlertOutline from "vue-material-design-icons/AlertOutline.vue"
+    import FlagOutline from "vue-material-design-icons/FlagOutline.vue"
     import CheckOutline from "vue-material-design-icons/CheckOutline.vue"
     import CloseOutline from "vue-material-design-icons/CloseOutline.vue"
     import CodeBranchesIcon from "vue-material-design-icons/SourceBranch.vue"
@@ -179,7 +179,7 @@
 
     const laneIcon = computed((): Component => {
         if (props.laneName === "errors") return AlertCircleOutline
-        if (props.laneName === "finally") return AlertOutline
+        if (props.laneName === "finally") return FlagOutline
         if (props.laneName === "then") return CheckOutline
         if (props.laneName === "else") return CloseOutline
         if (props.laneName === "defaults") return CodeBranchesIcon
@@ -243,11 +243,11 @@
         color: var(--ks-icon-muted);
 
         .branch-lane--error & {
-            color: var(--ks-status-error);
+            color: var(--ks-text-error);
         }
 
         .branch-lane--warning & {
-            color: var(--ks-status-warning);
+            color: var(--ks-text-warning);
         }
     }
 
@@ -258,12 +258,9 @@
         letter-spacing: 0.05em;
         color: var(--ks-text-muted);
 
-        .branch-lane--error & {
-            color: var(--ks-status-error);
-        }
-
+        .branch-lane--error &,
         .branch-lane--warning & {
-            color: var(--ks-status-warning);
+            color: var(--ks-text-primary);
         }
     }
 

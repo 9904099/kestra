@@ -236,10 +236,6 @@
         .task-edit-data-rail-label {
             writing-mode: horizontal-tb;
         }
-
-        .task-edit-data .task-edit-data-scroll {
-            overflow: visible;
-        }
     }
 
     .task-edit-data-title {
