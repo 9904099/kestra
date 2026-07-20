@@ -2451,15 +2451,6 @@
     "flow_description": "Flow विवरण",
     "flow_no_description": "कोई विवरण नहीं। अपने flow YAML में विवरण जोड़ें।",
     "pluginDefaults": {},
-    "revision_diff": {
-      "added": "जोड़ा गया",
-      "modified": "संशोधित",
-      "no_changes": "इन दो पुनरीक्षणों के बीच कोई परिवर्तन नहीं।",
-      "removed": "हटाया गया",
-      "structured": "संरचित",
-      "text": "पाठ",
-      "unchanged_count": "{count} अपरिवर्तित ब्लॉक नहीं दिखाया गया।"
-    },
     "split_horizontal": "क्षैतिज रूप से विभाजित करें",
     "split_vertical": "लंबवत रूप से विभाजित करें"
   }

@@ -2451,15 +2451,6 @@
     "flow_description": "Flow 설명",
     "flow_no_description": "설명 없음. flow YAML에 설명을 추가하여 문서화하세요.",
     "pluginDefaults": {},
-    "revision_diff": {
-      "added": "추가됨",
-      "modified": "수정됨",
-      "no_changes": "이 두 revision 사이에 변경 사항이 없습니다.",
-      "removed": "제거됨",
-      "structured": "구조화",
-      "text": "텍스트",
-      "unchanged_count": "{count}개의 변경되지 않은 블록이 표시되지 않습니다."
-    },
     "split_horizontal": "수평으로 분할",
     "split_vertical": "수직으로 분할"
   }

@@ -2451,15 +2451,6 @@
     "flow_description": "Opis flow",
     "flow_no_description": "Brak opisu. Dodaj opis do swojego YAML flow, aby go udokumentować.",
     "pluginDefaults": {},
-    "revision_diff": {
-      "added": "Dodano",
-      "modified": "Zmodyfikowano",
-      "no_changes": "Brak zmian między tymi dwiema wersjami.",
-      "removed": "Usunięto",
-      "structured": "Strukturalny",
-      "text": "Tekst",
-      "unchanged_count": "{count} niezmieniony(-ch) blok(ów) nie jest wyświetlany."
-    },
     "split_horizontal": "Podziel poziomo",
     "split_vertical": "Podziel pionowo"
   }

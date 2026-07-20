@@ -2451,15 +2451,6 @@
     "flow_description": "Описание flow",
     "flow_no_description": "Нет описания. Добавьте описание в YAML вашего flow для документирования.",
     "pluginDefaults": {},
-    "revision_diff": {
-      "added": "Добавлено",
-      "modified": "Изменено",
-      "no_changes": "Нет изменений между этими двумя редакциями.",
-      "removed": "Удалено",
-      "structured": "Структурированный",
-      "text": "Текст",
-      "unchanged_count": "{count} неизменённых блок(ов) не отображается."
-    },
     "split_horizontal": "Разделить горизонтально",
     "split_vertical": "Разделить вертикально"
   }

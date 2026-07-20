@@ -2451,15 +2451,6 @@
     "flow_description": "Flow Description",
     "flow_no_description": "No description. Add a description to your flow YAML to document what it does.",
     "pluginDefaults": {},
-    "revision_diff": {
-      "added": "Added",
-      "modified": "Modified",
-      "no_changes": "No changes between these two revisions.",
-      "removed": "Removed",
-      "structured": "Structured",
-      "text": "Text",
-      "unchanged_count": "{count} unchanged block(s) not shown."
-    },
     "split_horizontal": "Split horizontally",
     "split_vertical": "Split vertically"
   }

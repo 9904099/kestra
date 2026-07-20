@@ -2451,15 +2451,6 @@
     "flow_description": "Flow-Beschreibung",
     "flow_no_description": "Keine Beschreibung. Fügen Sie Ihrem flow-YAML eine Beschreibung hinzu.",
     "pluginDefaults": {},
-    "revision_diff": {
-      "added": "Hinzugefügt",
-      "modified": "Geändert",
-      "no_changes": "Keine Änderungen zwischen diesen zwei Revisionen.",
-      "removed": "Entfernt",
-      "structured": "Strukturiert",
-      "text": "Text",
-      "unchanged_count": "{count} unveränderte(r) Block(s) nicht angezeigt."
-    },
     "split_horizontal": "Horizontal aufteilen",
     "split_vertical": "Vertikal aufteilen"
   }
