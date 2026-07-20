@@ -1034,7 +1034,8 @@
             "flow_default_tab": "Onglet Flow par Défaut",
             "triggers_default_tab": "Onglet par défaut des Triggers",
             "playground": "Aire de jeu",
-            "auto_refresh_interval": "Intervalle de rafraîchissement automatique"
+            "auto_refresh_interval": "Intervalle de rafraîchissement automatique",
+            "task_edit_default_mode": "Mode d'édition des tasks par défaut"
           },
           "descriptions": {
             "default_namespace": "Utilisé lors de la création de nouveaux flows sans namespace.",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "Onglet sélectionné lors de la navigation vers un flow.",
             "triggers_default_tab": "Onglet sélectionné lors de la navigation vers la page des triggers.",
             "auto_refresh_interval": "Secondes entre les actualisations automatiques des données sur les pages de liste.",
-            "playground": "Exécutez les tasks individuellement dans le bac à sable de l'éditeur."
+            "playground": "Exécutez les tasks individuellement dans le bac à sable de l'éditeur.",
+            "task_edit_default_mode": "Comment une task s'ouvre par défaut depuis l'éditeur sans code."
+          },
+          "task_edit_default_mode_options": {
+            "modal": "Modale",
+            "tab": "Onglet"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "Le bloc Then est obligatoire",
       "trigger_noun": "trigger",
       "undo": "Annuler",
-      "upstream_outputs": "Outputs en amont"
+      "upstream_outputs": "Outputs en amont",
+      "open_in_tabs": "Ouvrir dans des onglets",
+      "open_mode_hint": "Par défaut, les tasks s'ouvrent dans une modale. Vous pouvez choisir l'ouverture dans des onglets par défaut dans {settings}."
     },
     "blocks": "Blocs",
     "flow_description": "Description du flow",

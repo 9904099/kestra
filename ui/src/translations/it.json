@@ -1034,7 +1034,8 @@
             "flow_default_tab": "Scheda Flow Predefinita",
             "triggers_default_tab": "Scheda Trigger Predefiniti",
             "playground": "Playground",
-            "auto_refresh_interval": "Intervallo di Aggiornamento Automatico"
+            "auto_refresh_interval": "Intervallo di Aggiornamento Automatico",
+            "task_edit_default_mode": "Modalità di modifica task predefinita"
           },
           "descriptions": {
             "default_namespace": "Utilizzato quando si creano nuovi flow senza un namespace.",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "Scheda selezionata durante la navigazione a un flow.",
             "triggers_default_tab": "Scheda selezionata quando si naviga alla pagina dei trigger.",
             "auto_refresh_interval": "Secondi tra gli aggiornamenti automatici dei dati nelle pagine elenco.",
-            "playground": "Esegui i task singolarmente nel playground dell'editor."
+            "playground": "Esegui i task singolarmente nel playground dell'editor.",
+            "task_edit_default_mode": "Come si apre una task per impostazione predefinita dall'editor senza codice."
+          },
+          "task_edit_default_mode_options": {
+            "modal": "Modale",
+            "tab": "Scheda"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "Il ramo Then è obbligatorio",
       "trigger_noun": "trigger",
       "undo": "Annulla",
-      "upstream_outputs": "Outputs a monte"
+      "upstream_outputs": "Outputs a monte",
+      "open_in_tabs": "Apri nelle schede",
+      "open_mode_hint": "Per impostazione predefinita le tasks si aprono in una finestra modale. Puoi impostare le schede come predefinite in {settings}."
     },
     "blocks": "Blocchi",
     "flow_description": "Descrizione del flow",

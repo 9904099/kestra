@@ -1034,7 +1034,8 @@
             "flow_default_tab": "默认 Flow 标签页",
             "triggers_default_tab": "默认 Trigger 标签页",
             "playground": "游乐场",
-            "auto_refresh_interval": "自动刷新间隔"
+            "auto_refresh_interval": "自动刷新间隔",
+            "task_edit_default_mode": "默认任务编辑模式"
           },
           "descriptions": {
             "default_namespace": "用于在没有namespace的情况下创建新flow。",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "导航到flow时选择的选项卡。",
             "triggers_default_tab": "导航到 triggers 页面时选择的选项卡。",
             "auto_refresh_interval": "列表页面上自动数据刷新的秒数。",
-            "playground": "在编辑器游乐场中单独运行任务。"
+            "playground": "在编辑器游乐场中单独运行任务。",
+            "task_edit_default_mode": "在无代码编辑器中任务默认的打开方式。"
+          },
+          "task_edit_default_mode_options": {
+            "modal": "模态框",
+            "tab": "标签页"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "Then 分支为必填项",
       "trigger_noun": "trigger",
       "undo": "撤销",
-      "upstream_outputs": "上游 Outputs"
+      "upstream_outputs": "上游 Outputs",
+      "open_in_tabs": "在标签页中打开",
+      "open_mode_hint": "Tasks 默认在弹窗中打开。您可以在{settings}中将标签页设为默认。"
     },
     "blocks": "区块",
     "flow_description": "Flow描述",

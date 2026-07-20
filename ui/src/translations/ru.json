@@ -1034,7 +1034,8 @@
             "flow_default_tab": "Вкладка Flow по умолчанию",
             "triggers_default_tab": "Вкладка по умолчанию Triggers",
             "playground": "Песочница",
-            "auto_refresh_interval": "Интервал автоматического обновления"
+            "auto_refresh_interval": "Интервал автоматического обновления",
+            "task_edit_default_mode": "Режим редактирования задачи по умолчанию"
           },
           "descriptions": {
             "default_namespace": "Используется при создании новых flow без namespace.",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "Вкладка выбрана при переходе к flow.",
             "triggers_default_tab": "Вкладка выбрана при переходе на страницу триггеров.",
             "auto_refresh_interval": "Секунды между автоматическими обновлениями данных на страницах списков.",
-            "playground": "Запускайте задачи по отдельности в редакторе playground."
+            "playground": "Запускайте задачи по отдельности в редакторе playground.",
+            "task_edit_default_mode": "Как задача открывается по умолчанию в редакторе No Code."
+          },
+          "task_edit_default_mode_options": {
+            "modal": "Модальное окно",
+            "tab": "Вкладка"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "Ветка Then обязательна",
       "trigger_noun": "trigger",
       "undo": "Отменить",
-      "upstream_outputs": "Outputs выше по потоку"
+      "upstream_outputs": "Outputs выше по потоку",
+      "open_in_tabs": "Открыть в вкладках",
+      "open_mode_hint": "По умолчанию tasks открываются в модальном окне. Вы можете сделать вкладки режимом по умолчанию в {settings}."
     },
     "blocks": "Блоки",
     "flow_description": "Описание flow",

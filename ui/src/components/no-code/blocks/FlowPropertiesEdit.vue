@@ -1,6 +1,6 @@
 <template>
     <div class="flow-properties-edit" data-test="flow-properties-edit">
-        <header class="flow-properties-head">
+        <header v-if="!hideHeader" class="flow-properties-head">
             <KsIconButton :tooltip="t('back')" data-test="flow-properties-back" @click="emit('close')">
                 <ChevronLeft />
             </KsIconButton>
@@ -40,6 +40,8 @@
     import {FULL_SOURCE_INJECTION_KEY, UPDATE_YAML_FUNCTION_INJECTION_KEY} from "../injectionKeys"
 
     const {t} = useI18n()
+
+    defineProps<{hideHeader?: boolean}>()
 
     const emit = defineEmits<{(e: "close"): void}>()
 

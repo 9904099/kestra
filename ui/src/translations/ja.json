@@ -1034,7 +1034,8 @@
             "flow_default_tab": "デフォルト Flow タブ",
             "triggers_default_tab": "デフォルトトリガーのタブ",
             "playground": "プレイグラウンド",
-            "auto_refresh_interval": "自動更新間隔"
+            "auto_refresh_interval": "自動更新間隔",
+            "task_edit_default_mode": "デフォルトのタスク編集モード"
           },
           "descriptions": {
             "default_namespace": "namespaceなしで新しいflowを作成する際に使用されます。",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "フローに移動するときに選択されたタブ。",
             "triggers_default_tab": "トリガーページに移動するときに選択されたタブ。",
             "auto_refresh_interval": "リストページでの自動データ更新の間隔（秒）。",
-            "playground": "エディタープレイグラウンドでタスクを個別に実行します。"
+            "playground": "エディタープレイグラウンドでタスクを個別に実行します。",
+            "task_edit_default_mode": "コードエディタなしでタスクがデフォルトでどのように開くか。"
+          },
+          "task_edit_default_mode_options": {
+            "modal": "モーダル",
+            "tab": "タブ"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "Thenブランチは必須です",
       "trigger_noun": "trigger",
       "undo": "元に戻す",
-      "upstream_outputs": "上流のOutputs"
+      "upstream_outputs": "上流のOutputs",
+      "open_in_tabs": "タブで開く",
+      "open_mode_hint": "Tasksはデフォルトでモーダルで開きます。{settings}でタブをデフォルトに設定できます。"
     },
     "blocks": "ブロック",
     "flow_description": "Flowの説明",

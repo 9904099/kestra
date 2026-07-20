@@ -1034,7 +1034,8 @@
             "flow_default_tab": "Aba Padrão do Flow",
             "triggers_default_tab": "Aba de Triggers Padrão",
             "playground": "Playground",
-            "auto_refresh_interval": "Intervalo de Atualização Automática"
+            "auto_refresh_interval": "Intervalo de Atualização Automática",
+            "task_edit_default_mode": "Modo de edição de task padrão"
           },
           "descriptions": {
             "default_namespace": "Usado ao criar novos flows sem um namespace.",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "Aba selecionada ao navegar para um flow.",
             "triggers_default_tab": "Aba selecionada ao navegar para a página de triggers.",
             "auto_refresh_interval": "Segundos entre atualizações automáticas de dados nas páginas de lista.",
-            "playground": "Execute tasks individualmente no playground do editor."
+            "playground": "Execute tasks individualmente no playground do editor.",
+            "task_edit_default_mode": "Como uma task é aberta por padrão no editor Sem Código."
+          },
+          "task_edit_default_mode_options": {
+            "modal": "Modal",
+            "tab": "Aba"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "O bloco Then é obrigatório",
       "trigger_noun": "trigger",
       "undo": "Desfazer",
-      "upstream_outputs": "Outputs anteriores"
+      "upstream_outputs": "Outputs anteriores",
+      "open_in_tabs": "Abrir em abas",
+      "open_mode_hint": "Por padrão, as tasks abrem em um modal. Você pode definir as abas como padrão em {settings}."
     },
     "blocks": "Blocos",
     "flow_description": "Descrição do flow",

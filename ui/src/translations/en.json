@@ -1034,7 +1034,8 @@
             "flow_default_tab": "Default Flow Tab",
             "triggers_default_tab": "Default Triggers Tab",
             "playground": "Playground",
-            "auto_refresh_interval": "Auto Refresh Interval"
+            "auto_refresh_interval": "Auto Refresh Interval",
+            "task_edit_default_mode": "Default Task Edit Mode"
           },
           "descriptions": {
             "default_namespace": "Used when creating new flows without a namespace.",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "Tab selected when navigating to a flow.",
             "triggers_default_tab": "Tab selected when navigating to the triggers page.",
             "auto_refresh_interval": "Seconds between automatic data refreshes on list pages.",
-            "playground": "Run tasks individually in the editor playground."
+            "playground": "Run tasks individually in the editor playground.",
+            "task_edit_default_mode": "How a task opens by default from the no-code editor."
+          },
+          "task_edit_default_mode_options": {
+            "modal": "Modal",
+            "tab": "Tab"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "Then branch is required",
       "trigger_noun": "a trigger",
       "undo": "Undo",
-      "upstream_outputs": "Upstream outputs"
+      "upstream_outputs": "Upstream outputs",
+      "open_in_tabs": "Open in tabs",
+      "open_mode_hint": "Tasks open in a modal by default. You can make tabs the default in {settings}."
     },
     "blocks": "Blocks",
     "flow_description": "Flow Description",

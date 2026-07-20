@@ -1034,7 +1034,8 @@
             "flow_default_tab": "기본 Flow 탭",
             "triggers_default_tab": "기본 Trigger 탭",
             "playground": "플레이그라운드",
-            "auto_refresh_interval": "자동 새로고침 간격"
+            "auto_refresh_interval": "자동 새로고침 간격",
+            "task_edit_default_mode": "기본 task 편집 모드"
           },
           "descriptions": {
             "default_namespace": "namespace 없이 새로운 flow를 생성할 때 사용됩니다.",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "flow로 이동할 때 선택된 탭.",
             "triggers_default_tab": "트리거 페이지로 이동할 때 선택된 탭.",
             "auto_refresh_interval": "목록 페이지에서 자동 데이터 새로 고침 간격(초).",
-            "playground": "편집기 플레이그라운드에서 개별적으로 task 실행."
+            "playground": "편집기 플레이그라운드에서 개별적으로 task 실행.",
+            "task_edit_default_mode": "코드 없는 편집기에서 task가 기본적으로 열리는 방식."
+          },
+          "task_edit_default_mode_options": {
+            "modal": "모달",
+            "tab": "탭"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "Then 분기는 필수입니다",
       "trigger_noun": "trigger",
       "undo": "실행 취소",
-      "upstream_outputs": "상위 Outputs"
+      "upstream_outputs": "상위 Outputs",
+      "open_in_tabs": "탭에서 열기",
+      "open_mode_hint": "Tasks는 기본적으로 모달로 열립니다. {settings}에서 탭을 기본값으로 설정할 수 있습니다."
     },
     "blocks": "블록",
     "flow_description": "Flow 설명",

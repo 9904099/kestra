@@ -51,13 +51,13 @@
                             :count="0"
                             :addLabel="t('block_editor.configure')"
                             addTest="block-editor-configure-flow"
-                            @add="editingFlow = true"
+                            @add="openFlowProperties"
                         >
                             <button
                                 type="button"
                                 class="flow-summary"
                                 data-test="block-editor-flow-summary"
-                                @click="editingFlow = true"
+                                @click="openFlowProperties"
                             >
                                 <span class="flow-summary-path">{{ namespace }} / {{ flowId }}</span>
                                 <span v-if="flowDescription" class="flow-summary-desc">{{ flowDescription }}</span>
@@ -581,6 +581,27 @@
             </div>
         </div>
     </Teleport>
+
+    <TaskEditModal
+        v-if="modalTarget"
+        :task="modalTaskData"
+        :taskRaw="modalTaskRaw"
+        :section="modalSection"
+        :flowId="flowId"
+        :namespace="namespace"
+        :editorKey="modalItemPath"
+        :parentPath="modalTarget.parentPath"
+        :refPath="modalTarget.refPath"
+        :blockSchemaPath="modalTarget.blockSchemaPath"
+        @update:task="onModalTaskEdited"
+        @close="modalTarget = undefined"
+        @open-in-tabs="onModalOpenInTabs"
+    />
+
+    <FlowPropertiesModal
+        v-if="flowModalOpen"
+        @close="flowModalOpen = false"
+    />
 </template>
 
 <script setup lang="ts">
@@ -638,10 +659,12 @@
     import BlockCard from "./BlockCard.vue"
     import BlockSectionCard from "./BlockSectionCard.vue"
     import FlowPropertiesEdit from "./FlowPropertiesEdit.vue"
+    import FlowPropertiesModal from "./FlowPropertiesModal.vue"
     import BlockEmptyDrop from "./BlockEmptyDrop.vue"
     import BlockCommandMenu, {type BlockCommandMenuItem} from "./BlockCommandMenu.vue"
     import FlowableClusterCard from "./FlowableClusterCard.vue"
     import TaskEdit from "../../flows/TaskEdit.vue"
+    import TaskEditModal from "./TaskEditModal.vue"
     import {useBlockEditorKeyboard} from "./useBlockEditorKeyboard"
     import {BLOCK_EDITOR_KEYMAP, blockEditorKeymapByGroup, findBlockEditorBinding, type BlockEditorKeymapGroup} from "./keymap"
     import type {NoCodeProps} from "../../flows/noCodeTypes"
@@ -667,6 +690,7 @@
         UPDATE_YAML_FUNCTION_INJECTION_KEY,
     } from "../injectionKeys"
     import {defaultNamespace} from "../../../composables/useNamespaces"
+    import {storageKeys, taskEditDefaultModes} from "../../../utils/constants"
     import {usePlaygroundRun} from "../../../composables/playground/usePlaygroundRun"
 
     const {t} = useI18n()
@@ -691,6 +715,17 @@
     const namespace = computed<string>(() => flowStore.flow?.namespace ?? "")
 
     const editingFlow = ref(false)
+    const flowModalOpen = ref(false)
+
+    // Flow-level "Configure" honors the same "Default Task Edit Mode" preference
+    // as a block click: modal by default, inline dock panel when set to tab.
+    function openFlowProperties() {
+        if (opensInModalByDefault()) {
+            flowModalOpen.value = true
+        } else {
+            editingFlow.value = true
+        }
+    }
 
     // Each block card surfaces its own missing/invalid fields, grouped from the
     // flow's validation constraints by task id.
@@ -794,6 +829,61 @@
     function onInlineTaskEdited(newContent: string) {
         if (!editingPath.value) return
         applyYaml(updateBlockAtPath(flowYaml.value, editingPath.value, newContent))
+    }
+
+    // Default click opens a modal on this SAME canvas instance instead of a dock
+    // tab (experimental: disambiguates task-edit from the flow-level Save button,
+    // which otherwise sits visually at the same level as a task opened in a tab).
+    // "Open in split" keeps going through emit("editTask", ..., true) unchanged.
+    const modalTarget = ref<{parentPath: string; blockSchemaPath: string; refPath?: number} | undefined>(undefined)
+
+    const modalItemPath = computed<string>(() => {
+        const target = modalTarget.value
+        if (!target) return ""
+        return target.refPath !== undefined ? `${target.parentPath}[${target.refPath}]` : target.parentPath
+    })
+
+    // Mirrors editingPath above (DAG-lane-wrapper unwrap via taskEditPathFor) but
+    // scoped to modalTarget instead of the editingTask props of a dock-tab instance.
+    const modalPath = computed<string>(() => {
+        const itemPath = modalItemPath.value
+        if (!itemPath) return itemPath
+        const itemYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path: itemPath})
+        const item = itemYaml ? flowYamlUtils.parse<Record<string, unknown>>(itemYaml) : undefined
+        return item ? taskEditPathFor(itemPath, item) : itemPath
+    })
+
+    const modalTaskData = computed<Record<string, unknown> | undefined>(() => {
+        if (!modalPath.value) return undefined
+        const blockYaml = flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path: modalPath.value})
+        if (!blockYaml) return undefined
+        try {
+            return flowYamlUtils.parse<Record<string, unknown>>(blockYaml)
+        } catch {
+            return undefined
+        }
+    })
+
+    const modalTaskRaw = computed<string | undefined>(() => {
+        if (!modalPath.value) return undefined
+        return flowYamlUtils.extractBlockWithPath({source: flowYaml.value, path: modalPath.value}) || undefined
+    })
+
+    const modalSection = computed<BlockSection>(() => modalTarget.value ? sectionFromParentPath(modalTarget.value.parentPath) : "tasks")
+
+    function onModalTaskEdited(newContent: string) {
+        if (!modalPath.value) return
+        applyYaml(updateBlockAtPath(flowYaml.value, modalPath.value, newContent))
+    }
+
+    // "Open in tabs" header button: promotes the modal's task into the dock via
+    // the exact same emit the "open in split" card action uses (split=true), then
+    // closes the modal.
+    function onModalOpenInTabs() {
+        const target = modalTarget.value
+        if (!target) return
+        emit("editTask", target.parentPath, target.blockSchemaPath, target.refPath, true)
+        modalTarget.value = undefined
     }
 
     function isFlowable(task: Record<string, unknown>): boolean {
@@ -966,9 +1056,19 @@
         return [flowSchemaRoot.value, "properties", section, "items"].join("/")
     }
 
+    // Settings > Main Configuration > "Default Task Edit Mode" - read fresh on
+    // every click rather than cached reactively, since it only ever changes from
+    // that settings page (a different tab/session), never during a canvas session.
+    function opensInModalByDefault(): boolean {
+        return (localStorage.getItem(storageKeys.TASK_EDIT_DEFAULT_MODE) || taskEditDefaultModes.MODAL) !== taskEditDefaultModes.TAB
+    }
+
     // Opening a block's editor now hands off to the shared dock (the flow
     // editor's MultiPanelTabs, via useNoCodePanels.ts) instead of hosting its
     // own pane — mirrors useTopologyPanels.ts's click-to-edit wiring exactly.
+    // EXCEPT the default (non-split) click, which opens the local modal instead
+    // (see modalTarget above) when opensInModalByDefault() - "open in split" is
+    // untouched, always a dock tab regardless of the setting.
     function selectBlock(section: BlockSection, block: Record<string, unknown>, split = false) {
         const strId = block.id != null ? String(block.id) : undefined
         if (!strId) return
@@ -977,7 +1077,11 @@
         if (index < 0) return
         activeSelectedId.value = strId
         activeSelectedPath.value = undefined
-        emit("editTask", section, blockSchemaPathFor(section), index, split)
+        if (!split && opensInModalByDefault()) {
+            modalTarget.value = {parentPath: section, blockSchemaPath: blockSchemaPathFor(section), refPath: index}
+        } else {
+            emit("editTask", section, blockSchemaPathFor(section), index, split)
+        }
     }
 
     function openNestedEdit(itemPath: string, split = false) {
@@ -1001,7 +1105,11 @@
         const section = sectionFromParentPath(parentPath)
         activeSelectedId.value = String(parsed.id)
         activeSelectedPath.value = itemPath
-        emit("editTask", parentPath, blockSchemaPathFor(section), refPath, split)
+        if (!split && opensInModalByDefault()) {
+            modalTarget.value = {parentPath, blockSchemaPath: blockSchemaPathFor(section), refPath}
+        } else {
+            emit("editTask", parentPath, blockSchemaPathFor(section), refPath, split)
+        }
     }
 
     const onEditTimeout = ref<ReturnType<typeof setTimeout>>()

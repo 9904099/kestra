@@ -1034,7 +1034,8 @@
             "flow_default_tab": "Pestaña de Flow Predeterminada",
             "triggers_default_tab": "Pestaña de Triggers Predeterminados",
             "playground": "Área de pruebas",
-            "auto_refresh_interval": "Intervalo de Auto Refresh"
+            "auto_refresh_interval": "Intervalo de Auto Refresh",
+            "task_edit_default_mode": "Modo de edición de tasks predeterminado"
           },
           "descriptions": {
             "default_namespace": "Se utiliza al crear nuevos flows sin un namespace.",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "Pestaña seleccionada al navegar a un flow.",
             "triggers_default_tab": "Pestaña seleccionada al navegar a la página de triggers.",
             "auto_refresh_interval": "Segundos entre actualizaciones automáticas de datos en las páginas de lista.",
-            "playground": "Ejecutar tasks individualmente en el editor de pruebas."
+            "playground": "Ejecutar tasks individualmente en el editor de pruebas.",
+            "task_edit_default_mode": "Cómo se abre una task de forma predeterminada desde el editor sin código."
+          },
+          "task_edit_default_mode_options": {
+            "modal": "Modal",
+            "tab": "Pestaña"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "El bloque Then es obligatorio",
       "trigger_noun": "trigger",
       "undo": "Deshacer",
-      "upstream_outputs": "Outputs anteriores"
+      "upstream_outputs": "Outputs anteriores",
+      "open_in_tabs": "Abrir en pestañas",
+      "open_mode_hint": "Las tasks se abren en una ventana modal de forma predeterminada. Puedes establecer las pestañas como predeterminadas en {settings}."
     },
     "blocks": "Bloques",
     "flow_description": "Descripción del flow",

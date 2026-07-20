@@ -1034,7 +1034,8 @@
             "flow_default_tab": "Domyślna karta Flow",
             "triggers_default_tab": "Domyślna karta Triggers",
             "playground": "Plac zabaw",
-            "auto_refresh_interval": "Interwał automatycznego odświeżania"
+            "auto_refresh_interval": "Interwał automatycznego odświeżania",
+            "task_edit_default_mode": "Domyślny sposób edycji taska"
           },
           "descriptions": {
             "default_namespace": "Używane podczas tworzenia nowych flow bez namespace.",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "Karta wybrana podczas nawigacji do flow.",
             "triggers_default_tab": "Karta wybrana podczas nawigacji do strony triggerów.",
             "auto_refresh_interval": "Sekundy między automatycznymi odświeżeniami danych na stronach list.",
-            "playground": "Uruchom taski indywidualnie w edytorze playground."
+            "playground": "Uruchom taski indywidualnie w edytorze playground.",
+            "task_edit_default_mode": "Sposób domyślnego otwierania taska w edytorze No Code."
+          },
+          "task_edit_default_mode_options": {
+            "modal": "Modal",
+            "tab": "Karta"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "Gałąź Then jest wymagana",
       "trigger_noun": "trigger",
       "undo": "Cofnij",
-      "upstream_outputs": "Outputs powyżej"
+      "upstream_outputs": "Outputs powyżej",
+      "open_in_tabs": "Otwórz w kartach",
+      "open_mode_hint": "Domyślnie tasks otwierają się w oknie modalnym. Możesz ustawić karty jako domyślne w {settings}."
     },
     "blocks": "Bloki",
     "flow_description": "Opis flow",

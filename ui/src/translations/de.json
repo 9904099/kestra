@@ -1034,7 +1034,8 @@
             "flow_default_tab": "Standard-Flow-Registerkarte",
             "triggers_default_tab": "Standard-Trigger-Registerkarte",
             "playground": "Spielplatz",
-            "auto_refresh_interval": "Automatisches Aktualisierungsintervall"
+            "auto_refresh_interval": "Automatisches Aktualisierungsintervall",
+            "task_edit_default_mode": "Standard-Bearbeitungsmodus für Tasks"
           },
           "descriptions": {
             "default_namespace": "Wird verwendet, wenn neue flows ohne namespace erstellt werden.",
@@ -1046,7 +1047,12 @@
             "flow_default_tab": "Registerkarte ausgewählt beim Navigieren zu einem flow.",
             "triggers_default_tab": "Registerkarte ausgewählt beim Navigieren zur Trigger-Seite.",
             "auto_refresh_interval": "Sekunden zwischen automatischen Datenaktualisierungen auf Listen-Seiten.",
-            "playground": "Führen Sie Tasks einzeln im Editor-Spielplatz aus."
+            "playground": "Führen Sie Tasks einzeln im Editor-Spielplatz aus.",
+            "task_edit_default_mode": "Wie eine Task standardmäßig im Code-freien Editor geöffnet wird."
+          },
+          "task_edit_default_mode_options": {
+            "modal": "Modal",
+            "tab": "Tab"
           }
         },
         "theme": {
@@ -2445,7 +2451,9 @@
       "then_required_warning": "Der Dann-Zweig ist erforderlich",
       "trigger_noun": "trigger",
       "undo": "Rückgängig",
-      "upstream_outputs": "Vorgelagerte Outputs"
+      "upstream_outputs": "Vorgelagerte Outputs",
+      "open_in_tabs": "In Tabs öffnen",
+      "open_mode_hint": "Tasks öffnen sich standardmäßig in einem Dialog. In den {settings} können Sie Tabs als Standard festlegen."
     },
     "blocks": "Blöcke",
     "flow_description": "Flow-Beschreibung",
