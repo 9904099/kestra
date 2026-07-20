@@ -311,18 +311,6 @@
     color: var(--ks-text-muted);
     line-height: 1.45;
     text-wrap: pretty;
-
-    :deep(p) {
-        margin: 0;
-    }
-
-    :deep(code) {
-        font-family: var(--ks-font-family-mono);
-        font-size: var(--ks-font-size-xs);
-        background: var(--ks-bg-tag-inactive);
-        padding: 0 var(--ks-spacing-1);
-        border-radius: var(--ks-radius-xs);
-    }
 }
 
 .inline-wrapper {

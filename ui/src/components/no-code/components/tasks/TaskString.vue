@@ -27,6 +27,7 @@
         />
         <KsEditor
             v-else-if="pebble || (!schema?.format && schema?.type !== 'boolean')"
+            class="string-editor"
             v-bind="editorBindings"
             :modelValue="editorValue"
             :navbar="false"
@@ -168,13 +169,13 @@
     min-width: 0;
 }
 
-.wrapper--toggle :deep(.ks-editor) {
+.wrapper--toggle > .string-editor {
     border: 1px solid var(--ks-border-default);
     border-radius: var(--ks-radius-base);
     transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
-.wrapper--toggle :deep(.ks-editor:focus-within) {
+.wrapper--toggle > .string-editor:focus-within {
     border-color: var(--ks-border-focus);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--ks-border-focus) 22%, transparent);
 }
