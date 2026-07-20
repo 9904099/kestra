@@ -43,7 +43,7 @@ const singleResult = [
         id: "daily-etl",
         editable: true,
         matches: [
-            {line: 4, snippet: "  - id: [mark]extract[/mark]"},
+            {line: 4, column: 8, snippet: "  - id: [mark]extract[/mark]"},
         ],
     },
 ]
@@ -54,8 +54,8 @@ const multipleResults = [
         id: "daily-etl",
         editable: true,
         matches: [
-            {line: 4, snippet: "  - id: [mark]extract[/mark]"},
-            {line: 12, snippet: "    script: [mark]extract[/mark]Data()"},
+            {line: 4, column: 8, snippet: "  - id: [mark]extract[/mark]"},
+            {line: 12, column: 12, snippet: "    script: [mark]extract[/mark]Data()"},
         ],
     },
     {
@@ -63,7 +63,7 @@ const multipleResults = [
         id: "weekly-report",
         editable: true,
         matches: [
-            {line: 3, snippet: "description: Weekly [mark]extract[/mark] and summarize"},
+            {line: 3, column: 20, snippet: "description: Weekly [mark]extract[/mark] and summarize"},
         ],
     },
     {
@@ -71,8 +71,8 @@ const multipleResults = [
         id: "warehouse-sync",
         editable: true,
         matches: [
-            {line: 30, snippet: "    type: io.kestra.plugin.gcp.bigquery.Query"},
-            {line: 34, snippet: "    serviceAccount: secret('GCP_SERVICE_ACCOUNT')"},
+            {line: 30, column: 0, snippet: "    type: io.kestra.plugin.gcp.bigquery.Query"},
+            {line: 34, column: 0, snippet: "    serviceAccount: secret('GCP_SERVICE_ACCOUNT')"},
         ],
     },
     {
@@ -80,7 +80,7 @@ const multipleResults = [
         id: "reconcile-ledger",
         editable: false,
         matches: [
-            {line: 9, snippet: "    projectId: [mark]analytics[/mark]-prod"},
+            {line: 9, column: 15, snippet: "    projectId: [mark]analytics[/mark]-prod"},
         ],
     },
 ]
@@ -190,8 +190,8 @@ export const LongContent: StoryObj<typeof SourceSearchResults> = {
                     id: "a-very-long-flow-identifier-that-goes-on-and-on",
                     editable: true,
                     matches: [
-                        {line: 42, snippet: "This is a very long line that contains the [mark]search term[/mark] somewhere in the middle of a very long line that should demonstrate text wrapping behavior in the UI"},
-                        {line: 87, snippet: "Another long line with [mark]search term[/mark] at the start and then continues with a lot more content"},
+                        {line: 42, column: 43, snippet: "This is a very long line that contains the [mark]search term[/mark] somewhere in the middle of a very long line that should demonstrate text wrapping behavior in the UI"},
+                        {line: 87, column: 23, snippet: "Another long line with [mark]search term[/mark] at the start and then continues with a lot more content"},
                     ],
                 },
             ]

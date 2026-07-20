@@ -41,7 +41,7 @@ const makeResult = (namespace: string, id: string, snippets: string[], editable 
     namespace,
     id,
     editable,
-    matches: snippets.map((snippet, index) => ({line: (index + 1) * 10, snippet})),
+    matches: snippets.map((snippet, index) => ({line: (index + 1) * 10, column: 0, snippet})),
 })
 
 function mountResults(props: Partial<InstanceType<typeof SourceSearchResults>["$props"]> & {results: any[]}) {
@@ -80,7 +80,7 @@ describe("SourceSearchResults", () => {
 
         const emitted = wrapper.emitted("select")
         expect(emitted).toBeTruthy()
-        expect(emitted![0][0]).toEqual({namespace: "company.data", id: "my-flow", line: 10})
+        expect(emitted![0][0]).toEqual({namespace: "company.data", id: "my-flow", line: 10, column: 0})
     })
 
     test("emits select with the correct line when a specific match is clicked", async () => {
@@ -95,16 +95,16 @@ describe("SourceSearchResults", () => {
         await matches[1].trigger("click")
         const emitted = wrapper.emitted("select")
         expect(emitted).toBeTruthy()
-        expect(emitted![0][0]).toEqual({namespace: "ns", id: "flow-id", line: 20})
+        expect(emitted![0][0]).toEqual({namespace: "ns", id: "flow-id", line: 20, column: 0})
 
         await matches[2].trigger("click")
-        expect(wrapper.emitted("select")![1][0]).toEqual({namespace: "ns", id: "flow-id", line: 30})
+        expect(wrapper.emitted("select")![1][0]).toEqual({namespace: "ns", id: "flow-id", line: 30, column: 0})
     })
 
     test("applies selected class only to the matching row", async () => {
         const results = [makeResult("ns", "flow-id", ["frag-0", "frag-1", "frag-2"])]
 
-        const wrapper = mountResults({results, selectedKey: "ns.flow-id#20"})
+        const wrapper = mountResults({results, selectedKey: "ns.flow-id#20:0"})
         await flushPromises()
 
         const matches = wrapper.findAll("[data-test='source-search-match']")
@@ -184,6 +184,29 @@ describe("SourceSearchResults", () => {
 
         expect(wrapper.html()).toContain("my.ns")
         expect(wrapper.html()).toContain("my-flow")
+    })
+
+    test("keys two occurrences on the same line distinctly by column", async () => {
+        const results = [{
+            namespace: "ns",
+            id: "flow-id",
+            editable: true,
+            matches: [
+                {line: 5, column: 5, snippet: "msg: [mark]dup[/mark] and dup"},
+                {line: 5, column: 13, snippet: "msg: dup and [mark]dup[/mark]"},
+            ],
+        }]
+
+        const wrapper = mountResults({results, selectedKey: "ns.flow-id#5:13"})
+        await flushPromises()
+
+        const matches = wrapper.findAll("[data-test='source-search-match']")
+        expect(matches.length).toBe(2)
+        expect(matches[0].classes()).not.toContain("result-match--selected")
+        expect(matches[1].classes()).toContain("result-match--selected")
+
+        await matches[0].trigger("click")
+        expect(wrapper.emitted("select")![0][0]).toEqual({namespace: "ns", id: "flow-id", line: 5, column: 5})
     })
 
     test("exposes collapseAll and expandAll", async () => {
