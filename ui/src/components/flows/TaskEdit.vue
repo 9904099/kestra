@@ -453,7 +453,7 @@
         if (props.presentation === "panel") {
             let parsed: unknown
             try { parsed = YAML_UTILS.parse(taskYaml.value) } catch { parsed = undefined }
-            // Don't push half-typed / unparseable YAML into the flow: it corrupts the document.
+            // Don't push half-typed / unparsable YAML into the flow: it corrupts the document.
             if (!parsed || typeof parsed !== "object") return
             emit("update:task", taskYaml.value)
             taskBaseline.value = taskYaml.value
