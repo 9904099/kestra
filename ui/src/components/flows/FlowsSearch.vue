@@ -548,7 +548,10 @@
 
     watch(
         () => [query.value, namespace.value, JSON.stringify(searchFilters.value)].join("|"),
-        () => debouncedFetch(),
+        () => {
+            loading.value = Boolean(loadInit.value && query.value)
+            debouncedFetch()
+        },
     )
 
     watch(results, (newResults) => {
