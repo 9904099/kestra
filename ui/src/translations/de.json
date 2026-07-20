@@ -462,6 +462,13 @@
       "name": "Plugin",
       "names": "Plugins",
       "please": "Bitte wählen Sie rechts einen Task aus, um dessen Dokumentation zu sehen",
+      "autoInstall": {
+        "title": "{count} Plugin wird installiert | {count} Plugins werden installiert",
+        "progress": "{transferred} / {total}",
+        "succeeded": "Plugin erfolgreich installiert | Plugins erfolgreich installiert",
+        "failed": "Plugin-Installation fehlgeschlagen",
+        "timeout": "Die Plugin-Installation dauert länger als erwartet, wird trotzdem gespeichert"
+      },
       "release": "Versionshinweise"
     },
     "last execution date": "Letztes Ausführungsdatum",

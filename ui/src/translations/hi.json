@@ -462,6 +462,13 @@
       "name": "plugin",
       "names": "plugins",
       "please": "कृपया दाईं ओर एक task चुनें ताकि इसका दस्तावेज़ीकरण देखा जा सके",
+      "autoInstall": {
+        "title": "{count} plugin इंस्टॉल हो रहा है | {count} plugins इंस्टॉल हो रहे हैं",
+        "progress": "{transferred} / {total}",
+        "succeeded": "plugin सफलतापूर्वक इंस्टॉल हो गया | plugins सफलतापूर्वक इंस्टॉल हो गए",
+        "failed": "plugin इंस्टॉलेशन विफल रहा",
+        "timeout": "plugin इंस्टॉलेशन में अपेक्षा से अधिक समय लग रहा है, फिर भी सेव किया जा रहा है"
+      },
       "release": "रिलीज़ नोट्स"
     },
     "last execution date": "अंतिम निष्पादन तिथि",

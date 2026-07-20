@@ -467,7 +467,8 @@
         "title": "Installing {count} plugin | Installing {count} plugins",
         "progress": "{transferred} / {total}",
         "succeeded": "Plugin installed successfully | Plugins installed successfully",
-        "failed": "Plugin installation failed"
+        "failed": "Plugin installation failed",
+        "timeout": "Plugin installation is taking longer than expected, saving anyway"
       }
     },
     "last execution date": "Last execution date",

@@ -462,6 +462,13 @@
       "name": "플러그인",
       "names": "플러그인들",
       "please": "오른쪽에서 task를 선택하여 해당 문서를 확인하세요.",
+      "autoInstall": {
+        "title": "플러그인 {count}개 설치 중 | 플러그인 {count}개 설치 중",
+        "progress": "{transferred} / {total}",
+        "succeeded": "플러그인이 성공적으로 설치되었습니다 | 플러그인이 성공적으로 설치되었습니다",
+        "failed": "플러그인 설치에 실패했습니다",
+        "timeout": "플러그인 설치가 예상보다 오래 걸리고 있어 그대로 저장합니다"
+      },
       "release": "릴리스 노트"
     },
     "last execution date": "마지막 실행 날짜",
