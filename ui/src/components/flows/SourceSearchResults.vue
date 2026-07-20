@@ -15,7 +15,7 @@
                         class="result-group-header"
                         :class="{'result-group-header--selected': selectedKey?.startsWith(`${groupKey(group)}#`)}"
                         data-test="source-search-group-header"
-                        @click.stop="emit('select', {namespace: group.namespace, id: group.id, line: group.matches[0]?.line ?? 0})"
+                        @click.stop="emit('select', {namespace: group.namespace, id: group.id, line: group.matches[0]?.line ?? 0, column: group.matches[0]?.column ?? 0})"
                     >
                         <KsCheckbox
                             v-if="replaceMode"
@@ -69,15 +69,15 @@
                 <div class="result-matches">
                     <div
                         v-for="match in group.matches"
-                        :key="match.line"
+                        :key="matchKey(group, match)"
                         class="result-match"
                         :class="{'result-match--selected': selectedKey === matchKey(group, match)}"
                         role="button"
                         tabindex="0"
                         data-test="source-search-match"
-                        @click="emit('select', {namespace: group.namespace, id: group.id, line: match.line})"
-                        @keydown.enter="emit('select', {namespace: group.namespace, id: group.id, line: match.line})"
-                        @keydown.space.prevent="emit('select', {namespace: group.namespace, id: group.id, line: match.line})"
+                        @click="emit('select', {namespace: group.namespace, id: group.id, line: match.line, column: match.column})"
+                        @keydown.enter="emit('select', {namespace: group.namespace, id: group.id, line: match.line, column: match.column})"
+                        @keydown.space.prevent="emit('select', {namespace: group.namespace, id: group.id, line: match.line, column: match.column})"
                     >
                         <KsCheckbox
                             v-if="replaceMode"
@@ -85,7 +85,7 @@
                             :disabled="!group.editable"
                             :aria-label="t('source_search.select_match', {line: match.line})"
                             @click.stop
-                            @update:modelValue="(checked: boolean) => emit('toggle-match', {namespace: group.namespace, id: group.id, line: match.line, checked})"
+                            @update:modelValue="(checked: boolean) => emit('toggle-match', {namespace: group.namespace, id: group.id, line: match.line, column: match.column, checked})"
                         />
                         <span class="result-match-lineno">{{ match.line }}</span>
                         <KsTag v-if="secretKey(match.snippet)" size="small" class="result-match-secret">
@@ -103,7 +103,7 @@
                             type="primary"
                             class="result-match-replace"
                             :title="t('source_search.replace_this_match')"
-                            @click.stop="emit('replace-match', {namespace: group.namespace, id: group.id, line: match.line})"
+                            @click.stop="emit('replace-match', {namespace: group.namespace, id: group.id, line: match.line, column: match.column})"
                         >
                             {{ t('source_search.replace_this') }}
                         </KsButton>
@@ -133,11 +133,11 @@
     }>()
 
     const emit = defineEmits<{
-        (e: "select", value: {namespace: string; id: string; line: number}): void
+        (e: "select", value: {namespace: string; id: string; line: number; column: number}): void
         (e: "toggle-flow", value: {namespace: string; id: string; checked: boolean}): void
-        (e: "toggle-match", value: {namespace: string; id: string; line: number; checked: boolean}): void
+        (e: "toggle-match", value: {namespace: string; id: string; line: number; column: number; checked: boolean}): void
         (e: "replace-flow", value: {namespace: string; id: string}): void
-        (e: "replace-match", value: {namespace: string; id: string; line: number}): void
+        (e: "replace-match", value: {namespace: string; id: string; line: number; column: number}): void
     }>()
 
     const {t} = useI18n()
@@ -168,7 +168,7 @@
     }
 
     function matchKey(group: SourceSearchResult, match: SourceMatch) {
-        return `${groupKey(group)}#${match.line}`
+        return `${groupKey(group)}#${match.line}:${match.column}`
     }
 
     function isGroupChecked(group: SourceSearchResult) {

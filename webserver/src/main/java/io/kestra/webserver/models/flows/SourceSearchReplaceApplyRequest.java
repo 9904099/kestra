@@ -17,7 +17,6 @@ public record SourceSearchReplaceApplyRequest(
     boolean regex,
     @Nullable SourceSearchScope scope,
     @NotNull String replacement,
-    @Nullable String namespace,
     @NotEmpty List<IdWithNamespace> flows
 ) {
     public SourceSearchScope scopeOrAll() {

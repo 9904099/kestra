@@ -2350,7 +2350,6 @@
       "select_match": "पंक्ति {line} पर मैच चुनें",
       "show_replace": "Replace दिखाएं",
       "summary": "{flows} flow में {matches} मैच",
-      "toggle_replace": "Replace टॉगल करें",
       "use_regex": "रेगुलर एक्सप्रेशन का उपयोग करें"
     },
     "open source": "ओपन सोर्स",

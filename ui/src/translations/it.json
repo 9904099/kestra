@@ -2350,7 +2350,6 @@
       "select_match": "Seleziona la corrispondenza alla riga {line}",
       "show_replace": "Mostra sostituzione",
       "summary": "{matches} corrispondenze in {flows} flow",
-      "toggle_replace": "Mostra/nascondi sostituzione",
       "use_regex": "Usa espressione regolare"
     },
     "open source": "Open Source",

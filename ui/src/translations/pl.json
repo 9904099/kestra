@@ -2350,7 +2350,6 @@
       "select_match": "Zaznacz dopasowanie w linii {line}",
       "show_replace": "Pokaż zamianę",
       "summary": "{matches} dopasowań w {flows} flows",
-      "toggle_replace": "Przełącz zamianę",
       "use_regex": "Użyj wyrażenia regularnego"
     },
     "open source": "Otwarte Źródło",

@@ -2350,7 +2350,6 @@
       "select_match": "{line}번째 줄의 일치 항목 선택",
       "show_replace": "바꾸기 표시",
       "summary": "flow {flows}개에서 {matches}개 일치",
-      "toggle_replace": "바꾸기 전환",
       "use_regex": "정규식 사용"
     },
     "open source": "오픈 소스",

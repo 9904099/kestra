@@ -2350,7 +2350,6 @@
       "select_match": "选择第 {line} 行的匹配项",
       "show_replace": "显示替换",
       "summary": "在 {flows} 个 flow 中找到 {matches} 个匹配项",
-      "toggle_replace": "切换替换",
       "use_regex": "使用正则表达式"
     },
     "open source": "开源",

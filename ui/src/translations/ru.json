@@ -2350,7 +2350,6 @@
       "select_match": "Выбрать совпадение в строке {line}",
       "show_replace": "Показать замену",
       "summary": "{matches} совпадений в {flows} flow",
-      "toggle_replace": "Переключить замену",
       "use_regex": "Использовать регулярное выражение"
     },
     "open source": "Открытый исходный код",

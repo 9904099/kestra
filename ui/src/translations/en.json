@@ -2350,7 +2350,6 @@
       "select_match": "Select match on line {line}",
       "show_replace": "Show replace",
       "summary": "{matches} matches in {flows} flows",
-      "toggle_replace": "Toggle Replace",
       "use_regex": "Use regular expression"
     },
     "open source": "Open Source",

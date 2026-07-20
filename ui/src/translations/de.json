@@ -2350,7 +2350,6 @@
       "select_match": "Treffer in Zeile {line} auswählen",
       "show_replace": "Ersetzen anzeigen",
       "summary": "{matches} Treffer in {flows} flows",
-      "toggle_replace": "Ersetzen umschalten",
       "use_regex": "Regulären Ausdruck verwenden"
     },
     "open source": "Open Source",

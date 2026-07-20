@@ -2350,7 +2350,6 @@
       "select_match": "{line} 行目の一致を選択",
       "show_replace": "置換を表示",
       "summary": "{flows} 件の flow で {matches} 件の一致",
-      "toggle_replace": "置換の表示切り替え",
       "use_regex": "正規表現を使用"
     },
     "open source": "オープンソース",

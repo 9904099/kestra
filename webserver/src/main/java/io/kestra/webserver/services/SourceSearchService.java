@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import io.kestra.core.exceptions.DeserializationException;
 import io.kestra.core.exceptions.FlowProcessingException;
+import io.kestra.core.exceptions.InvalidSourceSearchQueryException;
 import io.kestra.core.models.SearchResult;
 import io.kestra.core.models.SourceMatch;
 import io.kestra.core.models.flows.Flow;
@@ -121,7 +122,12 @@ public class SourceSearchService {
             }
 
             FlowWithSource current = existing.get();
-            String newSource = SourceSearchMatcher.replaceWithinScope(current.getSource(), pattern, effectiveReplacement, scope);
+            String newSource;
+            try {
+                newSource = SourceSearchMatcher.replaceWithinScope(current.getSource(), pattern, effectiveReplacement, scope);
+            } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+                throw new InvalidSourceSearchQueryException(invalidReplacementMessage(e));
+            }
             if (newSource.equals(current.getSource())) {
                 skipped.add(ref);
                 continue;
@@ -148,7 +154,8 @@ public class SourceSearchService {
         String replacement,
         String namespace,
         String id,
-        int line
+        int line,
+        int column
     ) throws QueueException {
         IdWithNamespace ref = new IdWithNamespace(namespace, id);
         Optional<FlowWithSource> existing = flowRepository.findByIdWithSource(tenantId, namespace, id);
@@ -162,10 +169,26 @@ public class SourceSearchService {
             return new SourceSearchReplaceApplyResponse(List.of(), List.of(ref));
         }
 
+        String originalLine = lines[line - 1];
         Pattern pattern = SourceSearchMatcher.toPattern(query, caseSensitive, wholeWord, regex);
         String effectiveReplacement = regex ? replacement : Matcher.quoteReplacement(replacement);
-        String replacedLine = RegexUtils.matcher(pattern, lines[line - 1]).replaceAll(effectiveReplacement);
-        if (replacedLine.equals(lines[line - 1])) {
+
+        Matcher matcher = RegexUtils.matcher(pattern, originalLine);
+        if (column < 0 || !matcher.find(column) || matcher.start() != column) {
+            return new SourceSearchReplaceApplyResponse(List.of(), List.of(ref));
+        }
+
+        String replacedLine;
+        try {
+            StringBuilder builder = new StringBuilder();
+            matcher.appendReplacement(builder, effectiveReplacement);
+            matcher.appendTail(builder);
+            replacedLine = builder.toString();
+        } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+            throw new InvalidSourceSearchQueryException(invalidReplacementMessage(e));
+        }
+
+        if (replacedLine.equals(originalLine)) {
             return new SourceSearchReplaceApplyResponse(List.of(), List.of(ref));
         }
         lines[line - 1] = replacedLine;
@@ -192,7 +215,12 @@ public class SourceSearchService {
         return matches.stream()
             .map(match -> {
                 String before = stripMarkers(match.snippet());
-                String after = RegexUtils.matcher(pattern, before).replaceAll(effectiveReplacement);
+                String after;
+                try {
+                    after = RegexUtils.matcher(pattern, before).replaceAll(effectiveReplacement);
+                } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+                    throw new InvalidSourceSearchQueryException(invalidReplacementMessage(e));
+                }
                 return new SourceSearchReplacePreviewResponse.Match(match.line(), before, after);
             })
             .toList();
@@ -200,5 +228,9 @@ public class SourceSearchService {
 
     private static String stripMarkers(String snippet) {
         return snippet.replace("[mark]", "").replace("[/mark]", "");
+    }
+
+    private static String invalidReplacementMessage(RuntimeException e) {
+        return "Invalid replacement: " + e.getMessage();
     }
 }

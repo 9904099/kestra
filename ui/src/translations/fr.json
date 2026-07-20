@@ -2350,7 +2350,6 @@
       "select_match": "Sélectionner le résultat à la ligne {line}",
       "show_replace": "Afficher le remplacement",
       "summary": "{matches} résultats dans {flows} flows",
-      "toggle_replace": "Afficher/masquer le remplacement",
       "use_regex": "Utiliser une expression régulière"
     },
     "open source": "Open Source",

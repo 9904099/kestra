@@ -267,7 +267,6 @@ public class FlowController {
     public PagedResults<SourceSearchResult> searchFlowsBySourceCode(
         @Parameter(description = "The current page") @QueryValue(defaultValue = "1") @Min(1) int page,
         @Parameter(description = "The current page size") @QueryValue(defaultValue = "10") @Min(1) int size,
-        @Parameter(description = "The sort of current page") @Nullable @QueryValue List<String> sort,
         @Parameter(description = "A string filter") @Nullable @QueryValue(value = "q") String query,
         @Parameter(description = "A namespace filter prefix") @Nullable @QueryValue String namespace,
         @Parameter(description = "Whether the query must match with exact case") @QueryValue(defaultValue = "false") boolean caseSensitive,
@@ -275,7 +274,7 @@ public class FlowController {
         @Parameter(description = "Whether the query is a regular expression rather than a literal string") @QueryValue(defaultValue = "false") boolean regex,
         @Parameter(description = "Restricts matches to a top-level section of the flow YAML") @QueryValue(defaultValue = "all") SourceSearchScope scope) throws HttpStatusException {
         return PagedResults.of(sourceSearchService.search(
-            PageableUtils.from(page, size, sort),
+            PageableUtils.from(page, size),
             tenantService.resolveTenant(),
             namespace,
             query,
@@ -331,7 +330,8 @@ public class FlowController {
             request.replacement(),
             request.namespace(),
             request.id(),
-            request.line()
+            request.line(),
+            request.column()
         );
     }
 

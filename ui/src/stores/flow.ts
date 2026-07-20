@@ -76,6 +76,7 @@ export type Flow = Omit<FlowWithSource, "disabled" | "draft" | "deleted" | "task
 
 export interface SourceMatch {
     line: number;
+    column: number;
     snippet: string;
 }
 
@@ -506,6 +507,7 @@ export const useFlowStore = defineStore("flow", () => {
         namespace: string;
         id: string;
         line: number;
+        column: number;
     }): Promise<SourceSearchReplaceApplyResponse> {
         const response = await axios.post(`${apiUrl()}/flows/source/replace/line`, options)
         return response.data

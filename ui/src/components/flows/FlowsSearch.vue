@@ -270,7 +270,7 @@
 
     const loading = ref(false)
     const errorMessage = ref<string | null>(null)
-    const selected = ref<{namespace: string; id: string; line: number} | null>(null)
+    const selected = ref<{namespace: string; id: string; line: number; column: number} | null>(null)
     const selectedMatchKeys = ref<Set<string>>(new Set())
     const previewResponse = ref<SourceSearchReplacePreviewResponse | null>(null)
     const previewLoading = ref(false)
@@ -357,17 +357,17 @@
     const readOnlyExcludedCount = computed(() => results.value.filter((group) => !group.editable).length)
     const firstReadOnlyNamespace = computed(() => results.value.find((group) => !group.editable)?.namespace ?? "")
 
-    const selectedKey = computed(() => selected.value ? `${selected.value.namespace}.${selected.value.id}#${selected.value.line}` : null)
+    const selectedKey = computed(() => selected.value ? `${selected.value.namespace}.${selected.value.id}#${selected.value.line}:${selected.value.column}` : null)
 
     const showDiffPreview = computed(() => previewResponse.value !== null)
 
     const selectionSummary = computed(() => computeSelectionSummary(results.value, selectedMatchKeys.value))
 
     const flatMatches = computed(() => {
-        const list: {namespace: string; id: string; line: number}[] = []
+        const list: {namespace: string; id: string; line: number; column: number}[] = []
         for (const group of results.value) {
             for (const match of group.matches) {
-                list.push({namespace: group.namespace, id: group.id, line: match.line})
+                list.push({namespace: group.namespace, id: group.id, line: match.line, column: match.column})
             }
         }
         return list
@@ -375,7 +375,7 @@
 
     const activeMatchIndex = computed(() => {
         if (!selected.value) return -1
-        return flatMatches.value.findIndex((match) => match.namespace === selected.value!.namespace && match.id === selected.value!.id && match.line === selected.value!.line)
+        return flatMatches.value.findIndex((match) => match.namespace === selected.value!.namespace && match.id === selected.value!.id && match.line === selected.value!.line && match.column === selected.value!.column)
     })
 
     const matchNavLabel = computed(() => {
@@ -383,11 +383,11 @@
         return t("source_search.match_nav", {current: activeMatchIndex.value + 1, total: flatMatches.value.length})
     })
 
-    function matchKey(matchNamespace: string, id: string, line: number) {
-        return `${matchNamespace}.${id}#${line}`
+    function matchKey(matchNamespace: string, id: string, line: number, column: number) {
+        return `${matchNamespace}.${id}#${line}:${column}`
     }
 
-    function onSelect(value: {namespace: string; id: string; line: number}) {
+    function onSelect(value: {namespace: string; id: string; line: number; column: number}) {
         selected.value = value
     }
 
@@ -411,16 +411,16 @@
         if (!group) return
         const next = new Set(selectedMatchKeys.value)
         for (const match of group.matches) {
-            const key = matchKey(group.namespace, group.id, match.line)
+            const key = matchKey(group.namespace, group.id, match.line, match.column)
             if (value.checked) next.add(key)
             else next.delete(key)
         }
         selectedMatchKeys.value = next
     }
 
-    function onToggleMatch(value: {namespace: string; id: string; line: number; checked: boolean}) {
+    function onToggleMatch(value: {namespace: string; id: string; line: number; column: number; checked: boolean}) {
         const next = new Set(selectedMatchKeys.value)
-        const key = matchKey(value.namespace, value.id, value.line)
+        const key = matchKey(value.namespace, value.id, value.line, value.column)
         if (value.checked) next.add(key)
         else next.delete(key)
         selectedMatchKeys.value = next
@@ -489,7 +489,7 @@
         }
     }
 
-    async function onReplaceMatch(value: {namespace: string; id: string; line: number}) {
+    async function onReplaceMatch(value: {namespace: string; id: string; line: number; column: number}) {
         if (!query.value) return
         try {
             await reportReplaceResult(await flowStore.replaceLineSourceSearch({
@@ -501,6 +501,7 @@
                 namespace: value.namespace,
                 id: value.id,
                 line: value.line,
+                column: value.column,
             }))
         } catch (e: any) {
             toast.error(e?.response?.data?.message ?? t("source_search.replace_apply_failed"))
@@ -509,7 +510,7 @@
 
     function onConfirmReplaceAll() {
         const flowsToApply = results.value
-            .filter((group) => group.editable && group.matches.some((match) => selectedMatchKeys.value.has(matchKey(group.namespace, group.id, match.line))))
+            .filter((group) => group.editable && group.matches.some((match) => selectedMatchKeys.value.has(matchKey(group.namespace, group.id, match.line, match.column))))
             .map((group) => ({namespace: group.namespace, id: group.id}))
         return applyReplace(flowsToApply)
     }
@@ -554,13 +555,13 @@
         selectedMatchKeys.value = new Set(
             newResults
                 .filter((group) => group.editable)
-                .flatMap((group) => group.matches.map((match) => matchKey(group.namespace, group.id, match.line))),
+                .flatMap((group) => group.matches.map((match) => matchKey(group.namespace, group.id, match.line, match.column))),
         )
 
         if (newResults.length > 0 && newResults[0].matches.length > 0) {
-            const stillValid = selected.value && newResults.some((group) => group.namespace === selected.value!.namespace && group.id === selected.value!.id && group.matches.some((match) => match.line === selected.value!.line))
+            const stillValid = selected.value && newResults.some((group) => group.namespace === selected.value!.namespace && group.id === selected.value!.id && group.matches.some((match) => match.line === selected.value!.line && match.column === selected.value!.column))
             if (!stillValid) {
-                selected.value = {namespace: newResults[0].namespace, id: newResults[0].id, line: newResults[0].matches[0].line}
+                selected.value = {namespace: newResults[0].namespace, id: newResults[0].id, line: newResults[0].matches[0].line, column: newResults[0].matches[0].column}
             }
         } else {
             selected.value = null

@@ -2350,7 +2350,6 @@
       "select_match": "Seleccionar coincidencia en la línea {line}",
       "show_replace": "Mostrar reemplazo",
       "summary": "{matches} coincidencias en {flows} flows",
-      "toggle_replace": "Mostrar/ocultar reemplazo",
       "use_regex": "Usar expresión regular"
     },
     "open source": "Código Abierto",

@@ -12,6 +12,7 @@ public record SourceSearchReplaceLineRequest(
     @NotNull String replacement,
     @NotBlank String namespace,
     @NotBlank String id,
-    @Min(1) int line
+    @Min(1) int line,
+    @Min(0) int column
 ) {
 }

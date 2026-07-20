@@ -77,7 +77,7 @@ public final class SourceSearchMatcher {
             String snippet = source.substring(bounds[0], start)
                 + "[mark]" + source.substring(start, highlightEnd) + "[/mark]"
                 + source.substring(highlightEnd, bounds[1]);
-            matches.add(new SourceMatch(lineIndex + 1, snippet));
+            matches.add(new SourceMatch(lineIndex + 1, start - bounds[0], snippet));
 
             searchFrom = end == start ? end + 1 : end;
         }

@@ -2,7 +2,7 @@ export interface SourceSearchSelectionGroup {
     namespace: string;
     id: string;
     editable: boolean;
-    matches: {line: number}[];
+    matches: {line: number; column: number}[];
 }
 
 export interface SelectionSummary {
@@ -18,7 +18,7 @@ export function computeSelectionSummary(results: SourceSearchSelectionGroup[], s
         if (!group.editable) {
             continue
         }
-        const checkedCount = group.matches.filter((match) => selectedMatchKeys.has(`${group.namespace}.${group.id}#${match.line}`)).length
+        const checkedCount = group.matches.filter((match) => selectedMatchKeys.has(`${group.namespace}.${group.id}#${match.line}:${match.column}`)).length
         if (checkedCount > 0) {
             selectedFlowCount += 1
             selectedMatchCount += checkedCount
