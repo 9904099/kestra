@@ -1,14 +1,6 @@
 <template>
-    <TaskObjectListInline
-        v-if="inlineMode && simpleType === 'list'"
-        v-model="modelValue"
-        :fieldKey
-        :root="componentProps.root"
-        :taskSchemaPath
-    />
-
     <component
-        v-else-if="simpleType === 'list'"
+        v-if="simpleType === 'list'"
         ref="taskComponent"
         :is="type"
         v-bind="componentProps"
@@ -122,14 +114,8 @@
                 </KsIconButton>
             </div>
         </template>
-        <TaskObjectTaskInline
-            v-if="inlineMode && simpleType === 'task'"
-            v-model="modelValue"
-            :parentPath="componentProps.root"
-            :taskSchemaPath
-        />
         <component
-            v-else-if="!isBoolean && !isNumber"
+            v-if="!isBoolean && !isNumber"
             ref="taskComponent"
             :is="type"
             v-bind="componentProps"
@@ -156,7 +142,7 @@
     import {computed, inject, ref, useTemplateRef} from "vue"
     import {useI18n} from "vue-i18n"
     import {useBlockComponent} from "./useBlockComponent"
-    import {INLINE_TASK_MODE_INJECTION_KEY, BLOCK_SCHEMA_PATH_INJECTION_KEY, FIELD_NAV_INJECTION_KEY, PLUGIN_DEFAULTS_INJECTION_KEY} from "../../injectionKeys"
+    import {FIELD_NAV_INJECTION_KEY, PLUGIN_DEFAULTS_INJECTION_KEY} from "../../injectionKeys"
 
     import ClearButton from "./ClearButton.vue"
     import {KsMarkdown} from "@kestra-io/design-system"
@@ -164,8 +150,6 @@
     import AlertCircleOutline from "vue-material-design-icons/AlertCircleOutline.vue"
     import IconCodeTags from "vue-material-design-icons/CodeTags.vue"
     import TaskLabelWithBoolean from "./TaskLabelWithBoolean.vue"
-    import TaskObjectListInline from "../../../plugins/plugin-default/TaskObjectListInline.vue"
-    import TaskObjectTaskInline from "../../../plugins/plugin-default/TaskObjectTaskInline.vue"
 
 
     const modelValue = defineModel<any>()
@@ -265,10 +249,6 @@
         return getBlockComponent.value(props.schema ?? {}, props.fieldKey)
     })
 
-    /** Whether the component is rendered in inline mode (used for Plugin Defaults) */
-    const inlineMode = inject(INLINE_TASK_MODE_INJECTION_KEY, false)
-    const blockSchemaPathInjected = inject(BLOCK_SCHEMA_PATH_INJECTION_KEY, ref(""))
-
     const {t} = useI18n()
 
     const pluginDefaults = inject(PLUGIN_DEFAULTS_INJECTION_KEY, undefined)
@@ -294,27 +274,9 @@
 
     const isNestedObject = computed(() =>
         Boolean(props.fieldKey)
-        && !inlineMode
         && (simpleType.value === "complex" || simpleType.value === "object"
             || (simpleType.value === "any-of" && isObjectAnyOf.value)),
     )
-
-    /**
-     * Resolves the JSON schema path for the current field.
-     * Used by inline components to fetch metadata for nested objects or list items.
-     */
-    const taskSchemaPath = computed(() => {
-        if (props.schema?.items?.$ref) {
-            return props.schema.items.$ref
-        }
-
-        if (props.schema?.$ref) {
-            return props.schema.$ref
-        }
-
-        const itemsSuffix = simpleType.value === "list" ? ["items"] : []
-        return [blockSchemaPathInjected.value, "properties", props.fieldKey, ...itemsSuffix].join("/")
-    })
 </script>
 
 <style scoped lang="scss">

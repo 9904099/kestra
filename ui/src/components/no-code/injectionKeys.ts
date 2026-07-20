@@ -18,7 +18,7 @@ export const PLUGIN_DEFAULTS_INJECTION_KEY = Symbol("plugin-defaults-injection-k
  */
 export const PARENT_PATH_INJECTION_KEY = Symbol("parent-path-injection-key") as InjectionKey<string>
 /**
- * Current task ID (When a task is edited) or target task ID (When a task is created) or task type (when a pluginDefaults is edited)
+ * Current task ID (When a task is edited) or target task ID (When a task is created)
  */
 export const REF_PATH_INJECTION_KEY = Symbol("ref-path-injection-key") as InjectionKey<number | undefined>
 /**
@@ -53,12 +53,6 @@ export const CREATE_TASK_FUNCTION_INJECTION_KEY = Symbol("creating-function-inje
  * to start the edition process
  */
 export const EDIT_TASK_FUNCTION_INJECTION_KEY = Symbol("edit-function-injection-key") as InjectionKey<(parentPath: string, blockSchemaPath: string, refPath: number | undefined, split?: boolean) => void>
-/**
- * Indicates if the task editor is being rendered inline (e.g., within a list or as a nested object).
- * When true, specialized inline components (like TaskObjectListInline or TaskObjectTaskInline) are used.
- * Primarily used in the Namespace > PluginDefaults tab to show nested schemas directly in the form.
- */
-export const INLINE_TASK_MODE_INJECTION_KEY = Symbol("inline-task-mode-injection-key") as InjectionKey<boolean>
 /**
  * Call this when closing a task, when the user clicks on the close button
  */
@@ -108,6 +102,8 @@ export const DATA_TYPES_MAP_INJECTION_KEY = Symbol("data-types-injection-key") a
 export const ON_TASK_EDITOR_CLICK_INJECTION_KEY = Symbol("on-task-editor-click-injection-key") as InjectionKey<(elt?: Partial<NoCodeElement>) => void>
 
 export const DEFAULT_NAMESPACE_INJECTION_KEY = Symbol("default-namespace-injection-key") as InjectionKey<ComputedRef<string>>
+
+export const TENANTS_INJECTION_KEY = Symbol("tenants-injection-key") as InjectionKey<ComputedRef<{id: string; name?: string}[]>>
 
 /**
  * Push-in-place field navigation stack, provided per task-form pane. Present

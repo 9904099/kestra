@@ -3,10 +3,12 @@
         <KsCollapse v-model="expanded" class="collapse">
             <KsCollapseItem
                 :name="section"
-                :title="`${section}${elements ? ` (${elements.length})` : ''}`"
                 :disabled="merge"
                 :class="{merge}"
             >
+                <template #title>
+                    <span :class="{required}">{{ `${section}${elements ? ` (${elements.length})` : ''}` }}</span>
+                </template>
                 <template #icon>
                     <Creation
                         :parentPathComplete
@@ -107,10 +109,12 @@
         modelValue?: Task[],
         root?: string;
         merge?: boolean;
+        required?: boolean;
     }>(), {
         modelValue: () => [],
         root: undefined,
         merge: false,
+        required: false,
     })
 
     const elements = computed(() =>
@@ -205,6 +209,12 @@
     display: flex;
     flex-direction: column;
     gap: var(--ks-spacing-2);
+}
+
+.required::after {
+    content: "*";
+    color: var(--ks-text-error);
+    margin-left: var(--ks-spacing-1);
 }
 
 .merge :deep(.kel-collapse-item__header){
