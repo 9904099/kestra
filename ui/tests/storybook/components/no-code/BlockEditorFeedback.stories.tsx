@@ -735,7 +735,7 @@ export const F5SourceFidelity: Story = {
 export const F6DocumentationCurrentState: Story = {
     render: () => ({
         setup() {
-            const axios = {get: () => Promise.resolve({data: []})}
+            const axios: any = {get: () => Promise.resolve({data: [], status: 200, headers: {}})}
             setMockClient(axios)
             return () => <PluginDocumentation overrideIntro="This is the documentation panel's current implementation." />
         },

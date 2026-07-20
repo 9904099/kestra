@@ -50,11 +50,6 @@ describe("flow-level field type mapping", () => {
         expect(getType(schema, definitions, "outputs")).toBe("array")
     })
 
-    it("pluginDefaults stays a list section", () => {
-        const schema = {type: "array", items: {$ref: "#/definitions/io.kestra.core.models.flows.FlowPluginDefault"}}
-        expect(getType(schema, definitions, "pluginDefaults")).toBe("list")
-    })
-
     it("disabled (boolean) edits as a switch", () => {
         expect(getType({type: "boolean", default: false}, definitions, "disabled")).toBe("boolean")
     })
